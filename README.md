@@ -6,13 +6,13 @@ I've been modding since 2012—right after Skyrim launched. Hundreds of mods. On
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![CI](https://github.com/mcompchecker-oss/modcheck/actions/workflows/ci.yml/badge.svg)](https://github.com/mcompchecker-oss/modcheck/actions/workflows/ci.yml)
+[![CI](https://github.com/SamsonProject/SkyModderAI/actions/workflows/ci.yml/badge.svg)](https://github.com/SamsonProject/SkyModderAI/actions/workflows/ci.yml)
 [![Deployed on Render](https://img.shields.io/badge/Deployed_on-Render-46a2f1.svg)](https://render.com)
-[![Stars](https://img.shields.io/github/stars/mcompchecker-oss/modcheck?style=social)](https://github.com/mcompchecker-oss/modcheck)
+[![Stars](https://img.shields.io/github/stars/SamsonProject/SkyModderAI?style=social)](https://github.com/SamsonProject/SkyModderAI)
 
 ## Live App
 
-[Try SkyModderAI →](https://modcheck.onrender.com)
+[Try SkyModderAI →](https://skymodderai.onrender.com)
 
 > **Note:** The live URL may vary by deployment. Check your `render.yaml` or hosting config for the actual domain.
 
@@ -44,7 +44,7 @@ I've been modding since 2012—right after Skyrim launched. Hundreds of mods. On
 
 **Linux / macOS / WSL:**
 ```bash
-git clone https://github.com/mcompchecker-oss/modcheck.git
+git clone https://github.com/SamsonProject/SkyModderAI.git
 cd modcheck
 ./run.sh
 ```
@@ -60,7 +60,7 @@ docker build -t modcheck . && docker run -p 5000:5000 modcheck
 **Manual steps (any platform):**
 ```bash
 # Clone the repository
-git clone https://github.com/mcompchecker-oss/modcheck.git
+git clone https://github.com/SamsonProject/SkyModderAI.git
 cd modcheck
 
 # Create venv and install dependencies (use venv so Stripe, dotenv work)
@@ -338,7 +338,7 @@ MIT License — See [LICENSE](LICENSE) for details.
 
 - **Email:** mcompchecker@gmail.com
 - **Phone:** (206) 915-7203
-- **Issues:** [GitHub Issues](https://github.com/mcompchecker-oss/modcheck/issues)
+- **Issues:** [GitHub Issues](https://github.com/SamsonProject/SkyModderAI/issues)
 - **Legal:** [Terms](/terms) · [Privacy](/privacy) · [Safety](/safety)
 
 ## Support the Project

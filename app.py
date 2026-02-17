@@ -8,16 +8,21 @@ import html
 import json
 import logging
 import os
+import re
 import secrets
 import smtplib
 import sqlite3
+import sys
+import time
 from collections import OrderedDict, defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
+from pathlib import Path
 from time import time as _time
-from urllib.parse import urlencode, urljoin
+from typing import Optional
+from urllib.parse import urlencode, urljoin, urlparse, quote, unquote
 
 import requests
 from flask import (
@@ -31,10 +36,13 @@ from flask import (
     request,
     session,
     url_for,
+    abort,
+    send_from_directory,
 )
 from itsdangerous import URLSafeTimedSerializer
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 from config import config
 
@@ -132,6 +140,111 @@ AI_CHAT_ENABLED = OPENAI_AVAILABLE and bool(OPENAI_API_KEY)
 if OPENAI_AVAILABLE and not OPENAI_API_KEY:
     logger.info("OPENAI_API_KEY not set; AI chat disabled")
 
+# -------------------------------------------------------------------
+# Validation Utilities for API Robustness
+# -------------------------------------------------------------------
+def validate_game_id(game_id: str) -> str:
+    """Validate and normalize game ID."""
+    if not game_id or not isinstance(game_id, str):
+        raise ValueError("Game ID is required and must be a string")
+    
+    game_id = game_id.strip().lower()
+    allowed_games = {g['id'] for g in SUPPORTED_GAMES}
+    
+    if game_id not in allowed_games:
+        raise ValueError(f"Invalid game ID. Must be one of: {', '.join(sorted(allowed_games))}")
+    
+    return game_id
+
+def validate_limit(limit: str, default: int = 10, max_allowed: int = 50) -> int:
+    """Validate and sanitize limit parameter."""
+    try:
+        if limit is None:
+            return default
+        limit_int = int(limit)
+        if limit_int < 1:
+            return 1
+        if limit_int > max_allowed:
+            return max_allowed
+        return limit_int
+    except (TypeError, ValueError):
+        return default
+
+def validate_search_query(query: str) -> str:
+    """Validate and sanitize search query."""
+    if not query:
+        raise ValueError("Search query is required")
+    
+    query = str(query).strip()
+    if len(query) < 1:
+        raise ValueError("Search query must be at least 1 character")
+    if len(query) > 200:
+        raise ValueError("Search query too long (max 200 characters)")
+    
+    # Remove potentially harmful characters
+    query = re.sub(r'[<>"\']', '', query)
+    return query
+
+def validate_mod_list(mod_list: str) -> str:
+    """Validate mod list input."""
+    if not mod_list:
+        raise ValueError("Mod list is required")
+    
+    mod_list = str(mod_list).strip()
+    if len(mod_list) > 100000:  # 100KB limit
+        raise ValueError("Mod list too large (max 100KB)")
+    
+    return mod_list
+
+def validate_email(email: str) -> str:
+    """Basic email validation."""
+    if not email:
+        raise ValueError("Email is required")
+    
+    email = str(email).strip().lower()
+    if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+        raise ValueError("Invalid email format")
+    
+    return email
+
+def validate_list_name(name: str) -> str:
+    """Validate saved list name."""
+    if not name:
+        raise ValueError("List name is required")
+    
+    name = str(name).strip()
+    if len(name) < 1:
+        raise ValueError("List name cannot be empty")
+    if len(name) > 100:
+        raise ValueError("List name too long (max 100 characters)")
+    
+    # Remove potentially harmful characters
+    name = re.sub(r'[<>"\']', '', name)
+    return name
+
+def api_error(message: str, status_code: int = 400, details: dict = None):
+    """Standardized API error response."""
+    response = {
+        'success': False,
+        'error': message,
+        'timestamp': datetime.utcnow().isoformat(),
+    }
+    if details:
+        response['details'] = details
+    return jsonify(response), status_code
+
+def api_success(data: dict = None, message: str = None):
+    """Standardized API success response."""
+    response = {
+        'success': True,
+        'timestamp': datetime.utcnow().isoformat(),
+    }
+    if data:
+        response.update(data)
+    if message:
+        response['message'] = message
+    return jsonify(response)
+
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)  # Trust reverse proxy headers
 
@@ -151,6 +264,34 @@ app.config.update(
     PERMANENT_SESSION_LIFETIME=86400,  # 24 hours
     REMEMBER_COOKIE_DURATION=86400 * 30  # 30 days
 )
+
+# Production-specific session configuration (fixes OAuth 500 errors)
+if os.environ.get('FLASK_ENV') == 'production':
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # NOT 'Strict' — breaks OAuth redirects
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+
+# Data file check on startup (Priority 4B)
+@app.before_request
+def check_data_ready():
+    if not hasattr(app, '_data_checked'):
+        app._data_checked = True
+        import os
+        import glob
+        data_files = glob.glob('data/*_mod_database.json')
+        if not data_files:
+            # Trigger async data download
+            import threading
+            from loot_parser import bootstrap_loot_data
+            t = threading.Thread(target=bootstrap_loot_data, daemon=True)
+            t.start()
+            app._data_loading = True
+        else:
+            app._data_loading = False
+
+# BASE_URL configuration for OAuth callbacks
+BASE_URL = os.environ.get('BASE_URL', 'https://skymodderai.onrender.com').rstrip('/')
 
 # Stripe configuration (handled in config.py)
 stripe_price_id = config.STRIPE_PRO_PRICE_ID or ''
@@ -309,6 +450,40 @@ def init_db():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        db.execute('''
+            CREATE TABLE IF NOT EXISTS user_saved_lists (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_email TEXT NOT NULL,
+                name TEXT NOT NULL,
+                game TEXT,
+                game_version TEXT,
+                masterlist_version TEXT,
+                tags TEXT,
+                notes TEXT,
+                preferences_json TEXT,
+                source TEXT,
+                list_text TEXT NOT NULL,
+                saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (user_email, name)
+            )
+        ''')
+        # Add columns that might not exist yet
+        for col_sql in (
+            'ALTER TABLE user_saved_lists ADD COLUMN analysis_snapshot TEXT',
+            'ALTER TABLE user_saved_lists ADD COLUMN game_version TEXT',
+            'ALTER TABLE user_saved_lists ADD COLUMN masterlist_version TEXT',
+            'ALTER TABLE user_saved_lists ADD COLUMN tags TEXT',
+            'ALTER TABLE user_saved_lists ADD COLUMN notes TEXT',
+            'ALTER TABLE user_saved_lists ADD COLUMN preferences_json TEXT',
+            'ALTER TABLE user_saved_lists ADD COLUMN source TEXT',
+            'ALTER TABLE user_saved_lists ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+        ):
+            try:
+                db.execute(col_sql)
+                db.commit()
+            except sqlite3.OperationalError:
+                db.rollback()
         db.execute('''
             CREATE TABLE IF NOT EXISTS openclaw_grants (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -754,6 +929,148 @@ def set_user_specs(email, specs: dict):
         db.commit()
     except Exception as e:
         logger.warning(f"set_user_specs: {e}")
+
+def list_user_saved_lists(email: str, game: Optional[str] = None, game_version: Optional[str] = None, masterlist_version: Optional[str] = None):
+    """Return a list of saved list records for a user (new API)."""
+    if not email:
+        return []
+    try:
+        sql = (
+            'SELECT id, name, game, game_version, masterlist_version, tags, notes, preferences_json, source, list_text, analysis_snapshot, saved_at, updated_at '
+            'FROM user_saved_lists WHERE user_email = ?'
+        )
+        params = [email.lower()]
+        if game:
+            sql += ' AND game = ?'
+            params.append(game.strip().lower())
+        if game_version:
+            sql += ' AND game_version = ?'
+            params.append(game_version.strip())
+        if masterlist_version:
+            sql += ' AND masterlist_version = ?'
+            params.append(masterlist_version.strip())
+        sql += ' ORDER BY COALESCE(updated_at, saved_at) DESC, saved_at DESC'
+        rows = get_db().execute(sql, params).fetchall()
+        out = []
+        for r in rows or []:
+            prefs = None
+            try:
+                prefs = json.loads(r['preferences_json']) if r['preferences_json'] else None
+            except Exception:
+                prefs = None
+            
+            analysis = None
+            try:
+                analysis = json.loads(r['analysis_snapshot']) if r['analysis_snapshot'] else None
+            except Exception:
+                analysis = None
+            
+            out.append({
+                'id': r['id'],
+                'name': r['name'],
+                'game': r['game'] or '',
+                'game_version': r['game_version'] or '',
+                'masterlist_version': r['masterlist_version'] or '',
+                'tags': r['tags'] or '',
+                'notes': r['notes'] or '',
+                'preferences': prefs,
+                'source': r['source'] or '',
+                'list': r['list_text'] or '',
+                'analysis_snapshot': analysis,
+                'savedAt': r['saved_at'],
+                'updatedAt': r['updated_at'] or r['saved_at'],
+            })
+        return out
+    except Exception as e:
+        logger.warning(f"list_user_saved_lists: {e}")
+        return []
+
+def list_user_saved_lists_legacy_map(email: str):
+    """Return legacy dict keyed by name (for backwards compatibility with older UI)."""
+    items = list_user_saved_lists(email)
+    out = {}
+    for it in items:
+        out[it['name']] = {
+            'name': it['name'],
+            'game': it.get('game') or '',
+            'list': it.get('list') or '',
+            'savedAt': it.get('updatedAt') or it.get('savedAt'),
+        }
+    return out
+
+def upsert_user_saved_list(email: str, name: str, game: str, list_text: str, *, game_version: Optional[str] = None, masterlist_version: Optional[str] = None, tags: Optional[str] = None, notes: Optional[str] = None, preferences: Optional[dict] = None, source: Optional[str] = None, analysis_snapshot: Optional[dict] = None):
+    """Create or update a saved list for a user."""
+    if not email:
+        return False
+    name = (name or '').strip()
+    if not name:
+        return False
+    try:
+        db = get_db()
+        preferences_json = None
+        if isinstance(preferences, dict):
+            try:
+                preferences_json = json.dumps(preferences)
+            except Exception:
+                preferences_json = None
+        
+        analysis_json = None
+        if isinstance(analysis_snapshot, dict):
+            try:
+                analysis_json = json.dumps(analysis_snapshot)
+            except Exception:
+                analysis_json = None
+        
+        db.execute('''
+            INSERT INTO user_saved_lists (
+                user_email, name, game, game_version, masterlist_version, tags, notes, preferences_json, source, list_text, analysis_snapshot, saved_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ON CONFLICT(user_email, name) DO UPDATE SET
+                game = excluded.game,
+                game_version = excluded.game_version,
+                masterlist_version = excluded.masterlist_version,
+                tags = excluded.tags,
+                notes = excluded.notes,
+                preferences_json = excluded.preferences_json,
+                source = excluded.source,
+                list_text = excluded.list_text,
+                analysis_snapshot = excluded.analysis_snapshot,
+                updated_at = CURRENT_TIMESTAMP
+        ''', (email.lower(), name, game, game_version, masterlist_version, tags, notes, preferences_json, source, list_text, analysis_json))
+        db.commit()
+        return True
+    except Exception as e:
+        logger.warning(f"upsert_user_saved_list: {e}")
+        return False
+
+def delete_user_saved_list(email: str, name: Optional[str] = None, list_id: Optional[int] = None) -> bool:
+    """Delete a saved list by id (preferred) or by name for a user."""
+    if not email:
+        return False
+    if list_id is None:
+        name = (name or '').strip()
+        if not name:
+            return False
+    if list_id is not None and int(list_id) <= 0:
+        return False
+    try:
+        db = get_db()
+        if list_id is not None:
+            db.execute(
+                'DELETE FROM user_saved_lists WHERE user_email = ? AND id = ?',
+                (email.lower(), int(list_id)),
+            )
+        else:
+            db.execute(
+                'DELETE FROM user_saved_lists WHERE user_email = ? AND name = ?',
+                (email.lower(), name),
+            )
+        db.commit()
+        return True
+    except Exception as e:
+        logger.warning(f"delete_user_saved_list: {e}")
+        return False
 
 def get_user_links(email):
     """Get linked account/profile metadata for a user."""
@@ -1362,9 +1679,19 @@ def auth_google():
 
 @app.route('/auth/google/callback')
 def auth_google_callback():
-    """Handle Google OAuth callback."""
-    from oauth_utils import google_oauth_callback
-    return google_oauth_callback()
+    """Handle Google OAuth callback with proper error handling."""
+    # Handle cold-start state expiry
+    if not session.get('oauth_state'):
+        return redirect('/auth?error=session_expired&message=The+server+restarted+during+sign-in.+Please+try+again.')
+    
+    try:
+        from oauth_utils import google_oauth_callback
+        return google_oauth_callback()
+    except Exception as e:
+        app.logger.error(f"Google OAuth callback error: {e}", exc_info=True)
+        if 'state' in str(e).lower() or 'csrf' in str(e).lower():
+            return redirect('/auth?error=session_expired&message=Login+session+expired,+please+try+again')
+        return redirect('/auth?error=oauth_failed&message=Sign-in+failed,+please+try+again')
 
 # GitHub OAuth routes
 @app.route('/auth/github')
@@ -1375,9 +1702,19 @@ def auth_github():
 
 @app.route('/auth/github/callback')
 def auth_github_callback():
-    """Handle GitHub OAuth callback."""
-    from oauth_utils import github_oauth_callback
-    return github_oauth_callback()
+    """Handle GitHub OAuth callback with proper error handling."""
+    # Handle cold-start state expiry
+    if not session.get('oauth_state'):
+        return redirect('/auth?error=session_expired&message=The+server+restarted+during+sign-in.+Please+try+again.')
+    
+    try:
+        from oauth_utils import github_oauth_callback
+        return github_oauth_callback()
+    except Exception as e:
+        app.logger.error(f"GitHub OAuth callback error: {e}", exc_info=True)
+        if 'state' in str(e).lower() or 'csrf' in str(e).lower():
+            return redirect('/auth?error=session_expired&message=Login+session+expired,+please+try+again')
+        return redirect('/auth?error=oauth_failed&message=Sign-in+failed,+please+try+again')
 
 @app.route('/signup')
 def signup():
@@ -1488,9 +1825,15 @@ def create_checkout_for_verified():
             },
         )
         return jsonify({'checkout_url': checkout_session.url, 'plan': plan, 'target_tier': target_tier})
+    except stripe.error.AuthenticationError:
+        logger.error("Stripe authentication error - API keys invalid")
+        return api_error("Stripe not configured", 503)
+    except stripe.error.APIConnectionError:
+        logger.error("Stripe API connection error")
+        return api_error("Payment service temporarily unavailable", 503)
     except stripe.error.StripeError as e:
         logger.error(f"Stripe error in create-checkout: {str(e)}")
-        return api_error(str(e), 500)
+        return api_error("Payment service temporarily unavailable", 503)
     except Exception:
         logger.exception("Create-checkout error")
         return api_error('Something went wrong. Please try again.', 500)
@@ -1532,9 +1875,15 @@ def billing_portal():
             return_url=request.host_url.rstrip('/') + url_for('profile'),
         )
         return redirect(portal_session.url)
+    except stripe.error.AuthenticationError:
+        logger.error("Stripe authentication error in billing portal")
+        return redirect(url_for('profile', error='stripe_config'))
+    except stripe.error.APIConnectionError:
+        logger.error("Stripe API connection error in billing portal")
+        return redirect(url_for('profile', error='stripe_unavailable'))
     except stripe.error.StripeError as e:
         logger.error(f"Stripe billing portal error: {e}")
-        return redirect(url_for('profile'))
+        return redirect(url_for('profile', error='stripe_error'))
 
 @app.route('/api/sessions', methods=['GET'])
 @login_required_api
@@ -1826,69 +2175,191 @@ def list_preferences_options():
     return jsonify({'options': get_preference_options(game=game), 'game': game})
 
 
+@app.route('/api/list-preferences', methods=['GET', 'POST', 'PATCH', 'DELETE'])
+def api_list_preferences():
+    """Paid tiers: server-side saved mod lists. Free tier should use localStorage."""
+    user_email = session.get('user_email')
+    tier = get_user_tier(user_email) if user_email else 'free'
+    if not user_email:
+        return api_error('Login required.', 401)
+    if not has_paid_access(tier):
+        return api_error('Paid subscription required for cloud saved lists.', 403)
+
+    if request.method == 'GET':
+        game = (request.args.get('game') or '').strip().lower() or None
+        game_version = (request.args.get('game_version') or '').strip() or None
+        masterlist_version = (request.args.get('masterlist_version') or '').strip() or None
+        items = list_user_saved_lists(user_email, game=game, game_version=game_version, masterlist_version=masterlist_version)
+        lists = list_user_saved_lists_legacy_map(user_email)
+        return jsonify({'success': True, 'items': items, 'lists': lists})
+
+    data = request.get_json(silent=True) or {}
+    name = (data.get('name') or '').strip()
+    if request.method == 'DELETE':
+        list_id = data.get('id')
+        if not name and not list_id:
+            return api_error('id or name required', 400)
+        ok = delete_user_saved_list(user_email, name=name, list_id=int(list_id) if list_id else None)
+        return jsonify({'success': bool(ok)})
+
+    if request.method == 'PATCH':
+        # Update metadata without changing list_text
+        list_id = data.get('id')
+        new_name = (data.get('new_name') or '').strip()
+        if not list_id and not name:
+            return api_error('id or name required', 400)
+        try:
+            db = get_db()
+            updates = []
+            params = []
+            if new_name:
+                updates.append('name = ?')
+                params.append(new_name)
+            if 'game' in data:
+                updates.append('game = ?')
+                params.append(data['game'].strip().lower())
+            if 'game_version' in data:
+                updates.append('game_version = ?')
+                params.append(data['game_version'].strip() or None)
+            if 'masterlist_version' in data:
+                updates.append('masterlist_version = ?')
+                params.append(data['masterlist_version'].strip() or None)
+            if 'tags' in data:
+                updates.append('tags = ?')
+                params.append(data['tags'].strip() or None)
+            if 'notes' in data:
+                updates.append('notes = ?')
+                params.append(data['notes'].strip() or None)
+            if 'preferences' in data and isinstance(data['preferences'], dict):
+                updates.append('preferences_json = ?')
+                params.append(json.dumps(data['preferences']))
+            if 'source' in data:
+                updates.append('source = ?')
+                params.append(data['source'].strip() or None)
+            if not updates:
+                return api_error('No fields to update', 400)
+            updates.append('updated_at = CURRENT_TIMESTAMP')
+            params.append(user_email.lower())
+            if list_id:
+                params.append(int(list_id))
+                sql = f'UPDATE user_saved_lists SET {", ".join(updates)} WHERE user_email = ? AND id = ?'
+            else:
+                params.append(name)
+                sql = f'UPDATE user_saved_lists SET {", ".join(updates)} WHERE user_email = ? AND name = ?'
+            db.execute(sql, params)
+            db.commit()
+            return jsonify({'success': True})
+        except Exception as e:
+            logger.warning(f'PATCH list-preferences failed: {e}')
+            return api_error('Failed to update list.', 500)
+
+    # Validate and sanitize inputs for POST
+    data = request.get_json() or {}
+    if not data:
+        return api_error('Invalid JSON request body', 400)
+    
+    game = validate_game_id(data.get('game', DEFAULT_GAME))
+    game_version = (data.get('game_version') or '').strip() or None
+    masterlist_version = (data.get('masterlist_version') or '').strip() or None
+    tags = (data.get('tags') or '').strip() or None
+    notes = (data.get('notes') or '').strip() or None
+    preferences = data.get('preferences') if isinstance(data.get('preferences'), dict) else None
+    source = (data.get('source') or '').strip() or None
+    analysis_snapshot = data.get('analysis_snapshot') if isinstance(data.get('analysis_snapshot'), dict) else None
+    list_text = validate_mod_list(data.get('list', ''))
+    name = validate_list_name(data.get('name', ''))
+    
+    ok = upsert_user_saved_list(
+        user_email,
+        name,
+        game,
+        list_text,
+        game_version=game_version,
+        masterlist_version=masterlist_version,
+        tags=tags,
+        notes=notes,
+        preferences=preferences,
+        source=source,
+        analysis_snapshot=analysis_snapshot,
+    )
+    if not ok:
+        return api_error('Failed to save list.', 500)
+    return api_success(message='List saved successfully')
+
+
 @app.route('/api/build-list', methods=['POST'])
 @rate_limit(RATE_LIMIT_ANALYZE, 'build-list')
 def api_build_list():
     """Build a mod list from user preferences. All users get standard list; Pro gets AI setups."""
-    data = request.get_json() or {}
-    game = (data.get('game') or DEFAULT_GAME).lower()
-    if game not in {g['id'] for g in SUPPORTED_GAMES}:
-        game = DEFAULT_GAME
-    preferences = data.get('preferences') or {}
-    if not isinstance(preferences, dict):
-        preferences = {}
-    option_rows = get_preference_options(game=game)
-    allowed_pref_values = {
-        row['key']: {c['value'] for c in row.get('choices', [])}
-        for row in option_rows
-    }
-    sanitized_preferences = {}
-    ignored_preferences = []
-    for key, value in preferences.items():
-        if key not in allowed_pref_values:
-            ignored_preferences.append(key)
-            continue
-        value_s = str(value or '').strip()
-        if value_s in allowed_pref_values[key]:
-            sanitized_preferences[key] = value_s
-        else:
-            sanitized_preferences[key] = 'any'
-    limit = min(max(10, int(data.get('limit', 50))), 100)
-    specs = data.get('specs') or {}
-    if isinstance(specs, dict):
-        specs = {k: v for k, v in specs.items() if v}
-    user_email = session.get('user_email')
-    if not specs and user_email:
-        specs = get_user_specs(user_email) or {}
-    if isinstance(specs, dict):
-        specs = {k: v for k, v in specs.items() if v}
-    tier = get_user_tier(user_email) if user_email else 'free'
-    is_pro = has_paid_access(tier)
-
     try:
-        p = get_parser(game)
-        nexus_slug = NEXUS_GAME_SLUGS.get(game, 'skyrimspecialedition')
-        mods = build_list_from_preferences(p, game, nexus_slug, sanitized_preferences, limit=limit, specs=specs)
-    except Exception:
-        logger.exception("Build list error")
-        return jsonify({'error': 'Failed to build list. Try again.'}), 500
+        data = request.get_json() or {}
+        if not data:
+            return api_error('Invalid JSON request body', 400)
+        
+        # Validate and sanitize inputs
+        game = validate_game_id(data.get('game', DEFAULT_GAME))
+        preferences = data.get('preferences') if isinstance(data.get('preferences'), dict) else {}
+        
+        if not isinstance(preferences, dict):
+            preferences = {}
+            
+        option_rows = get_preference_options(game=game)
+        allowed_pref_values = {
+            row['key']: {c['value'] for c in row.get('choices', [])}
+            for row in option_rows
+        }
+        sanitized_preferences = {}
+        ignored_preferences = []
+        for key, value in preferences.items():
+            if key not in allowed_pref_values:
+                ignored_preferences.append(key)
+                continue
+            value_s = str(value or '').strip()
+            if value_s in allowed_pref_values[key]:
+                sanitized_preferences[key] = value_s
+            else:
+                sanitized_preferences[key] = 'any'
+        
+        limit = validate_limit(data.get('limit'), default=50, max_allowed=100)
+        specs = data.get('specs') or {}
+        if isinstance(specs, dict):
+            specs = {k: v for k, v in specs.items() if v}
+        user_email = session.get('user_email')
+        if not specs and user_email:
+            specs = get_user_specs(user_email) or {}
+        if isinstance(specs, dict):
+            specs = {k: v for k, v in specs.items() if v}
+        tier = get_user_tier(user_email) if user_email else 'free'
+        is_pro = has_paid_access(tier)
 
-    result = {'mods': mods, 'game': game, 'preferences': sanitized_preferences, 'ignored_preferences': ignored_preferences}
-
-    # Pro: AI-generated multiple setups (future: call OpenAI for N combinations)
-    if is_pro and AI_CHAT_ENABLED and data.get('pro_setups'):
         try:
-            setups = _ai_generate_setups(game, sanitized_preferences, nexus_slug, p, limit=3, specs=specs)
-            result['setups'] = setups
-        except Exception as e:
-            logger.debug("AI setups failed: %s", e)
+            p = get_parser(game)
+            nexus_slug = NEXUS_GAME_SLUGS.get(game, 'skyrimspecialedition')
+            mods = build_list_from_preferences(p, game, nexus_slug, sanitized_preferences, limit=limit, specs=specs)
+        except Exception:
+            logger.exception("Build list error")
+            return api_error('Failed to build list. Try again.', 500)
 
-    track_activity(
-        'build_list',
-        {'game': game, 'mods_returned': len(result.get('mods') or []), 'has_setups': bool(result.get('setups'))},
-        user_email,
-    )
-    return jsonify(result)
+        result = {'mods': mods, 'game': game, 'preferences': sanitized_preferences, 'ignored_preferences': ignored_preferences}
+
+        # Pro: AI-generated multiple setups (future: call OpenAI for N combinations)
+        if is_pro and AI_CHAT_ENABLED and data.get('pro_setups'):
+            try:
+                setups = _ai_generate_setups(game, sanitized_preferences, nexus_slug, p, limit=3, specs=specs)
+                result['setups'] = setups
+            except Exception as e:
+                logger.debug("AI setups failed: %s", e)
+
+        track_activity(
+            'build_list',
+            {'game': game, 'mods_returned': len(result.get('mods') or []), 'has_setups': bool(result.get('setups'))},
+            user_email,
+        )
+        return api_success(result)
+        
+    except Exception as e:
+        logger.exception("Build list endpoint failed: %s", e)
+        return api_error('Failed to build list. Please try again.', 500)
 
 
 def _ai_generate_setups(game, preferences, nexus_slug, parser, limit=3, specs=None):
@@ -2347,37 +2818,200 @@ def api_recommendations():
 def full_search():
     """Full-featured search for AI assistant and power users. ?q=ordinator&game=skyrimse&limit=15&for_ai=1
     Returns BM25-ranked results with scores, snippets, mod_info (requirements, tags)."""
-    q = (request.args.get('q') or '').strip()
-    game = (request.args.get('game') or DEFAULT_GAME).lower()
-    version = (request.args.get('version') or '').strip() or 'latest'
-    for_ai = request.args.get('for_ai', '0').lower() in ('1', 'true', 'yes')
     try:
-        limit = min(max(1, int(request.args.get('limit', 15))), 50)
-    except (TypeError, ValueError):
-        limit = 15
-    if not q:
-        return jsonify({'results': [], 'query_expanded': False})
-    try:
+        # Validate and sanitize inputs
+        q = validate_search_query(request.args.get('q', ''))
+        game = validate_game_id(request.args.get('game', DEFAULT_GAME))
+        version = (request.args.get('version') or '').strip() or 'latest'
+        limit = validate_limit(request.args.get('limit'), default=15, max_allowed=50)
+        for_ai = request.args.get('for_ai', '0').lower() in ('1', 'true', 'yes')
+        
         p = get_parser(game, version=version)
         engine = get_search_engine(p)
+        
         if for_ai:
             results = engine.search_for_ai(q, limit=limit)
-            return jsonify({'results': results, 'game': game})
+            return api_success({'results': results, 'game': game})
+            
         results = engine.search(q, limit=limit, include_breakdown=True)
-        out = [
-            {
+        out = []
+        for r in results:
+            # Build related links for each search result
+            links = {}
+            
+            # Nexus link if available
+            if r.mod_info and r.mod_info.get('nexus_id'):
+                nexus_game = next((g['nexus_slug'] for g in SUPPORTED_GAMES if g['id'] == game), None)
+                if nexus_game:
+                    links['nexus'] = f"https://nexusmods.com/{nexus_game}/mods/{r.mod_info['nexus_id']}"
+            
+            # Analysis link
+            links['analyze'] = f"/api/analyze?game={game}&mods={encodeURIComponent(r.mod_name)}"
+            
+            # Search for conflicts/solutions
+            links['conflicts'] = f"/api/search-solutions?q={encodeURIComponent(r.mod_name + ' conflict')}&game={game}"
+            links['solutions'] = f"/api/search-solutions?q={encodeURIComponent(r.mod_name + ' fix')}&game={game}"
+            
+            # Add to current list (via client-side)
+            links['add_to_list'] = f"client:addMod:{r.mod_name}"
+            
+            out.append({
                 'mod_name': r.mod_name,
                 'score': r.score,
                 'score_breakdown': r.score_breakdown,
                 'snippet': r.snippet,
                 'mod_info': r.mod_info,
-            }
-            for r in results
-        ]
-        return jsonify({'results': out, 'game': game})
+                'links': links,
+            })
+        return jsonify({'results': out, 'game': game, 'query': q})
     except Exception as e:
         logger.exception("Full search failed: %s", e)
         return jsonify({'results': [], 'game': game or DEFAULT_GAME})
+
+
+@app.route('/api/info', methods=['GET'])
+def api_info():
+    """Machine-readable feature discovery for assistants and developers.
+    Returns available endpoints, their methods, expected inputs/outputs, and feature flags."""
+    return jsonify({
+        'name': 'SkyModderAI API',
+        'version': '1.0',
+        'description': 'Bethesda mod compatibility analysis, ranking, build generation, and dev tooling using LOOT data.',
+        'endpoints': {
+            '/api/analyze': {
+                'methods': ['POST'],
+                'description': 'Analyze a mod list for conflicts, warnings, and suggested load order',
+                'input': {
+                    'mod_list': 'string (required) - Newline-separated mod list',
+                    'game': 'string (optional) - Game ID (skyrimse, skyrim, fallout4, etc.)',
+                    'game_version': 'string (optional) - Game executable version',
+                    'masterlist_version': 'string (optional) - LOOT masterlist version',
+                    'specs': 'object (optional) - User system specs'
+                },
+                'output': {
+                    'conflicts': 'object - Errors, warnings, info with links',
+                    'suggested_load_order': 'array - Ordered list of mods',
+                    'summary': 'object - Conflict counts',
+                    '_links': 'object - Related resource URLs'
+                },
+                'rate_limit': '10 requests per minute',
+                'tier_access': 'all'
+            },
+            '/api/search': {
+                'methods': ['GET'],
+                'description': 'Search for mods by name with BM25 ranking',
+                'input': {
+                    'q': 'string (required) - Search query',
+                    'game': 'string (optional) - Game ID',
+                    'limit': 'integer (optional) - Max results (1-50, default 15)',
+                    'for_ai': 'boolean (optional) - AI-optimized format'
+                },
+                'output': {
+                    'results': 'array - Mod objects with scores and links',
+                    'query': 'string - The search query used'
+                },
+                'rate_limit': '30 requests per minute',
+                'tier_access': 'all'
+            },
+            '/api/build-list': {
+                'methods': ['POST'],
+                'description': 'Build a mod list from user preferences',
+                'input': {
+                    'game': 'string (optional) - Game ID',
+                    'preferences': 'object - User preference options'
+                },
+                'output': {
+                    'mods': 'array - Generated mod list',
+                    'setups': 'array - AI-generated setups (Pro+ only)'
+                },
+                'rate_limit': '5 requests per minute',
+                'tier_access': 'all (AI setups for Pro+)'
+            },
+            '/api/list-preferences': {
+                'methods': ['GET', 'POST', 'PATCH', 'DELETE'],
+                'description': 'Manage saved mod lists with metadata (Pro feature)',
+                'input': {
+                    'GET': 'game, game_version, masterlist_version as query params',
+                    'POST': 'name, game, list, game_version, masterlist_version, tags, notes, preferences, source',
+                    'PATCH': 'id or name + fields to update',
+                    'DELETE': 'id or name'
+                },
+                'output': {
+                    'items': 'array - Saved list objects with metadata',
+                    'lists': 'object - Legacy format map'
+                },
+                'rate_limit': '20 requests per minute',
+                'tier_access': 'Pro, OpenClaw'
+            },
+            '/api/community/posts': {
+                'methods': ['GET', 'POST'],
+                'description': 'Community posts and discussions',
+                'input': {
+                    'GET': 'sort, tag, search as query params',
+                    'POST': 'tag, content'
+                },
+                'output': {
+                    'posts': 'array - Community post objects',
+                    'health': 'object - Community metrics'
+                },
+                'rate_limit': '10 posts per minute',
+                'tier_access': 'all (posting requires login)'
+            },
+            '/api/games': {
+                'methods': ['GET'],
+                'description': 'Get supported games and metadata',
+                'output': {
+                    'games': 'array - Game objects with IDs, names, nexus_slugs'
+                },
+                'tier_access': 'all'
+            },
+            '/api/user/me': {
+                'methods': ['GET'],
+                'description': 'Get current user profile and tier',
+                'output': {
+                    'email': 'string',
+                    'tier': 'string - free, pro, claw',
+                    'specs': 'object - User system specs'
+                },
+                'tier_access': 'login required'
+            }
+        },
+        'features': {
+            'conflict_detection': True,
+            'load_order_optimization': True,
+            'mod_search': True,
+            'saved_lists': True,
+            'ai_chat': True,
+            'build_lists': True,
+            'community': True,
+            'dev_tools': True,
+            'cross_tab_sync': True,
+            'context_aware_navigation': True,
+            'hal_links': True
+        },
+        'games': [
+            {'id': 'skyrimse', 'name': 'Skyrim Special Edition', 'nexus_slug': 'skyrimspecialedition'},
+            {'id': 'skyrim', 'name': 'Skyrim LE', 'nexus_slug': 'skyrim'},
+            {'id': 'skyrimvr', 'name': 'Skyrim VR', 'nexus_slug': 'skyrimvr'},
+            {'id': 'oblivion', 'name': 'Oblivion', 'nexus_slug': 'oblivion'},
+            {'id': 'fallout3', 'name': 'Fallout 3', 'nexus_slug': 'fallout3'},
+            {'id': 'falloutnv', 'name': 'Fallout New Vegas', 'nexus_slug': 'newvegas'},
+            {'id': 'fallout4', 'name': 'Fallout 4', 'nexus_slug': 'fallout4'},
+            {'id': 'starfield', 'name': 'Starfield', 'nexus_slug': 'starfield'}
+        ],
+        'tiers': {
+            'free': {'limits': 'Basic analysis, search, community'},
+            'pro': {'limits': 'Saved lists, AI setups, advanced features'},
+            'claw': {'limits': 'All features + OpenClaw automation'}
+        },
+        '_links': {
+            'self': {'href': '/api/info', 'title': 'API Information'},
+            'analyze': {'href': '/api/analyze', 'title': 'Analyze mod list'},
+            'search': {'href': '/api/search', 'title': 'Search mods'},
+            'docs': {'href': '/api', 'title': 'API Documentation'},
+            'community': {'href': '/api/community/posts', 'title': 'Community'}
+        }
+    })
 
 
 @app.route('/api/ai-context', methods=['GET', 'POST'])
@@ -2452,18 +3086,127 @@ def resolve_conflict():
     })
 
 
+def _build_next_actions(game: str, errors, warnings, info, plugin_limit_warning: Optional[str], mod_warnings_list, masterlist_version: Optional[str], game_version: Optional[str]):
+    actions = []
+    err_count = len(errors or [])
+    warn_count = len(warnings or [])
+    info_count = len(info or [])
+    if plugin_limit_warning:
+        actions.append({
+            'id': 'plugin-limit',
+            'title': 'Reduce plugin pressure',
+            'priority': 'high',
+            'kind': 'warning',
+            'summary': plugin_limit_warning,
+            'actions': [
+                {'label': 'Learn about ESLs', 'type': 'link', 'url': 'https://www.nexusmods.com/skyrimspecialedition/articles/1187'},
+                {'label': 'Go to heaviest mods', 'type': 'scroll', 'target': 'system-impact-section'},
+            ],
+        })
+    if err_count > 0:
+        actions.append({
+            'id': 'fix-errors',
+            'title': 'Fix errors first',
+            'priority': 'high',
+            'kind': 'error',
+            'summary': f'{err_count} error(s) block stability. Start here before tweaking visuals or balance.',
+            'actions': [
+                {'label': 'Show only errors', 'type': 'filter', 'value': 'errors'},
+                {'label': 'Search fixes on the web (Pro)', 'type': 'suggest', 'value': 'search_solutions'},
+            ],
+        })
+    if warn_count > 0:
+        actions.append({
+            'id': 'address-warnings',
+            'title': 'Work through warnings',
+            'priority': 'medium',
+            'kind': 'warning',
+            'summary': f'{warn_count} warning(s) may cause crashes, missing features, or subtle bugs.',
+            'actions': [
+                {'label': 'Show only warnings', 'type': 'filter', 'value': 'warnings'},
+            ],
+        })
+    if err_count == 0 and warn_count == 0 and info_count == 0:
+        actions.append({
+            'id': 'looks-good',
+            'title': 'Looks stable — next, improve your build safely',
+            'priority': 'low',
+            'kind': 'success',
+            'summary': 'No issues found in the masterlist checks. Next steps: lock your load order, then add mods incrementally.',
+            'actions': [
+                {'label': 'Build a list (generate a new setup)', 'type': 'tab', 'target': 'build-list'},
+                {'label': 'Copy share link', 'type': 'client', 'value': 'share_link'},
+            ],
+        })
+    if mod_warnings_list:
+        severe = [w for w in (mod_warnings_list or []) if (w.get('severity') or '').lower() in ('error', 'warning')]
+        if severe:
+            actions.append({
+                'id': 'mod-warnings',
+                'title': 'Address mod list warnings',
+                'priority': 'medium',
+                'kind': 'warning',
+                'summary': f'{len(severe)} warning(s) flagged for plugin limit, VRAM, or complexity.',
+                'actions': [
+                    {'label': 'View warnings', 'type': 'scroll', 'target': 'mod-warnings-section'},
+                ],
+            })
+    if masterlist_version and masterlist_version != 'latest':
+        actions.append({
+            'id': 'data-branch',
+            'title': 'Use the latest LOOT data (recommended)',
+            'priority': 'low',
+            'kind': 'info',
+            'summary': f'You analyzed against branch "{masterlist_version}". Latest data usually finds more mods and rules.',
+            'actions': [
+                {'label': 'Switch to Latest', 'type': 'client', 'value': 'set_masterlist_latest'},
+                {'label': 'Refresh data', 'type': 'client', 'value': 'refresh_masterlist'},
+            ],
+        })
+    if game_version:
+        actions.append({
+            'id': 'game-version',
+            'title': 'Confirm game version match',
+            'priority': 'low',
+            'kind': 'info',
+            'summary': f'You selected game version "{game_version}". Keep version-consistent SKSE/F4SE/Address Library mods.',
+            'actions': [
+                {'label': 'Quick Start version guides', 'type': 'tab', 'target': 'quickstart'},
+            ],
+        })
+    if game:
+        actions.append({
+            'id': 'research',
+            'title': 'Research a mod from your list',
+            'priority': 'low',
+            'kind': 'info',
+            'summary': 'Use mod search to add missing requirements or validate compatibility before you install.',
+            'actions': [
+                {'label': 'Focus mod search', 'type': 'client', 'value': 'focus_mod_search'},
+            ],
+        })
+    return actions[:8]
+
+
 @app.route('/api/analyze', methods=['POST'])
 @rate_limit(RATE_LIMIT_ANALYZE, 'analyze')
 def analyze_mods():
     """Analyze mod list and return conflicts, suggested load order, and stats."""
+    # Check if data is still loading (Priority 4B)
+    if getattr(app, '_data_loading', False):
+        return api_error("Mod database is loading (first start). Please wait 30 seconds and try again.", 503)
+    
     try:
         data = request.get_json() or {}
-        mod_list_text = data.get('mod_list')
-        if not mod_list_text:
-            return api_error('No mod list provided. Add one or more mods (paste a list or use search).', 400)
-
-        if len(mod_list_text) > MAX_INPUT_SIZE:
-            return api_error(f'Mod list too large (max {MAX_INPUT_SIZE} characters)', 413)
+        if not data:
+            return api_error('Invalid JSON request body', 400)
+        
+        # Validate and sanitize inputs
+        mod_list_text = validate_mod_list(data.get('mod_list', ''))
+        game = validate_game_id(data.get('game', DEFAULT_GAME))
+        game_version = (data.get('game_version') or '').strip() or None
+        masterlist_version = (data.get('masterlist_version') or '').strip() or None
+        specs = data.get('specs') if isinstance(data.get('specs'), dict) else None
 
         mods = parse_mod_list_text(mod_list_text)
         # No minimum: 1 mod, 2 mods, or any number is allowed.
@@ -2603,7 +3346,26 @@ def analyze_mods():
             'system_impact': system_impact,
             'knowledge': knowledge_ctx,
             'mod_warnings': mod_warnings_list,
+            # HAL+JSON style links for the analysis itself
+            '_links': {
+                'self': {'href': f'/api/analyze?game={game}', 'title': 'Analyze this mod list'},
+                'search': {'href': f'/api/search?game={game}&limit=10', 'title': 'Search mods for this game'},
+                'build_list': {'href': '/api/build-list', 'title': 'Build a mod list for this game'},
+                'save_list': {'href': '/api/list-preferences', 'title': 'Save this mod list (Pro)'},
+                'solutions': {'href': f'/api/search-solutions?game={game}', 'title': 'Search for solutions to conflicts'},
+                'community': {'href': '/api/community/posts?game=' + game, 'title': 'Community posts for this game'},
+            }
         }
+        payload['next_actions'] = _build_next_actions(
+            game=game,
+            errors=payload['conflicts']['errors'],
+            warnings=payload['conflicts']['warnings'],
+            info=payload['conflicts']['info'],
+            plugin_limit_warning=plugin_limit_warning,
+            mod_warnings_list=mod_warnings_list,
+            masterlist_version=masterlist_ver,
+            game_version=game_version or None,
+        )
         if game_version:
             payload['game_version'] = game_version
             version_info = get_version_info(game, game_version)
@@ -3487,7 +4249,7 @@ def openclaw_policy():
             'max_path_length': OPENCLAW_MAX_PATH_LENGTH,
             'require_same_ip_for_grant': OPENCLAW_REQUIRE_SAME_IP,
         },
-        'github_url': 'https://github.com/mcompchecker-oss/modcheck',
+        'github_url': 'https://github.com/SamsonProject/SkyModderAI',
         'guard_check_endpoint': '/api/openclaw/guard-check',
         'grant_verify_endpoint': '/api/openclaw/verify-grant',
         'safety_status_endpoint': '/api/openclaw/safety-status',
@@ -4463,9 +5225,6 @@ def health():
         'parser_cache_limit': MAX_PARSER_CACHE,
     })
 
-# -------------------------------------------------------------------
-# Run the application
-# -------------------------------------------------------------------
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'

@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Paste your load order. Get answers. Conflict detection, missing requirements, load order fixes—same LOOT data. Skyrim, Fallout, Starfield. Free.">
+    <meta name="description" content="The ultimate modding toolkit for Bethesda games. Instant conflict detection, load order optimization, and AI-powered recommendations. Stop CTDs and enjoy your Skyrim, Fallout, and Starfield mods.">
     <meta name="theme-color" content="#050810">
-    <meta property="og:title" content="SkyModderAI — Paste your load order. Get answers.">
-    <meta property="og:description" content="Conflict detection, missing requirements, load order fixes. Same LOOT data. Skyrim, Fallout, Starfield. Free.">
+    <meta property="og:title" content="SkyModderAI — Your Ultimate Modding Toolkit">
+    <meta property="og:description" content="Instant conflict detection, load order optimization, and AI-powered recommendations for Skyrim, Fallout, and Starfield. Stop CTDs and master your mods.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://i.imgur.com/MGVsgjM.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -15,7 +15,7 @@
     <link rel="canonical" href="/">
     <meta name="ai-discovery" content="SkyModderAI feed at /ai-feed.json">
     <link rel="alternate" type="application/json" href="/ai-feed.json" title="SkyModderAI AI Feed">
-    <title>SkyModderAI — Paste your load order. Get answers.</title>
+    <title>SkyModderAI — Ultimate Modding Toolkit for Bethesda Games</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="manifest" href="/manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,10 +31,11 @@
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Web",
       "description": "Bethesda mod compatibility analysis, ranking, build generation, and dev tooling using LOOT data.",
-      "offers": [{"@type":"Offer","price":"0","priceCurrency":"USD"},{"@type":"Offer","price":"5","priceCurrency":"USD"},{"@type":"Offer","price":"25","priceCurrency":"USD"}],
+      "offers": [{"@type":"Offer","price":"0","priceCurrency":"USD"},{"@type":"Offer","price":"5","priceCurrency":"USD"},{"@type":"Offer","price":"15","priceCurrency":"USD"}],
       "url": "/",
       "softwareHelp": "/api",
-      "termsOfService": "/terms"
+      "softwareVersion": "1.0",
+      "provider": {"@type":"Organization","name":"SkyModderAI"}
     }
     </script>
 </head>
@@ -104,17 +105,44 @@
 
         <!-- Main Tool -->
         <main id="main-content">
+        
+        <!-- Sticky Analyze Bar (Priority 3A) -->
+        <div class="sticky-analyze-bar" id="sticky-analyze-bar">
+            <div class="sticky-analyze-content">
+                <select id="sticky-game-select" class="game-selector" title="Select game for LOOT masterlist">
+                    <option value="skyrimse">Skyrim SE</option>
+                    <option value="skyrim">Skyrim LE</option>
+                    <option value="skyrimvr">Skyrim VR</option>
+                    <option value="oblivion">Oblivion</option>
+                    <option value="fallout3">Fallout 3</option>
+                    <option value="falloutnv">Fallout New Vegas</option>
+                    <option value="fallout4">Fallout 4</option>
+                    <option value="starfield">Starfield</option>
+                </select>
+                <span class="mod-count-badge" id="mod-count-badge">0 mods</span>
+                <button type="button" id="sticky-analyze-btn" class="primary-button analyze-button">Analyze Now</button>
+            </div>
+            <!-- Context Trail - Shows current user context -->
+            <div class="context-trail" id="context-trail">
+                <div class="context-trail-content" id="context-trail-content">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
         <div class="main-tabs" role="tablist">
             <button type="button" class="main-tab active" data-tab="analyze" role="tab" aria-selected="true">Analyze</button>
             <button type="button" class="main-tab" data-tab="quickstart" role="tab" aria-selected="false">Quick Start</button>
             <button type="button" class="main-tab" data-tab="build-list" role="tab" aria-selected="false">Build a List</button>
+            <button type="button" class="main-tab" data-tab="library" role="tab" aria-selected="false">Library</button>
             <button type="button" class="main-tab" data-tab="community" role="tab" aria-selected="false">Community</button>
-            <button type="button" class="main-tab main-tab-dev" data-tab="dev" role="tab" aria-selected="false">Dev <span class="tab-pro-badge">Pro</span></button>
+            <button type="button" class="main-tab main-tab-dev" data-tab="dev" role="tab" aria-selected="false">Dev Tools</button>
         </div>
         <section class="tool-section tab-panel active" id="panel-analyze" role="tabpanel" aria-hidden="false">
             <div class="input-panel">
                 <form id="analyze-form" action="#" method="post" novalidate>
                     <h3 class="input-panel-title">Paste your load order</h3>
+                    <p class="input-panel-subtitle">Stop crashes before they happen. Get instant conflict detection, load order fixes, and compatibility insights for your mods.</p>
                     <div class="game-select-wrap">
                         <label for="game-select" class="game-label">Game:</label>
                         <select id="game-select" title="Select game for LOOT masterlist">
@@ -216,6 +244,11 @@ Examples:
                 <div id="plugin-limit-banner" class="plugin-limit-banner hidden"></div>
                 <div id="mod-warnings-section" class="mod-warnings-section hidden" role="region" aria-label="Mod list warnings">
                     <!-- Plugin limit, VRAM, system strain — filled by JS from mod_warnings -->
+                </div>
+                <div id="next-actions-section" class="quickstart-section hidden" role="region" aria-label="What to do next">
+                    <h4>What to do next</h4>
+                    <p class="hint" id="next-actions-hint">Based on your results, here are the best next steps.</p>
+                    <div id="next-actions-content"></div>
                 </div>
                 <div class="summary">
                     <div class="stat error-stat">
@@ -325,11 +358,11 @@ Examples:
         <!-- Quick Start Guide (dynamic from /api/quickstart) -->
         <section class="tab-panel quickstart-panel" id="panel-quickstart" role="tabpanel" aria-hidden="true">
             <div class="quickstart-content">
-                <h2 class="quickstart-title">Modding Quick Start</h2>
-                <p class="quickstart-intro">New to modding? Start here. Every tool/resource below has an in-site live preview: hover or focus links and read without leaving SkyModderAI.</p>
+                <h2 class="quickstart-title">Your Modding Journey Starts Here</h2>
+                <p class="quickstart-intro">Whether you're a seasoned Dragonborn or just stepping into the Commonwealth, this is your command center. Every tool below has live previews - hover links to peek without leaving your workflow.</p>
 
                 <div class="quickstart-game-select">
-                    <label for="quickstart-game">Show guides for:</label>
+                    <label for="quickstart-game">Choose your adventure:</label>
                     <select id="quickstart-game" aria-label="Select game for quick start links">
                         <option value="skyrimse">Skyrim SE</option>
                         <option value="skyrim">Skyrim LE</option>
@@ -343,13 +376,13 @@ Examples:
                 </div>
 
                 <div id="quickstart-first-steps" class="quickstart-section">
-                    <h3>First-time modder? Start here.</h3>
-                    <div id="quickstart-first-steps-content"><p class="hint">Loading…</p></div>
+                    <h3>New to modding? Welcome, adventurer.</h3>
+                    <div id="quickstart-first-steps-content"><p class="hint">Loading your essential tools…</p></div>
                 </div>
 
                 <div class="quickstart-section">
                     <h3>Where did my build go?</h3>
-                    <p>Your generated setup appears in <strong>Build a List</strong>, then gets auto-sent to <strong>Analyze</strong> and checked immediately.</p>
+                    <p>Your generated mod setup appears in <strong>Build a List</strong>, then automatically gets sent to <strong>Analyze</strong> for instant conflict checking. No more juggling tools!</p>
                     <p>
                         <button type="button" class="secondary-button tab-switch" data-tab="build-list">Go to Build a List</button>
                         <button type="button" class="secondary-button tab-switch" data-tab="analyze">Go to Analyze</button>
@@ -485,6 +518,70 @@ Examples:
                         <button type="button" id="build-list-to-analyze-btn" class="secondary-button">Re-run Analyze</button>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- Library: Pro feature for managing saved modlists with metadata -->
+        <section class="tab-panel library-panel" id="panel-library" role="tabpanel" aria-hidden="true">
+            <div class="library-content">
+                <div class="library-header">
+                    <h2 class="library-title">Library</h2>
+                    <p class="library-intro">Your saved modlists with full metadata. Search, filter, analyze, and manage your research.</p>
+                    {% if user_tier not in ('pro', 'pro_plus', 'claw') %}
+                    <div class="library-pro-cta">
+                        <p>Pro feature: Save unlimited modlists with metadata and manage your library.</p>
+                        <a href="{{ url_for('signup_pro') }}" class="primary-button">Get Pro</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if user_tier in ('pro', 'pro_plus', 'claw') %}
+                <div class="library-controls">
+                    <div class="library-search-wrap">
+                        <input type="search" id="library-search" placeholder="Search by name, tags, or notes..." class="library-search-input" aria-label="Search library">
+                        <button type="button" id="library-search-clear" class="library-search-clear hidden" title="Clear search" aria-label="Clear search">&times;</button>
+                    </div>
+                    <div class="library-filters">
+                        <select id="library-filter-game" class="library-filter-select" title="Filter by game">
+                            <option value="">All games</option>
+                            <option value="skyrimse">Skyrim SE</option>
+                            <option value="skyrim">Skyrim LE</option>
+                            <option value="skyrimvr">Skyrim VR</option>
+                            <option value="oblivion">Oblivion</option>
+                            <option value="fallout3">Fallout 3</option>
+                            <option value="falloutnv">Fallout New Vegas</option>
+                            <option value="fallout4">Fallout 4</option>
+                            <option value="starfield">Starfield</option>
+                        </select>
+                        <select id="library-filter-version" class="library-filter-select" title="Filter by game version">
+                            <option value="">All versions</option>
+                        </select>
+                        <select id="library-filter-masterlist" class="library-filter-select" title="Filter by LOOT version">
+                            <option value="">All LOOT versions</option>
+                        </select>
+                        <button type="button" id="library-refresh-btn" class="secondary-button" title="Refresh library">Refresh</button>
+                    </div>
+                </div>
+
+                <div id="library-status" class="library-status hint" aria-live="polite"></div>
+
+                <div id="library-grid" class="library-grid">
+                    <p class="hint library-loading">Loading your library...</p>
+                </div>
+                {% else %}
+                <div class="library-upsell">
+                    <h3>Upgrade to Pro to unlock your Library</h3>
+                    <p>Save unlimited modlists with metadata, search and filter your research, and manage your modding workflow like a professional.</p>
+                    <ul>
+                        <li>Unlimited saved modlists</li>
+                        <li>Game and version metadata</li>
+                        <li>Tags and notes for organization</li>
+                        <li>Search and filter capabilities</li>
+                        <li>Quick analyze and load actions</li>
+                    </ul>
+                    <a href="{{ url_for('signup_pro') }}" class="primary-button">Get Pro</a>
+                </div>
+                {% endif %}
             </div>
         </section>
 
@@ -688,7 +785,7 @@ Examples:
         <!-- Pricing: hidden for Pro and when Community tab is active -->
         <div id="marketing-sections" class="marketing-sections">
         <section class="pricing-section" id="pricing">
-            <p class="pricing-intro">Core analysis is free forever. Pro adds AI help. OpenClaw Lab is a separate, high-risk tier with strict sandbox boundaries and explicit legal warnings.</p>
+            <p class="pricing-intro">Master your mods with our free toolkit. Go Pro for AI-powered troubleshooting and advanced features. OpenClaw Lab is our experimental sandbox for the brave.</p>
             {% if user_tier in ('pro', 'pro_plus', 'claw') %}
             <div class="pricing-manage-wrap">
                 <a href="{{ url_for('billing_portal') }}" class="pricing-manage-link">Manage subscription</a>
@@ -696,8 +793,8 @@ Examples:
             {% else %}
             <div class="pricing-cards">
                 <div class="pricing-card pricing-card-free">
-                    <h4 class="pricing-card-title">Free</h4>
-                    <p class="pricing-card-price">$0</p>
+                    <h4 class="pricing-card-title">Adventurer</h4>
+                    <p class="pricing-card-price">Free</p>
                     <ul class="pricing-card-features">
                         <li>Unlimited mod analysis</li>
                         <li>Full conflict detection</li>
@@ -709,22 +806,22 @@ Examples:
                     <span class="pricing-card-badge">Current</span>
                 </div>
                 <div class="pricing-card pricing-card-pro">
-                    <h4 class="pricing-card-title">Pro</h4>
+                    <h4 class="pricing-card-title">Dragonborn</h4>
                     <p class="pricing-card-price">$5<span class="pricing-card-period">/mo</span></p>
                     <ul class="pricing-card-features">
-                        <li>Live Fix Guide—updates as you chat, download as HTML/PDF</li>
-                        <li>AI chat—ask about conflicts, get step-by-step help</li>
-                        <li>Fix checklist (resolve items as you go)</li>
-                        <li>Web search fallback for mod lookup</li>
-                        <li>Save &amp; load mod lists</li>
-                        <li>Game folder scan—AI checks your Data folder</li>
-                        <li><strong>Dev Tools</strong>—AI runtime compatibility for mod authors</li>
+                        <li>Live Fix Guide—updates as you chat, export as HTML/PDF</li>
+                        <li>AI Chat Companion—ask about conflicts, get step-by-step help</li>
+                        <li>Interactive checklist—track your fixes as you go</li>
+                        <li>Web search fallback—find mods from Nexus and beyond</li>
+                        <li>Cloud Library—save &amp; load mod builds across devices</li>
+                        <li>Game folder scan—AI analyzes your Data folder for issues</li>
+                        <li><strong>Dev Tools</strong>—AI runtime analysis for mod authors</li>
                     </ul>
-                    <a href="{{ url_for('signup_pro') }}" class="pricing-card-cta primary-button">Get Pro</a>
+                    <a href="{{ url_for('signup_pro') }}" class="pricing-card-cta primary-button">Become Dragonborn</a>
                 </div>
                 <div class="pricing-card pricing-card-pro">
                     <h4 class="pricing-card-title">OpenClaw Lab</h4>
-                    <p class="pricing-card-price">$25<span class="pricing-card-period">/mo*</span></p>
+                    <p class="pricing-card-price">$15<span class="pricing-card-period">/mo</span></p>
                     <ul class="pricing-card-features">
                         <li>Everything in Pro</li>
                         <li>Tier reserved for high-risk local automation experiments</li>
@@ -734,7 +831,6 @@ Examples:
                         <li>Strong recommendation to review source first on GitHub</li>
                     </ul>
                     <a href="{{ url_for('signup_pro', plan='openclaw') }}" class="pricing-card-cta primary-button">Apply for OpenClaw Lab</a>
-                    <p class="hint" style="margin-top:.7rem;">*Set your Stripe price in <code>STRIPE_OPENCLAW_PRICE_ID</code>. Treat as experimental and dangerous.</p>
                 </div>
             </div>
             {% endif %}
@@ -745,7 +841,7 @@ Examples:
         <!-- Footer -->
         <footer>
             <p>I've been modding since 2012. Hundreds of mods, one crash, no idea why. This is the tool I built so we don't have to guess anymore. For everyone who keeps coming back to Skyrim, Fallout, Starfield—and the worlds we make our own.</p>
-            <p>Powered by LOOT. <a href="https://github.com/mcompchecker-oss/modcheck" target="_blank" rel="noopener noreferrer">Open source on GitHub</a>. Not affiliated with Bethesda or LOOT.</p>
+            <p>Powered by LOOT. <a href="https://github.com/SamsonProject/SkyModderAI" target="_blank" rel="noopener noreferrer">Open source on GitHub</a>. Not affiliated with Bethesda or LOOT.</p>
             <div class="footer-resources">
                 <span class="footer-resources-label">Community &amp; tools:</span>
                 <a href="https://www.nexusmods.com/" target="_blank" rel="noopener noreferrer" title="Nexus Mods"><img src="/static/icons/nexus.svg" alt="" width="20" height="20"> Nexus Mods</a>
@@ -755,7 +851,7 @@ Examples:
                 <a href="https://www.nexusmods.com/site/mods/1" target="_blank" rel="noopener noreferrer" title="Vortex"><img src="/static/icons/vortex.svg" alt="" width="20" height="20"> Vortex</a>
                 <a href="https://www.wabbajack.org/" target="_blank" rel="noopener noreferrer" title="Wabbajack"><img src="/static/icons/wabbajack.svg" alt="" width="20" height="20"> Wabbajack</a>
             </div>
-            <p class="footer-links">SkyModderAI © 2026 | <a href="/terms">Terms</a> | <a href="/privacy">Privacy</a> | <a href="/safety">Safety</a> | <a href="/api">API</a> | <a href="mailto:mcompchecker@gmail.com">Support</a> | <a href="tel:+12069157203">(206) 915-7203</a></p>
+            <p class="footer-links">SkyModderAI © 2026 | <a href="/terms">Terms</a> | <a href="/privacy">Privacy</a> | <a href="/safety">Safety</a> | <a href="/api">API</a> | <a href="mailto:support@skymodderai.com">Support</a> | <a href="tel:+12069157203">(206) 915-7203</a></p>
         </footer>
     </div>
     <button type="button" id="feedback-fab" class="secondary-button" style="position:fixed;right:18px;bottom:18px;z-index:40;">Feedback</button>
@@ -797,8 +893,8 @@ Examples:
         <div class="modal-backdrop" id="checkout-modal-backdrop"></div>
         <div class="modal-content">
             <button type="button" class="modal-close" id="checkout-modal-close" aria-label="Close">&times;</button>
-            <h3>Go Pro — $5/month</h3>
-            <p class="modal-tagline">Verify your email, then checkout. We never see your card—Stripe handles it. Pro keeps the lights on so I can keep building. OpenClaw Lab is separate and intentionally high-friction.</p>
+            <h3>Become Dragonborn — $5/month</h3>
+            <p class="modal-tagline">Join thousands of modders who've stopped pulling their hair out over CTDs. Your AI companion awaits. We never see your card—Stripe handles everything securely.</p>
             <div class="modal-actions">
                 <button type="button" class="secondary-button" id="checkout-modal-cancel">Cancel</button>
                 <a href="/signup-pro" class="primary-button" style="text-decoration: none;">Create account</a>

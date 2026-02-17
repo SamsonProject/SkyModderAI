@@ -6,7 +6,14 @@ import logging
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ModuleNotFoundError:  # pragma: no cover
+    def load_dotenv(*args, **kwargs):  # type: ignore[no-redef]
+        logging.getLogger(__name__).warning(
+            "python-dotenv is not installed; skipping .env loading. "
+            "Install it with: pip install -r requirements.txt"
+        )
 
 # Load environment variables from .env file if it exists
 env_path = Path('.') / '.env'

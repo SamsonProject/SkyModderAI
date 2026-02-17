@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email verified — SkyModderAI</title>
+    <title>Email Verified | SkyModderAI</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
@@ -34,7 +34,7 @@
                 <label class="checkbox-label"><input type="checkbox" id="openclaw-ack-risk"><span>I accept this is experimental and can break saves, mod setups, or files.</span></label>
                 <div class="auth-actions" style="margin-top: .8rem;">
                     <button type="button" id="go-to-openclaw-checkout-btn" class="secondary-button" data-openclaw-enabled="{{ '1' if openclaw_enabled else '0' }}" {% if not openclaw_enabled %}disabled{% endif %}>Go to OpenClaw Lab checkout</button>
-                    <a href="https://github.com/mcompchecker-oss/modcheck" target="_blank" rel="noopener noreferrer" class="secondary-button" style="text-decoration:none;">Review source</a>
+                    <a href="https://github.com/SamsonProject/SkyModderAI" target="_blank" rel="noopener noreferrer" class="secondary-button" style="text-decoration:none;">Review source</a>
                 </div>
                 {% if not openclaw_enabled %}
                 <p class="hint">OpenClaw is currently disabled on this deployment, even if checkout is configured.</p>

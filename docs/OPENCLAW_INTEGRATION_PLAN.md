@@ -46,7 +46,7 @@ This is the practical roadmap for making OpenClaw worth a premium tier while pre
 6. Post-run feedback capture (FPS/crashes/stutter/enjoyment).
 7. Next-cycle recommendations tuned by evidence.
 
-## $25 Tier Value Anchor
+## $15 Tier Value Anchor
 
 - Stronger than static LOOT checks:
   - evidence-driven tuning over repeated runs,
