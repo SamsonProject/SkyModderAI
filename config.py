@@ -21,10 +21,10 @@ load_dotenv(dotenv_path=env_path)
 
 class Config:
     # Application
-    FLASK_ENV = os.getenv('FLASK_ENV', 'production')
+    FLASK_ENV = os.getenv('FLASK_ENV', 'development')
     DEBUG = FLASK_ENV != 'production'
     SECRET_KEY = os.getenv('SECRET_KEY', os.urandom(32).hex())
-    BASE_URL = os.getenv('BASE_URL', 'https://skymodderai.onrender.com').rstrip('/')
+    BASE_URL = os.getenv('BASE_URL', 'http://localhost:5000').rstrip('/')
 
     # Database
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///instance/app.db')
