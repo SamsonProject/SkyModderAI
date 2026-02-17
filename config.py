@@ -67,7 +67,7 @@ class Config:
     SESSION_COOKIE_SAMESITE = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
 
     # Feature Flags
-    MODCHECK_OPENCLAW_ENABLED = os.getenv('MODCHECK_OPENCLAW_ENABLED', '0') == '1'
+    MODCHECK_OPENCLAW_ENABLED = os.getenv('SKYMODDERAI_OPENCLAW_ENABLED', '0') == '1'
     MODCHECK_DEV_PRO = os.getenv('MODCHECK_DEV_PRO', '0') == '1' if FLASK_ENV != 'production' else False
     MODCHECK_TEST_PRO_EMAIL = os.getenv('MODCHECK_TEST_PRO_EMAIL') if FLASK_ENV != 'production' else None
 
@@ -77,25 +77,33 @@ class Config:
 
     @classmethod
     def validate_config(cls):
-        """Validate required configuration and log warnings for missing or invalid settings."""
+        """Validate required configuration and raise exceptions for critical issues in production."""
         logger = logging.getLogger(__name__)
 
         # Check required production settings
         if cls.FLASK_ENV == 'production':
+            # Critical security settings
             if not cls.SECRET_KEY or len(cls.SECRET_KEY) < 32:
-                logger.error('SECRET_KEY is too short (min 32 chars) or not set in production!')
+                raise ValueError('SECRET_KEY is too short (min 32 chars) or not set in production!')
 
+            # Email settings (warn only)
             if not all([cls.MAIL_SERVER, cls.MAIL_USERNAME, cls.MAIL_PASSWORD]):
                 logger.warning('Email configuration is incomplete. Email features will be disabled.')
 
+            # Payment settings (warn only)
             if not all([cls.STRIPE_PUBLISHABLE_KEY, cls.STRIPE_SECRET_KEY, cls.STRIPE_PRO_PRICE_ID]):
                 logger.warning('Stripe configuration is incomplete. Payment features will be disabled.')
 
-            if not all([cls.GOOGLE_CLIENT_ID, cls.GOOGLE_CLIENT_SECRET]):
-                logger.warning('Google OAuth configuration is incomplete. Google login will be disabled.')
+            # OAuth configurations (required in production)
+            if cls.GOOGLE_OAUTH_ENABLED and not all([cls.GOOGLE_CLIENT_ID, cls.GOOGLE_CLIENT_SECRET]):
+                raise ValueError('Google OAuth is enabled but configuration is incomplete. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.')
 
-            if not all([cls.GITHUB_CLIENT_ID, cls.GITHUB_CLIENT_SECRET]):
-                logger.warning('GitHub OAuth configuration is incomplete. GitHub login will be disabled.')
+            if cls.GITHUB_OAUTH_ENABLED and not all([cls.GITHUB_CLIENT_ID, cls.GITHUB_CLIENT_SECRET]):
+                raise ValueError('GitHub OAuth is enabled but configuration is incomplete. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET.')
+                
+            # Validate BASE_URL in production
+            if not cls.BASE_URL or cls.BASE_URL == 'http://localhost:5000':
+                raise ValueError('BASE_URL must be set to your production domain in production environment.')
 
 # Initialize configuration
 config = Config()

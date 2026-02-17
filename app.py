@@ -12,19 +12,14 @@ import re
 import secrets
 import smtplib
 import sqlite3
-import sys
-import time
-import uuid
-from datetime import datetime, timedelta
 from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
-from pathlib import Path
 from time import time as _time
 from typing import Optional
-from urllib.parse import urlencode, urljoin, urlparse, quote, unquote
+from urllib.parse import quote, urlencode, urljoin, urlparse
 
 import requests
 from flask import (
@@ -38,13 +33,10 @@ from flask import (
     request,
     session,
     url_for,
-    abort,
-    send_from_directory,
 )
 from itsdangerous import URLSafeTimedSerializer
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.utils import secure_filename
 
 from config import config
 
@@ -149,13 +141,13 @@ def validate_game_id(game_id: str) -> str:
     """Validate and normalize game ID."""
     if not game_id or not isinstance(game_id, str):
         raise ValueError("Game ID is required and must be a string")
-    
+
     game_id = game_id.strip().lower()
     allowed_games = {g['id'] for g in SUPPORTED_GAMES}
-    
+
     if game_id not in allowed_games:
         raise ValueError(f"Invalid game ID. Must be one of: {', '.join(sorted(allowed_games))}")
-    
+
     return game_id
 
 def validate_limit(limit: str, default: int = 10, max_allowed: int = 50) -> int:
@@ -176,13 +168,13 @@ def validate_search_query(query: str) -> str:
     """Validate and sanitize search query."""
     if not query:
         raise ValueError("Search query is required")
-    
+
     query = str(query).strip()
     if len(query) < 1:
         raise ValueError("Search query must be at least 1 character")
     if len(query) > 200:
         raise ValueError("Search query too long (max 200 characters)")
-    
+
     # Remove potentially harmful characters
     query = re.sub(r'[<>"\']', '', query)
     return query
@@ -191,35 +183,35 @@ def validate_mod_list(mod_list: str) -> str:
     """Validate mod list input."""
     if not mod_list:
         raise ValueError("Mod list is required")
-    
+
     mod_list = str(mod_list).strip()
     if len(mod_list) > 100000:  # 100KB limit
         raise ValueError("Mod list too large (max 100KB)")
-    
+
     return mod_list
 
 def validate_email(email: str) -> str:
     """Basic email validation."""
     if not email:
         raise ValueError("Email is required")
-    
+
     email = str(email).strip().lower()
     if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
         raise ValueError("Invalid email format")
-    
+
     return email
 
 def validate_list_name(name: str) -> str:
     """Validate saved list name."""
     if not name:
         raise ValueError("List name is required")
-    
+
     name = str(name).strip()
     if len(name) < 1:
         raise ValueError("List name cannot be empty")
     if len(name) > 100:
         raise ValueError("List name too long (max 100 characters)")
-    
+
     # Remove potentially harmful characters
     name = re.sub(r'[<>"\']', '', name)
     return name
@@ -279,12 +271,12 @@ if os.environ.get('FLASK_ENV') == 'production':
 def check_data_ready():
     if not hasattr(app, '_data_checked'):
         app._data_checked = True
-        import os
         import glob
         data_files = glob.glob('data/*_mod_database.json')
         if not data_files:
             # Trigger async data download
             import threading
+
             from loot_parser import bootstrap_loot_data
             t = threading.Thread(target=bootstrap_loot_data, daemon=True)
             t.start()
@@ -301,7 +293,7 @@ stripe_openclaw_price_id = config.STRIPE_OPENCLAW_PRICE_ID or ''
 stripe_webhook_secret = config.STRIPE_WEBHOOK_SECRET or ''
 PAYMENTS_ENABLED = config.PAYMENTS_ENABLED and STRIPE_AVAILABLE
 
-OPENCLAW_ENABLED = os.environ.get('MODCHECK_OPENCLAW_ENABLED', '').lower() in ('1', 'true', 'yes')
+OPENCLAW_ENABLED = os.environ.get('SKYMODDERAI_OPENCLAW_ENABLED', '').lower() in ('1', 'true', 'yes')
 OPENCLAW_SANDBOX_ROOT = os.environ.get('OPENCLAW_SANDBOX_ROOT', '').strip() or './openclaw_workspace'
 OPENCLAW_MAX_FILES = int(os.environ.get('OPENCLAW_MAX_FILES', '500'))
 OPENCLAW_MAX_BYTES = int(os.environ.get('OPENCLAW_MAX_BYTES', str(50 * 1024 * 1024)))
@@ -960,13 +952,13 @@ def list_user_saved_lists(email: str, game: Optional[str] = None, game_version: 
                 prefs = json.loads(r['preferences_json']) if r['preferences_json'] else None
             except Exception:
                 prefs = None
-            
+
             analysis = None
             try:
                 analysis = json.loads(r['analysis_snapshot']) if r['analysis_snapshot'] else None
             except Exception:
                 analysis = None
-            
+
             out.append({
                 'id': r['id'],
                 'name': r['name'],
@@ -1015,14 +1007,14 @@ def upsert_user_saved_list(email: str, name: str, game: str, list_text: str, *, 
                 preferences_json = json.dumps(preferences)
             except Exception:
                 preferences_json = None
-        
+
         analysis_json = None
         if isinstance(analysis_snapshot, dict):
             try:
                 analysis_json = json.dumps(analysis_snapshot)
             except Exception:
                 analysis_json = None
-        
+
         db.execute('''
             INSERT INTO user_saved_lists (
                 user_email, name, game, game_version, masterlist_version, tags, notes, preferences_json, source, list_text, analysis_snapshot, saved_at, updated_at
@@ -1470,12 +1462,6 @@ def login_required_api(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def api_error(message: str, status_code: int = 400, **extra):
-    """Return a consistent JSON error payload."""
-    payload = {'success': False, 'error': message}
-    if extra:
-        payload.update(extra)
-    return jsonify(payload), status_code
 
 @app.before_request
 def load_session_from_cookie():
@@ -1561,11 +1547,11 @@ def get_game_versions():
     """API endpoint to get game version information"""
     game = request.args.get('game', '').lower()
     game_versions_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/game_versions.json')
-    
+
     try:
         with open(game_versions_file, 'r') as f:
             data = json.load(f)
-            
+
         if game and game in data:
             return jsonify({game: data[game]})
         return jsonify(data)
@@ -1582,7 +1568,7 @@ def get_game_versions():
 def share_load_order():
     """
     Create a shareable link for the current load order and analysis.
-    
+
     Request JSON:
     {
         "game": "skyrimse",
@@ -1597,24 +1583,24 @@ def share_load_order():
         "notes": "This is a test share",
         "is_public": true
     }
-    
+
     Returns: {"share_id": "abc123..."}
     """
     data = request.get_json()
-    
+
     # Validate required fields
     required = ['game', 'mod_list', 'analysis_results']
     if not all(field in data for field in required):
         return api_error("Missing required fields", 400)
-    
+
     # Ensure mod_list is a list of dicts with at least a 'name' key
     if not isinstance(data['mod_list'], list) or not all(isinstance(m, dict) and 'name' in m for m in data['mod_list']):
         return api_error("Invalid mod_list format", 400)
-    
+
     # Generate a share ID and save to database
     share_id = secrets.token_urlsafe(9)  # ~12 chars, URL-safe
     expires_at = datetime.utcnow() + timedelta(days=30)
-    
+
     try:
         db = get_db()
         db.execute(
@@ -1633,7 +1619,7 @@ def share_load_order():
             )
         )
         db.commit()
-        
+
         # Return the shareable link
         share_url = f"{config.BASE_URL}/share/{share_id}"
         return jsonify({
@@ -1641,7 +1627,7 @@ def share_load_order():
             "share_url": share_url,
             "expires_at": expires_at.isoformat() + 'Z'
         })
-        
+
     except Exception as e:
         app.logger.error(f"Error creating shared load order: {e}", exc_info=True)
         return api_error("Failed to create share link", 500)
@@ -1650,7 +1636,7 @@ def share_load_order():
 def get_shared_load_order(share_id):
     """
     Retrieve a shared load order by ID.
-    
+
     Returns: {
         "id": "abc123...",
         "created_at": "2025-02-17T03:30:00Z",
@@ -1670,27 +1656,27 @@ def get_shared_load_order(share_id):
     try:
         db = get_db()
         now = datetime.utcnow()
-        
+
         # Get the shared load order
         row = db.execute(
             """
-            UPDATE shared_load_orders 
-            SET view_count = view_count + 1, 
+            UPDATE shared_load_orders
+            SET view_count = view_count + 1,
                 last_viewed_at = ?
             WHERE id = ? AND expires_at > ?
             RETURNING *
             """,
             (now, share_id, now)
         ).fetchone()
-        
+
         if not row:
             return api_error("Share not found or expired", 404)
-        
+
         # Convert to dict and parse JSON fields
         result = dict(row)
         result['mod_list'] = json.loads(result['mod_list'])
         result['analysis_results'] = json.loads(result['analysis_results'])
-        
+
         # Redact user email for privacy, but show first part if public
         if result.get('user_email'):
             if result.get('is_public'):
@@ -1698,13 +1684,13 @@ def get_shared_load_order(share_id):
                 result['user_display'] = f"{user[:2]}...@{domain}"
             else:
                 result['user_display'] = None
-        
+
         # Remove sensitive fields
         for field in ['user_email']:
             result.pop(field, None)
-            
+
         return jsonify(result)
-        
+
     except Exception as e:
         app.logger.error(f"Error retrieving shared load order {share_id}: {e}", exc_info=True)
         return api_error("Failed to retrieve shared load order", 500)
@@ -1714,7 +1700,7 @@ def get_shared_load_order(share_id):
 def list_shared_load_orders():
     """
     List all shared load orders for the current user.
-    
+
     Returns: [
         {
             "id": "abc123...",
@@ -1731,19 +1717,19 @@ def list_shared_load_orders():
     try:
         db = get_db()
         now = datetime.utcnow()
-        
+
         rows = db.execute(
             """
             SELECT id, created_at, expires_at, game, title, view_count, is_public
-            FROM shared_load_orders 
+            FROM shared_load_orders
             WHERE user_email = ? AND expires_at > ?
             ORDER BY created_at DESC
             """,
             (session['user_email'], now)
         ).fetchall()
-        
+
         return jsonify([dict(row) for row in rows])
-        
+
     except Exception as e:
         app.logger.error(f"Error listing shared load orders: {e}", exc_info=True)
         return api_error("Failed to list shared load orders", 500)
@@ -1753,24 +1739,24 @@ def list_shared_load_orders():
 def delete_shared_load_order(share_id):
     """
     Delete a shared load order. Only the owner can delete their shares.
-    
+
     Returns: 204 No Content on success
     """
     try:
         db = get_db()
-        
+
         # Verify ownership
         result = db.execute(
             "DELETE FROM shared_load_orders WHERE id = ? AND user_email = ? RETURNING id",
             (share_id, session['user_email'])
         )
         db.commit()
-        
+
         if not result.fetchone():
             return api_error("Share not found or not owned by user", 404)
-            
+
         return '', 204
-        
+
     except Exception as e:
         app.logger.error(f"Error deleting shared load order {share_id}: {e}", exc_info=True)
         return api_error("Failed to delete shared load order", 500)
@@ -1913,7 +1899,7 @@ def auth_google_callback():
     # Handle cold-start state expiry
     if not session.get('oauth_state'):
         return redirect('/auth?error=session_expired&message=The+server+restarted+during+sign-in.+Please+try+again.')
-    
+
     try:
         from oauth_utils import google_oauth_callback
         return google_oauth_callback()
@@ -1936,7 +1922,7 @@ def auth_github_callback():
     # Handle cold-start state expiry
     if not session.get('oauth_state'):
         return redirect('/auth?error=session_expired&message=The+server+restarted+during+sign-in.+Please+try+again.')
-    
+
     try:
         from oauth_utils import github_oauth_callback
         return github_oauth_callback()
@@ -2211,7 +2197,6 @@ def _is_preview_domain_allowed(netloc: str) -> bool:
 
 def _resolve_preview_url(raw_url: str) -> str:
     """Resolve preview URL, allowing same-site relative paths and trusted external URLs."""
-    from urllib.parse import urlparse
     url = (raw_url or '').strip()
     if not url:
         raise ValueError('missing url')
@@ -2241,7 +2226,6 @@ def _is_internal_preview_url(url: str) -> bool:
 
 def _extract_meta_preview(doc: str, resolved_url: str) -> dict:
     import re
-    from urllib.parse import urlparse
     def _og(s):
         m = re.search(r'<meta[^>]+property=["\']og:' + s + r'["\'][^>]+content=["\']([^"\']+)["\']', doc, re.I)
         if not m:
@@ -2272,7 +2256,6 @@ def _extract_readable_text(doc: str, limit: int = 3000) -> str:
 
 def _fetch_internal_preview_html(resolved_url: str) -> str:
     """Fetch same-site HTML via Flask test client (no external network hop)."""
-    from urllib.parse import urlparse
 
     parsed = urlparse(resolved_url)
     path = parsed.path or '/'
@@ -2487,7 +2470,7 @@ def api_list_preferences():
     data = request.get_json() or {}
     if not data:
         return api_error('Invalid JSON request body', 400)
-    
+
     game = validate_game_id(data.get('game', DEFAULT_GAME))
     game_version = (data.get('game_version') or '').strip() or None
     masterlist_version = (data.get('masterlist_version') or '').strip() or None
@@ -2498,7 +2481,7 @@ def api_list_preferences():
     analysis_snapshot = data.get('analysis_snapshot') if isinstance(data.get('analysis_snapshot'), dict) else None
     list_text = validate_mod_list(data.get('list', ''))
     name = validate_list_name(data.get('name', ''))
-    
+
     ok = upsert_user_saved_list(
         user_email,
         name,
@@ -2525,14 +2508,14 @@ def api_build_list():
         data = request.get_json() or {}
         if not data:
             return api_error('Invalid JSON request body', 400)
-        
+
         # Validate and sanitize inputs
         game = validate_game_id(data.get('game', DEFAULT_GAME))
         preferences = data.get('preferences') if isinstance(data.get('preferences'), dict) else {}
-        
+
         if not isinstance(preferences, dict):
             preferences = {}
-            
+
         option_rows = get_preference_options(game=game)
         allowed_pref_values = {
             row['key']: {c['value'] for c in row.get('choices', [])}
@@ -2549,7 +2532,7 @@ def api_build_list():
                 sanitized_preferences[key] = value_s
             else:
                 sanitized_preferences[key] = 'any'
-        
+
         limit = validate_limit(data.get('limit'), default=50, max_allowed=100)
         specs = data.get('specs') or {}
         if isinstance(specs, dict):
@@ -2586,7 +2569,7 @@ def api_build_list():
             user_email,
         )
         return api_success(result)
-        
+
     except Exception as e:
         logger.exception("Build list endpoint failed: %s", e)
         return api_error('Failed to build list. Please try again.', 500)
@@ -3055,36 +3038,36 @@ def full_search():
         version = (request.args.get('version') or '').strip() or 'latest'
         limit = validate_limit(request.args.get('limit'), default=15, max_allowed=50)
         for_ai = request.args.get('for_ai', '0').lower() in ('1', 'true', 'yes')
-        
+
         p = get_parser(game, version=version)
         engine = get_search_engine(p)
-        
+
         if for_ai:
             results = engine.search_for_ai(q, limit=limit)
             return api_success({'results': results, 'game': game})
-            
+
         results = engine.search(q, limit=limit, include_breakdown=True)
         out = []
         for r in results:
             # Build related links for each search result
             links = {}
-            
+
             # Nexus link if available
             if r.mod_info and r.mod_info.get('nexus_id'):
                 nexus_game = next((g['nexus_slug'] for g in SUPPORTED_GAMES if g['id'] == game), None)
                 if nexus_game:
                     links['nexus'] = f"https://nexusmods.com/{nexus_game}/mods/{r.mod_info['nexus_id']}"
-            
+
             # Analysis link
-            links['analyze'] = f"/api/analyze?game={game}&mods={encodeURIComponent(r.mod_name)}"
-            
+            links['analyze'] = f"/api/analyze?game={game}&mods={quote(r.mod_name)}"
+
             # Search for conflicts/solutions
-            links['conflicts'] = f"/api/search-solutions?q={encodeURIComponent(r.mod_name + ' conflict')}&game={game}"
-            links['solutions'] = f"/api/search-solutions?q={encodeURIComponent(r.mod_name + ' fix')}&game={game}"
-            
+            links['conflicts'] = f"/api/search-solutions?q={quote(r.mod_name + ' conflict')}&game={game}"
+            links['solutions'] = f"/api/search-solutions?q={quote(r.mod_name + ' fix')}&game={game}"
+
             # Add to current list (via client-side)
             links['add_to_list'] = f"client:addMod:{r.mod_name}"
-            
+
             out.append({
                 'mod_name': r.mod_name,
                 'score': r.score,
@@ -3425,12 +3408,12 @@ def analyze_mods():
     # Check if data is still loading (Priority 4B)
     if getattr(app, '_data_loading', False):
         return api_error("Mod database is loading (first start). Please wait 30 seconds and try again.", 503)
-    
+
     try:
         data = request.get_json() or {}
         if not data:
             return api_error('Invalid JSON request body', 400)
-        
+
         # Validate and sanitize inputs
         mod_list_text = validate_mod_list(data.get('mod_list', ''))
         game = validate_game_id(data.get('game', DEFAULT_GAME))

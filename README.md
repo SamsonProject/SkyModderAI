@@ -38,6 +38,43 @@ I've been modding since 2012—right after Skyrim launched. Hundreds of mods. On
 
 *Conflicts, load order, heaviest mods—all in one place.*
 
+## Configuration
+
+### Required Environment Variables
+
+- `BASE_URL` - Your public-facing URL without a trailing slash (e.g., `https://skymodderai.com`)
+  - **Important**: This must match exactly what's registered in Google Cloud Console and GitHub OAuth settings
+  - Required for OAuth to work in production
+  - No trailing slash
+  - Example: `BASE_URL=https://skymodderai.com`
+
+### Email Configuration
+- `MAIL_SERVER` - SMTP server hostname (e.g., `smtp.sendgrid.net`)
+- `MAIL_PORT` - SMTP port (typically `587` for TLS, `465` for SSL)
+- `MAIL_USERNAME` - SMTP username
+- `MAIL_PASSWORD` - SMTP password
+- `MAIL_USE_TLS` - Set to `true` for TLS encryption
+- `MAIL_DEFAULT_SENDER` - Default sender email address
+
+### OAuth Configuration
+#### Google OAuth
+- `GOOGLE_CLIENT_ID` - From Google Cloud Console
+- `GOOGLE_CLIENT_SECRET` - From Google Cloud Console
+- Add authorized redirect URI in Google Cloud Console: `{BASE_URL}/auth/google/callback`
+
+#### GitHub OAuth
+- `GITHUB_CLIENT_ID` - From GitHub OAuth App settings
+- `GITHUB_CLIENT_SECRET` - From GitHub OAuth App settings
+- Set callback URL in GitHub OAuth App settings: `{BASE_URL}/auth/github/callback`
+
+### Security
+- `SECRET_KEY` - Long random string for session encryption (generate with: `python3 -c "import secrets; print(secrets.token_hex(32))"`)
+- `SESSION_COOKIE_SECURE` - Set to `true` in production
+- `SESSION_COOKIE_HTTPONLY` - Set to `true` for security
+- `SESSION_COOKIE_SAMESITE` - Set to `'Lax'` for OAuth compatibility
+
+For a complete list of all available configuration options, see `.env.example` in the project root.
+
 ## Quick Start
 
 ### Run Locally

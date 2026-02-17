@@ -4864,3 +4864,12 @@ body.user-is-pro .nav-manage::after {
         min-width: 0;
     }
 }
+
+/* Mod preview images in search results */
+.mod-preview-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 12px;
+}

@@ -430,34 +430,87 @@ async function runModSearch() {
         const nexusBase = `https://www.nexusmods.com/games/${nexusSlug}/mods?keyword=`;
 
         let rowIndex = 0;
-        matches.forEach((name) => {
+        matches.forEach((mod) => {
             const row = document.createElement('div');
             row.className = 'mod-search-item mod-search-row';
+            const modName = mod.mod_name || mod; // Support both object and string for backward compatibility
             row.dataset.index = String(rowIndex++);
-            row.dataset.modName = name;
+            row.dataset.modName = modName;
             
-            // Mod name label
-            const label = document.createElement('span');
+            // Mod image if available
+            if (mod.picture_url) {
+                const imgContainer = document.createElement('div');
+                imgContainer.style.position = 'relative';
+                imgContainer.style.width = '100%';
+                imgContainer.style.height = '160px';
+                imgContainer.style.marginBottom = '12px';
+                imgContainer.style.borderRadius = '8px 8px 0 0';
+                imgContainer.style.overflow = 'hidden';
+                
+                const img = document.createElement('img');
+                img.src = mod.picture_url;
+                img.alt = modName;
+                img.className = 'mod-preview-img';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.onerror = function() {
+                    this.style.display = 'none';
+                };
+                
+                // Make the image clickable to the Nexus Mods page if ID is available
+                if (mod.nexus_mod_id) {
+                    const link = document.createElement('a');
+                    link.href = `https://www.nexusmods.com/${nexusSlug}/mods/${mod.nexus_mod_id}`;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.appendChild(img);
+                    imgContainer.appendChild(link);
+                } else {
+                    imgContainer.appendChild(img);
+                }
+                
+                row.appendChild(imgContainer);
+            }
+            
+            // Mod name label (make it a link if Nexus Mod ID is available)
+            const label = document.createElement(mod.nexus_mod_id ? 'a' : 'span');
             label.className = 'mod-search-name';
-            label.textContent = name;
+            label.textContent = modName;
+            
+            if (mod.nexus_mod_id) {
+                label.href = `https://www.nexusmods.com/${nexusSlug}/mods/${mod.nexus_mod_id}`;
+                label.target = '_blank';
+                label.rel = 'noopener noreferrer';
+                label.style.textDecoration = 'none';
+                label.style.color = 'var(--text-primary)';
+                label.addEventListener('mouseover', () => {
+                    label.style.textDecoration = 'underline';
+                    label.style.color = 'var(--accent-primary)';
+                });
+                label.addEventListener('mouseout', () => {
+                    label.style.textDecoration = 'none';
+                    label.style.color = 'var(--text-primary)';
+                });
+            }
             
             // Quick Add button
             const addBtn = document.createElement('button');
             addBtn.className = 'mod-search-quick-add primary-button small';
             addBtn.textContent = 'Add';
-            addBtn.title = `Add ${name} to current list`;
+            addBtn.title = `Add ${modName} to current list`;
             
             // Analyze button
             const analyzeBtn = document.createElement('button');
             analyzeBtn.className = 'mod-search-analyze secondary-button small';
             analyzeBtn.textContent = 'Analyze';
-            analyzeBtn.title = `Analyze ${name} for conflicts`;
+            analyzeBtn.title = `Analyze ${modName} for conflicts`;
             
             function addModToList() {
                 const listInput = document.getElementById('mod-list-input');
                 if (listInput) {
                     const prefix = listInput.value.trim() ? '\n' : '';
-                    listInput.value += prefix + '*' + name;
+                    listInput.value += prefix + '*' + modName;
                     updateModCounter();
                     // Add to recent searches
                     userContext.addRecentSearch(q);
@@ -469,7 +522,7 @@ async function runModSearch() {
             
             function analyzeMod() {
                 // Create a temporary list with just this mod
-                const tempModList = `*${name}`;
+                const tempModList = `*${modName}`;
                 const gameSelect = document.getElementById('game-select');
                 const versionSelect = document.getElementById('game-version');
                 const masterlistSelect = document.getElementById('masterlist-version');

@@ -7,7 +7,9 @@ Supports multiple games with caching (cache filenames are version-agnostic).
 import difflib
 import json
 import logging
+import os
 import re
+import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -47,6 +49,8 @@ class ModInfo:
     dirty_edits: bool
     messages: List[str]
     tags: List[str]
+    nexus_mod_id: Optional[int] = None  # Nexus Mods ID for direct linking
+    picture_url: Optional[str] = None   # URL to mod's primary image
 
 
 class LOOTParser:
@@ -63,6 +67,26 @@ class LOOTParser:
         'fallout4': '0.26',
         'starfield': '0.26',
     }
+    
+    # Nexus Mods API settings
+    NEXUS_API_BASE = 'https://api.nexusmods.com/v1'
+    NEXUS_API_TIMEOUT = 5  # seconds
+    NEXUS_RATE_LIMIT = 1.0  # seconds between requests
+    
+    # Game ID to Nexus Mods domain mapping
+    NEXUS_GAME_DOMAINS = {
+        'skyrimse': 'skyrimspecialedition',
+        'skyrimle': 'skyrim',
+        'skyrimvr': 'skyrimvr',
+        'oblivion': 'oblivion',
+        'fallout3': 'fallout3',
+        'falloutnv': 'newvegas',
+        'fallout4': 'fallout4',
+        'starfield': 'starfield',
+    }
+    
+    # Default to Skyrim SE if game not found
+    DEFAULT_NEXUS_DOMAIN = 'skyrimspecialedition'
 
     # Common file extensions to strip
     EXTENSIONS = ('.esp', '.esm', '.esl')

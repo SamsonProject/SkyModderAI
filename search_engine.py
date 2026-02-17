@@ -109,6 +109,8 @@ class SearchResult:
     matched_fields: List[str] = field(default_factory=list)
     snippet: Optional[str] = None
     mod_info: Optional[Dict] = None  # requirements, tags, etc. for AI context
+    nexus_mod_id: Optional[int] = None  # Nexus Mods ID for direct linking
+    picture_url: Optional[str] = None   # URL to mod's primary image
 
 
 class ModSearchEngine:
@@ -320,6 +322,13 @@ class ModSearchEngine:
             if include_breakdown and breakdown:
                 score_breakdown['terms'] = breakdown
 
+            # Get Nexus Mods ID and picture URL if available
+            nexus_mod_id = None
+            picture_url = None
+            if info and hasattr(info, 'nexus_mod_id') and info.nexus_mod_id:
+                nexus_mod_id = info.nexus_mod_id
+                picture_url = getattr(info, 'picture_url', None)
+            
             results.append(SearchResult(
                 mod_name=doc['mod_name'],
                 clean_name=clean_name,
@@ -328,6 +337,8 @@ class ModSearchEngine:
                 matched_fields=matched,
                 snippet=snippet,
                 mod_info=mod_info_dict,
+                nexus_mod_id=nexus_mod_id,
+                picture_url=picture_url,
             ))
 
         results.sort(key=lambda r: (-r.score, r.mod_name.lower()))
@@ -350,6 +361,8 @@ class ModSearchEngine:
                 'mod_name': r.mod_name,
                 'score': r.score,
                 'snippet': r.snippet,
+                'nexus_mod_id': r.nexus_mod_id,
+                'picture_url': r.picture_url,
             }
             if include_mod_info and r.mod_info:
                 entry['mod_info'] = r.mod_info
