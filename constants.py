@@ -1,5 +1,5 @@
 """
-ModCheck Shared Constants
+SkyModderAI Shared Constants
 Single source of truth for limits, thresholds, and magic numbers.
 Used by app.py, conflict_detector, mod_warnings, system_impact.
 """

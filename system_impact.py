@@ -65,13 +65,13 @@ def get_system_impact(
 ) -> Dict:
     """
     Analyze mod list for system/performance impact.
-    
+
     Args:
         mod_names: List of mod names to analyze
         enabled_count: Number of enabled mods/plugins
         specs: Optional dict with system specs (vram_gb, cpu, gpu, etc.)
         game: Game ID (e.g., 'skyrimse', 'fallout4') for game-specific adjustments
-        
+
     Returns:
         Dict with complexity, heavy_mods, estimated_vram_gb, recommendation
     """
@@ -98,11 +98,11 @@ def get_system_impact(
     base_vram = 2.0
     per_mod = 0.02
     heavy_bonus = sum(0.5 if m['impact'] == 'high' else 0.2 if m['impact'] == 'medium' else 0.05 for m in heavy_mods)
-    
+
     # Apply game-specific multiplier
     game_multiplier = _GAME_VRAM_MULTIPLIERS.get(game, 1.0)
     estimated_vram = (base_vram + (enabled_count * per_mod) + heavy_bonus) * game_multiplier
-    
+
     # Cap at 24GB (realistic max for consumer GPUs)
     estimated_vram = min(24.0, round(estimated_vram, 1))
 

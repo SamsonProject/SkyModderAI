@@ -3,10 +3,11 @@
 **Intelligent Load Order Analysis for Modded Games**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9-3.12](https://img.shields.io/badge/python-3.9--3.12-blue.svg)](https://www.python.org/downloads/)
 [![CI](https://github.com/SamsonProject/SkyModderAI/actions/workflows/ci.yml/badge.svg)](https://github.com/SamsonProject/SkyModderAI/actions/workflows/ci.yml)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Coverage](https://codecov.io/gh/SamsonProject/SkyModderAI/branch/main/graph/badge.svg)](https://codecov.io/gh/SamsonProject/SkyModderAI)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
 SkyModderAI is an advanced tool for analyzing and optimizing mod load orders for Bethesda games. It helps you identify conflicts, missing requirements, and provides intelligent suggestions for load order optimization.
 
@@ -145,7 +146,7 @@ For a complete list of all available configuration options, see `.env.example` i
 **Linux / macOS / WSL:**
 ```bash
 git clone https://github.com/SamsonProject/SkyModderAI.git
-cd modcheck
+cd SkyModderAI
 ./run.sh
 ```
 Or with Make: `make install && make run`
@@ -154,14 +155,14 @@ Or with Make: `make install && make run`
 
 **Docker:**
 ```bash
-docker build -t modcheck . && docker run -p 5000:5000 modcheck
+docker build -t skymodderai . && docker run -p 5000:5000 skymodderai
 ```
 
 **Manual steps (any platform):**
 ```bash
 # Clone the repository
 git clone https://github.com/SamsonProject/SkyModderAI.git
-cd modcheck
+cd SkyModderAI
 
 # Create venv and install dependencies (use venv so Stripe, dotenv work)
 python3 -m venv venv
@@ -188,13 +189,13 @@ When running locally (not in production), you can simulate Pro access without pa
 1. **Log in** with any account (or create one).
 2. Add to your `.env`:
    ```env
-   MODCHECK_DEV_PRO=1
+   SKYMODDERAI_DEV_PRO=1
    ```
 3. Restart the app. You'll get full Pro: web search fallback, AI chat (requires `OPENAI_API_KEY`), Live Fix Guide, game folder scan.
 
 To test Pro for a specific email only:
 ```env
-MODCHECK_TEST_PRO_EMAIL=your@email.com
+SKYMODDERAI_TEST_PRO_EMAIL=your@email.com
 ```
 
 These overrides only apply when `FLASK_ENV` is not `production`.
@@ -265,7 +266,7 @@ MAIL_PASSWORD=your-smtp-password
 **OpenClaw safety controls (optional, default OFF):**
 
 ```env
-MODCHECK_OPENCLAW_ENABLED=0
+SKYMODDERAI_OPENCLAW_ENABLED=0
 OPENCLAW_SANDBOX_ROOT=./openclaw_workspace
 OPENCLAW_MAX_FILES=500
 OPENCLAW_MAX_BYTES=52428800
@@ -279,7 +280,7 @@ OpenClaw should remain disabled unless you intentionally operate the experimenta
 **Offline-safe mode (optional):**
 
 ```env
-MODCHECK_OFFLINE_MODE=1
+SKYMODDERAI_OFFLINE_MODE=1
 ```
 
 When enabled, external link previews are disabled gracefully while internal links and core analysis features still work.
@@ -353,7 +354,7 @@ Core analysis is free. Always. No paywall on your results—paste, analyze, copy
 
 If you enable OpenClaw Lab in your deployment, keep these principles:
 
-- High fences by default (`MODCHECK_OPENCLAW_ENABLED=0` until you intentionally turn it on)
+- High fences by default (`SKYMODDERAI_OPENCLAW_ENABLED=0` until you intentionally turn it on)
 - Dedicated workspace boundary (`OPENCLAW_SANDBOX_ROOT`) to respect the rest of the machine
 - Explicit acknowledgements before access (`/api/openclaw/request-access`)
 - Permission-scoped execution (`/api/openclaw/permissions`) and plan approval before execution
@@ -372,7 +373,7 @@ If you enable OpenClaw Lab in your deployment, keep these principles:
 ## Project Structure
 
 ```bash
-modcheck/  # or skymodderai/
+SkyModderAI/
 ├── app.py                    # Main Flask application
 ├── conflict_detector.py      # Core conflict detection logic
 ├── game_versions.py          # Game executable version database

@@ -137,6 +137,39 @@ pytest --cov=.
 - Write tests for new features and bug fixes.
 - Update the documentation when adding new features or changing existing behavior.
 
+## Continuous Integration (CI)
+
+Our CI pipeline automatically runs on every push and pull request. The CI includes:
+
+### CI Jobs
+
+| Job | Description |
+|-----|-------------|
+| **Lint** | Ruff linting and import sorting |
+| **Test** | pytest on Python 3.9, 3.10, 3.11, 3.12 |
+| **Test Games** | Parser initialization for all 8 supported games |
+| **Performance** | Load order analysis performance budget (<5s for 500 mods) |
+| **Docker** | Docker image build and smoke test |
+| **Security** | Dependency vulnerability scanning (safety, pip-audit) |
+| **Integration** | End-to-end API tests |
+
+### Passing CI
+
+Before submitting a PR, ensure:
+- [ ] All tests pass locally: `pytest`
+- [ ] Linting passes: `ruff check .`
+- [ ] Your code works on Python 3.9+
+- [ ] You've added tests for new features
+
+### Coverage
+
+We track code coverage with Codecov. Aim for >70% coverage on new code.
+
+```bash
+# Run tests with coverage report
+pytest --cov=. --cov-report=term-missing
+```
+
 ## Reporting Issues
 
 If you find a bug or have a suggestion, please open an issue on GitHub. Be sure to include:
@@ -171,7 +204,7 @@ Copy `.env.example` to `.env` and fill in values for Stripe, email, etc. See REA
 
 Add to `.env`:
 ```
-MODCHECK_DEV_PRO=1
+SKYMODDERAI_DEV_PRO=1
 ```
 Any logged-in user gets full Pro features (no payment).
 

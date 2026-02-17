@@ -1,10 +1,10 @@
-# Render Blueprint — ModCheck deployment
+# Render Blueprint — SkyModderAI deployment
 # https://render.com/docs/blueprint-spec
 # If clone succeeds but requirements.txt not found: set Root Directory in Dashboard
 # to your project subfolder (e.g. mod_compatibility_checker) if files live there.
 services:
   - type: web
-    name: modcheck
+    name: skymodderai
     runtime: python
     # Python 3.11 (see .python-version) — 3.14 can cause package issues
     buildCommand: pip install -r requirements.txt && python3 loot_parser.py skyrimse
@@ -33,7 +33,7 @@ services:
         sync: false
       - key: MAIL_PASSWORD
         sync: false
-      - key: MODCHECK_OPENCLAW_ENABLED
+      - key: SKYMODDERAI_OPENCLAW_ENABLED
         value: "0"
       - key: OPENCLAW_SANDBOX_ROOT
         value: "./openclaw_workspace"

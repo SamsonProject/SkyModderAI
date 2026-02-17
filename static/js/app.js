@@ -1204,7 +1204,8 @@ async function loadSpecs() {
         let specs = data.specs || {};
         if (Object.keys(specs).length === 0 && localStorage) {
             try {
-                const stored = localStorage.getItem('modcheck_specs');
+                // Try new key first, then fall back to old key for backward compatibility
+                const stored = localStorage.getItem('skymodderai_specs') || localStorage.getItem('modcheck_specs');
                 if (stored) specs = JSON.parse(stored);
             } catch (_) {}
         }
@@ -1260,7 +1261,7 @@ async function saveSpecs() {
         if (steamEl) steamEl.value = '';
         if (statusEl) statusEl.textContent = 'Saved.';
         if (localStorage && currentSpecs) {
-            try { localStorage.setItem('modcheck_specs', JSON.stringify(currentSpecs)); } catch (_) {}
+            try { localStorage.setItem('skymodderai_specs', JSON.stringify(currentSpecs)); } catch (_) {}
         }
     } catch (e) {
         if (statusEl) statusEl.textContent = 'Failed to save.';
@@ -1420,7 +1421,7 @@ function downloadFixGuideHTML() {
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `modcheck-fix-guide-${(fixGuideMeta.date || '').replace(/\s/g, '-') || 'report'}.html`;
+    a.download = `skymodderai-fix-guide-${(fixGuideMeta.date || '').replace(/\s/g, '-') || 'report'}.html`;
     a.click();
     URL.revokeObjectURL(a.href);
 }
@@ -1757,7 +1758,7 @@ let isAnalyzing = false;
 async function analyzeModList() {
     if (isAnalyzing) return;
     if (!elements.modListInput) {
-        console.error('ModCheck: mod list textarea not found');
+        console.error('SkyModderAI: mod list textarea not found');
         return;
     }
 
@@ -2445,7 +2446,7 @@ function downloadReport() {
     const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `modcheck-report-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.download = `skymodderai-report-${new Date().toISOString().slice(0, 10)}.txt`;
     a.click();
     URL.revokeObjectURL(a.href);
 }
@@ -2467,7 +2468,7 @@ function downloadReportJson() {
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `modcheck-report-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `skymodderai-report-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
 }
@@ -2958,7 +2959,7 @@ if (elements.sampleBtn) {
 }
 const saveListBtn = document.getElementById('save-list-btn');
 const loadSavedSelect = document.getElementById('load-saved-list');
-const SAVED_LISTS_KEY = 'modcheck_saved_lists';
+const SAVED_LISTS_KEY = 'skymodderai_saved_lists';
 let cloudSavedLists = null;
 let cloudSavedItems = null;
 
@@ -3035,7 +3036,8 @@ async function refreshSavedListsSource() {
 
 function getSavedLists() {
     try {
-        const raw = localStorage.getItem(SAVED_LISTS_KEY);
+        // Try new key first, then fall back to old key for backward compatibility
+        const raw = localStorage.getItem(SAVED_LISTS_KEY) || localStorage.getItem('modcheck_saved_lists');
         return raw ? JSON.parse(raw) : {};
     } catch (_) { return {}; }
 }

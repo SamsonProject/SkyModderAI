@@ -2,16 +2,14 @@
 OAuth state token management with database persistence.
 Prevents CSRF attacks and handles server restarts during OAuth flow.
 """
-import os
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
 
 from flask import current_app
-from sqlalchemy import Column, String, DateTime, func
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, DateTime, String
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
@@ -32,11 +30,11 @@ class OAuthStateToken(Base):
 def generate_state_token(provider: str, redirect_url: str = None) -> str:
     """
     Generate and store a new OAuth state token.
-    
+
     Args:
         provider: OAuth provider name (e.g., 'google', 'github')
         redirect_url: Optional redirect URL to store with the token
-        
+
     Returns:
         str: The generated state token
     """
@@ -59,55 +57,55 @@ def generate_state_token(provider: str, redirect_url: str = None) -> str:
 def verify_state_token(token: str, provider: str) -> Tuple[bool, Optional[str]]:
     """
     Verify and consume an OAuth state token.
-    
+
     Args:
         token: The state token to verify
         provider: Expected OAuth provider
-        
+
     Returns:
         Tuple[bool, Optional[str]]: (is_valid, redirect_url)
     """
     if not token:
         return False, None
-        
+
     try:
-        db = current_app.extensions['sqlallchemy'].db
+        db = current_app.extensions['sqlalchemy'].db
         state_token = db.session.query(OAuthStateToken).get(token)
-        
+
         if not state_token:
             current_app.logger.warning(f"Invalid OAuth state token: {token}")
             return False, None
-            
+
         if state_token.provider != provider:
             current_app.logger.warning(
                 f"OAuth state token provider mismatch: expected {provider}, got {state_token.provider}"
             )
             return False, None
-            
+
         if state_token.is_expired:
             current_app.logger.warning(f"Expired OAuth state token: {token}")
             return False, None
-            
+
         # Consume the token by deleting it
         db.session.delete(state_token)
         db.session.commit()
-        
+
         return True, state_token.redirect_url
-        
+
     except SQLAlchemyError as e:
         current_app.logger.error(f"Error verifying OAuth state token: {e}")
         return False, None
 
 def cleanup_expired_tokens() -> int:
     """Remove expired OAuth state tokens from the database.
-    
+
     Returns:
         int: Number of tokens deleted
     """
     try:
         db = current_app.extensions['sqlalchemy'].db
         expired = db.session.query(OAuthStateToken).filter(
-            OAuthStateToken.created_at < 
+            OAuthStateToken.created_at <
             (datetime.utcnow() - timedelta(minutes=10))
         ).delete()
         db.session.commit()

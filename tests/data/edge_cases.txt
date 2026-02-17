@@ -1,0 +1,229 @@
+# Edge cases and problematic mod names for testing
+# Special characters, unicode, long names, ESL flags, etc.
+
+*Skyrim.esm
+*Update.esm
+*Dawnguard.esm
+*HearthFires.esm
+*Dragonborn.esm
+*Unofficial Skyrim Special Edition Patch.esp
+*ccBGSSSE001-Fish.esm
+*Some Mod [v1.2.3] [Hotfixed].esp
+*Mod with (parentheses) and [brackets].esp
+*Mod-with-dashes-and_underscores.esp
+*Mod.With.Multiple.Dots.In.Name.esp
+*Мод на русском.esp
+*Mod avec des caractères français.esp
+*Mod mit deutschen Umlauten äöü.esp
+*Modo con caracteres españoles ñ.esp
+*日本語の MOD.esp
+*한국어 모드.esp
+*Mod with a really long name that might cause issues with some parsers or tools that have buffer limits or other constraints on plugin name length.esp
+*ESL Flagged Mod 1.esl
+*ESL Flagged Mod 2.esl
+*ESL Flagged Mod 3.esl
+*ESL Flagged Mod 4.esl
+*ESL Flagged Mod 5.esl
+*FE in load order.esl
+*Another FE Mod.esl
+*Light Plugin Master.esm
+*Regular Plugin.esp
+*Disabled Mod.esp
+*Another Disabled Mod.esp
+*Mod With Spaces In Name.esp
+*Mod	With	Tabs.esp
+*Mod
+With
+Newlines.esp
+*Mod''With''Quotes.esp
+*Mod"With"Double"Quotes.esp
+*Mod`With`Backticks.esp
+*Mod|With|Pipes.esp
+*Mod<With>Angle<Brackets>.esp
+*Mod{With}Curly{Braces}.esp
+*Mod[With]Square[Brackets].esp
+*Mod(With)Round(Parens).esp
+*Mod*With*Asterisks*.esp
+*Mod?With?Question?Marks?.esp
+*Mod!With!Exclamation!Marks!.esp
+*Mod@With@At@Signs@.esp
+*Mod#With#Hashes#.esp
+*Mod$With$Dollars$.esp
+*Mod%With%Percent%.esp
+*Mod^With^Carets^.esp
+*Mod&With&Ampersands&.esp
+*Mod=With=Equals=.esp
+*Mod+With+Pluses+.esp
+*Mod~With~Tildes~.esp
+*Mod`With`Backquotes`.esp
+*Mod"With"Smart"Quotes".esp
+*Mod—With—Em—Dashes—.esp
+*Mod–With–En–Dashes–.esp
+*Mod…With…Ellipses….esp
+*Mod™With®Trademarks©.esp
+*Mod★With☆Stars★.esp
+*Mod♥With♦Hearts♣.esp
+*Mod☀With☁Weather☂.esp
+*Mod⚔With🛡Shields⚔.esp
+*Mod🐉With🐲Dragons🐉.esp
+*Mod⚡With⚡Lightning⚡.esp
+*Mod🔥With❄Ice🔥.esp
+*Mod🗡With🏹Weapons🗡.esp
+*Mod🧙With🧚Magic🧙.esp
+*Mod🏰With🏯Castles🏰.esp
+*Mod🌲With🌳Forests🌲.esp
+*Mod⛰With🏔Mountains⛰.esp
+*Mod🌊With🌊Water🌊.esp
+*Mod🌋With🌋Volcanoes🌋.esp
+*Mod🌌With🌌Space🌌.esp
+*Mod🔮With🔮Crystals🔮.esp
+*Mod💀With💀Skulls💀.esp
+*Mod👁With👁Eyes👁.esp
+*Mod🦴With🦴Bones🦴.esp
+*Mod🩸With🩸Blood🩸.esp
+*Mod✨With✨Sparkles✨.esp
+*Mod🌟With🌟Glow🌟.esp
+*Mod💫With💫Dizzy💫.esp
+*Mod🌈With🌈Rainbow🌈.esp
+*Mod🎨With🎨Colors🎨.esp
+*Mod🎭With🎭Masks🎭.esp
+*Mod🎪With🎪Circus🎪.esp
+*Mod🎯With🎯Targets🎯.esp
+*Mod🎲With🎲Dice🎲.esp
+*Mod🎮With🎮Games🎮.esp
+*Mod🕹With🕹Joysticks🕹.esp
+*Mod🎧With🎧Audio🎧.esp
+*Mod📻With📻Radio📻.esp
+*Mod📺With📺Television📺.esp
+*Mod📱With📱Phones📱.esp
+*Mod💻With💻Computers💻.esp
+*Mod⌨With⌨Keyboards⌨.esp
+*Mod🖱With🖱Mice🖱.esp
+*Mod🖨With🖨Printers🖨.esp
+*Mod📷With📷Cameras📷.esp
+*Mod📸With📸Flash📸.esp
+*Mod🎥With🎥Film🎥.esp
+*Mod🎬With🎬Clapper🎬.esp
+*Mod🎞With🎞FilmFrames🎞.esp
+*Mod📽With📽Projector📽.esp
+*Mod🎦With🎦Cinema🎦.esp
+*Mod📺With📺Screens📺.esp
+*Mod🖥With🖥Monitors🖥.esp
+*Mod📟With📟Pagers📟.esp
+*Mod📠With📠Faxes📠.esp
+*Mod📞With📞Phones📞.esp
+*Mod☎With☎Telephones☎.esp
+*Mod📕With📕Books📕.esp
+*Mod📗With📗Books📗.esp
+*Mod📘With📘Books📘.esp
+*Mod📙With📙Books📙.esp
+*Mod📓With📓Notebooks📓.esp
+*Mod📔With📔Notebooks📔.esp
+*Mod📒With📒Ledgers📒.esp
+*Mod📕With📖OpenBooks📖.esp
+*Mod📜With📜Scrolls📜.esp
+*Mod📃With📃Pages📃.esp
+*Mod📄With📄Documents📄.esp
+*Mod📰With📰Newspapers📰.esp
+*Mod🗞With🗞RolledNewspaper🗞.esp
+*Mod📑With📑BookmarkTabs📑.esp
+*Mod🔖With🔖Bookmarks🔖.esp
+*Mod🏷With🏷Labels🏷.esp
+*Mod💰With💰Money💰.esp
+*Mod💴With💴Yen💴.esp
+*Mod💵With💵Dollar💵.esp
+*Mod💶With💶Euro💶.esp
+*Mod💷With💷Pound💷.esp
+*Mod💸With💸FlyingMoney💸.esp
+*Mod💹With💹Chart💹.esp
+*Mod💱With💱Exchange💱.esp
+*Mod💲With💲DollarSign💲.esp
+*Mod✂With✂Scissors✂.esp
+*Mod📇With📇CardIndex📇.esp
+*Mod📈With📈ChartIncreasing📈.esp
+*Mod📉With📉ChartDecreasing📉.esp
+*Mod📊With📊BarChart📊.esp
+*Mod📋With📋Clipboard📋.esp
+*Mod📌With📌Pushpin📌.esp
+*Mod📍With📍RoundPushpin📍.esp
+*Mod📎With📎Paperclip📎.esp
+*Mod🖇With🖇LinkedPaperclips🖇.esp
+*Mod📏With📏Ruler📏.esp
+*Mod📐With📐TriangularRuler📐.esp
+*Mod✏With✏Pencil✏.esp
+*Mod🖊With🖊Pen🖊.esp
+*Mod🖋With🖋FountainPen🖋.esp
+*Mod🖌With🖌Paintbrush🖌.esp
+*Mod🖍With🖍Crayon🖍.esp
+*Mod📝With📝Memo📝.esp
+*Mod💼With💼Briefcase💼.esp
+*Mod📁With📁FileFolder📁.esp
+*Mod📂With📂OpenFileFolder📂.esp
+*Mod🗂With🗂CardIndexDividers🗂.esp
+*Mod📅With📅Calendar📅.esp
+*Mod📆With📆TearOffCalendar📆.esp
+*Mod🗒With🗒SpiralNotePad🗒.esp
+*Mod🗓With🗓SpiralCalendar🗓.esp
+*Mod📇With📇CardIndex📇.esp
+*Mod📈With📈Chart📈.esp
+*Mod📉With📉Chart📉.esp
+*Mod📊With📊BarChart📊.esp
+*Mod📋With📋Clipboard📋.esp
+*Mod📌With📌Pushpin📌.esp
+*Mod📍With📍RoundPushpin📍.esp
+*Mod📎With📎Paperclip📎.esp
+*Mod🖇With🖇LinkedPaperclips🖇.esp
+*Mod📏With📏StraightRuler📏.esp
+*Mod📐With📐TriangularRuler📐.esp
+*Mod✂With✂Scissors✂.esp
+*Mod🗃With🗃CardFileBox🗃.esp
+*Mod🗄With🗄FileCabinet🗄.esp
+*Mod🗑With🗑Wastebasket🗑.esp
+*Mod🔒With🔒Locked🔒.esp
+*Mod🔓With🔓Unlocked🔓.esp
+*Mod🔏With🔏LockedWithPen🔏.esp
+*Mod🔐With🔐LockedWithKey🔐.esp
+*Mod🔑With🔑Key🔑.esp
+*Mod🗝With🗝OldKey🗝.esp
+*Mod🔨With🔨Hammer🔨.esp
+*Mod⛏With⛏Pick⛏.esp
+*Mod⚒With⚒HammerAndPick⚒.esp
+*Mod🛠With🛠HammerAndWrench🛠.esp
+*Mod🗡With🗡Dagger🗡.esp
+*Mod⚔With⚔CrossedSwords⚔.esp
+*Mod🔫With🔫Pistol🔫.esp
+*Mod🏹With🏹BowAndArrow🏹.esp
+*Mod🛡With🛡Shield🛡.esp
+*Mod🔧With🔧Wrench🔧.esp
+*Mod🔩With🔩NutAndBolt🔩.esp
+*Mod⚙With⚙Gear⚙.esp
+*Mod🗜With🗜Clamp🗜.esp
+*Mod⚖With⚖BalanceScale⚖.esp
+*Mod🔗With🔗Link🔗.esp
+*Mod⛓With⛓Chains⛓.esp
+*Mod🧰With🧰Toolbox🧰.esp
+*Mod🧲With🧲Magnet🧲.esp
+*Mod⚗With⚗Alembic⚗.esp
+*Mod🧪With🧪TestTube🧪.esp
+*Mod🧫With🧫PetriDish🧫.esp
+*Mod🧬With🧬DNA🧬.esp
+*Mod🔬With🔬Microscope🔬.esp
+*Mod🔭With🔭Telescope🔭.esp
+*Mod📡With📡SatelliteAntenna📡.esp
+*Mod💉With💉Syringe💉.esp
+*Mod💊With💊Pill💊.esp
+*Mod🚪With🚪Door🚪.esp
+*Mod🛏With🛏Bed🛏.esp
+*Mod🛋With🛋CouchAndLamp🛋.esp
+*Mod🚽With🚽Toilet🚽.esp
+*Mod🚿With🚿Shower🚿.esp
+*Mod🛁With🛁Bathtub🛁.esp
+*Mod🧴With🧴LotionBottle🧴.esp
+*Mod🧷With🧷SafetyPin🧷.esp
+*Mod🧹With🧹Broom🧹.esp
+*Mod🧺With🧺Basket🧺.esp
+*Mod🧻With🧻RollOfPaper🧻.esp
+*Mod🧼With🧼Soap🧼.esp
+*Mod🧽With🧽Sponge🧽.esp
+*Mod🧯With🧯FireExtinguisher🧯.esp
+*Mod🛒With🛒ShoppingCart🛒.esp

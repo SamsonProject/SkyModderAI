@@ -1,5 +1,5 @@
 """
-ModCheck Search Engine — Ferrari-grade ranking for Bethesda modding.
+SkyModderAI Search Engine — Ferrari-grade ranking for Bethesda modding.
 
 Implements:
 - BM25 ranking (Okapi BM25, industry standard for relevance)
@@ -349,7 +349,7 @@ class ModSearchEngine:
             if info and hasattr(info, 'nexus_mod_id') and info.nexus_mod_id:
                 nexus_mod_id = info.nexus_mod_id
                 picture_url = getattr(info, 'picture_url', None)
-            
+
             results.append(SearchResult(
                 mod_name=doc['mod_name'],
                 clean_name=clean_name,

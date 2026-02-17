@@ -132,7 +132,7 @@ def extract_fuel(
         avg_depth = 0.0
 
     fuel = {
-        "source": "modcheck",
+        "source": "skymodderai",
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "game": game_id,
         "structure": {

@@ -1,6 +1,6 @@
 # Research — Self-Improving Skyrim Modding System
 
-**Purpose:** Collect, analyze, and learn from all data flowing through ModCheck—without charging users, slowing requests, or compromising privacy. Use existing corporate infrastructure (free tiers, research grants, partnerships) to run periodic analysis that improves the site, debugging, mod efficiency, and eventually pushes toward live modded Skyrim.
+**Purpose:** Collect, analyze, and learn from all data flowing through SkyModderAI—without charging users, slowing requests, or compromising privacy. Use existing corporate infrastructure (free tiers, research grants, partnerships) to run periodic analysis that improves the site, debugging, mod efficiency, and eventually pushes toward live modded Skyrim.
 
 ---
 

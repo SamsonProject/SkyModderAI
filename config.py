@@ -66,10 +66,10 @@ class Config:
     SESSION_COOKIE_HTTPONLY = os.getenv('SESSION_COOKIE_HTTPONLY', 'True').lower() == 'true'
     SESSION_COOKIE_SAMESITE = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
 
-    # Feature Flags
-    MODCHECK_OPENCLAW_ENABLED = os.getenv('SKYMODDERAI_OPENCLAW_ENABLED', '0') == '1'
-    MODCHECK_DEV_PRO = os.getenv('MODCHECK_DEV_PRO', '0') == '1' if FLASK_ENV != 'production' else False
-    MODCHECK_TEST_PRO_EMAIL = os.getenv('MODCHECK_TEST_PRO_EMAIL') if FLASK_ENV != 'production' else None
+    # Feature Flags (SKYMODDERAI_ prefix is current, MODCHECK_ prefix supported for backward compatibility)
+    SKYMODDERAI_OPENCLAW_ENABLED = os.getenv('SKYMODDERAI_OPENCLAW_ENABLED', os.getenv('MODCHECK_OPENCLAW_ENABLED', '0')) == '1'
+    SKYMODDERAI_DEV_PRO = os.getenv('SKYMODDERAI_DEV_PRO', os.getenv('MODCHECK_DEV_PRO', '0')) == '1' if FLASK_ENV != 'production' else False
+    SKYMODDERAI_TEST_PRO_EMAIL = os.getenv('SKYMODDERAI_TEST_PRO_EMAIL', os.getenv('MODCHECK_TEST_PRO_EMAIL')) if FLASK_ENV != 'production' else None
 
     # OpenAI
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -100,7 +100,7 @@ class Config:
 
             if cls.GITHUB_OAUTH_ENABLED and not all([cls.GITHUB_CLIENT_ID, cls.GITHUB_CLIENT_SECRET]):
                 raise ValueError('GitHub OAuth is enabled but configuration is incomplete. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET.')
-                
+
             # Validate BASE_URL in production
             if not cls.BASE_URL or cls.BASE_URL == 'http://localhost:5000':
                 raise ValueError('BASE_URL must be set to your production domain in production environment.')

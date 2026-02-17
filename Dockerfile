@@ -1,6 +1,6 @@
-# SkyModderAI / ModCheck — Docker image
-# Build: docker build -t modcheck .
-# Run:   docker run -p 5000:5000 modcheck
+# SkyModderAI — Docker image
+# Build: docker build -t skymodderai .
+# Run:   docker run -p 5000:5000 skymodderai
 
 FROM python:3.11-slim
 

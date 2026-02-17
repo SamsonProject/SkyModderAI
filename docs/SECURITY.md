@@ -9,7 +9,7 @@ The `main` branch and current production deployment are supported for security f
 Please do not open public issues for sensitive vulnerabilities.
 
 - Email: `support@skymodderai.com`
-- Subject: `Security report - ModCheck`
+- Subject: `Security report - SkyModderAI`
 - Include:
   - Steps to reproduce
   - Affected endpoint/page

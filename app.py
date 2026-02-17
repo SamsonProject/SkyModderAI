@@ -1,5 +1,5 @@
 """
-ModCheck - Mod Compatibility Checker
+SkyModderAI - Mod Compatibility Checker
 Main Flask application with improved security, error handling, and Stripe integration.
 """
 
@@ -314,7 +314,7 @@ OPENCLAW_DENY_SEGMENTS = frozenset({
     'appdata', 'programdata', 'program files', 'program files (x86)',
     '.ssh', '.gnupg',
 })
-OFFLINE_MODE = os.environ.get('MODCHECK_OFFLINE_MODE', '').lower() in ('1', 'true', 'yes')
+OFFLINE_MODE = os.environ.get('SKYMODDERAI_OFFLINE_MODE', os.environ.get('MODCHECK_OFFLINE_MODE', '')).lower() in ('1', 'true', 'yes')
 PAID_TIERS = frozenset({'pro', 'pro_plus', 'claw'})
 
 # -------------------------------------------------------------------
@@ -802,11 +802,11 @@ def get_user_tier(email):
         return 'free'
     # Dev/testing: treat logged-in user as Pro with full features including AI (only when not in production)
     if not _in_production:
-        dev_pro = os.environ.get('MODCHECK_DEV_PRO', '').lower() in ('1', 'true', 'yes')
-        dev_pro_plus = os.environ.get('MODCHECK_DEV_PRO_PLUS', '').lower() in ('1', 'true', 'yes')
-        dev_openclaw = os.environ.get('MODCHECK_DEV_OPENCLAW', '').lower() in ('1', 'true', 'yes')
-        test_email = os.environ.get('MODCHECK_TEST_PRO_EMAIL', '').strip().lower()
-        test_openclaw_email = os.environ.get('MODCHECK_TEST_OPENCLAW_EMAIL', '').strip().lower()
+        dev_pro = os.environ.get('SKYMODDERAI_DEV_PRO', os.environ.get('MODCHECK_DEV_PRO', '')).lower() in ('1', 'true', 'yes')
+        dev_pro_plus = os.environ.get('SKYMODDERAI_DEV_PRO_PLUS', os.environ.get('MODCHECK_DEV_PRO_PLUS', '')).lower() in ('1', 'true', 'yes')
+        dev_openclaw = os.environ.get('SKYMODDERAI_DEV_OPENCLAW', os.environ.get('MODCHECK_DEV_OPENCLAW', '')).lower() in ('1', 'true', 'yes')
+        test_email = os.environ.get('SKYMODDERAI_TEST_PRO_EMAIL', os.environ.get('MODCHECK_TEST_PRO_EMAIL', '')).strip().lower()
+        test_openclaw_email = os.environ.get('SKYMODDERAI_TEST_OPENCLAW_EMAIL', os.environ.get('MODCHECK_TEST_OPENCLAW_EMAIL', '')).strip().lower()
         if dev_openclaw or (test_openclaw_email and email.lower() == test_openclaw_email):
             return 'claw'
         if dev_pro or dev_pro_plus or (test_email and email.lower() == test_email):
@@ -1410,10 +1410,10 @@ def send_verification_email(to_email, verify_url):
         )
         return
     msg = MIMEMultipart('alternative')
-    msg['Subject'] = 'Verify your ModCheck email'
+    msg['Subject'] = 'Verify your SkyModderAI email'
     msg['From'] = from_addr
     msg['To'] = to_email
-    text = f"""You're signing up for ModCheck. Click the link below to verify your email—then you can log in and, if you want, go to Pro checkout.\n\n{verify_url}\n\nIf you didn't request this, you can ignore this email."""
+    text = f"""You're signing up for SkyModderAI. Click the link below to verify your email—then you can log in and, if you want, go to Pro checkout.\n\n{verify_url}\n\nIf you didn't request this, you can ignore this email."""
     msg.attach(MIMEText(text, 'plain'))
     try:
         if use_ssl or port == 465:

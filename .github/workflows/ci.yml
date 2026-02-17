@@ -4,9 +4,19 @@ on:
   push:
     branches: [main]
   pull_request:
+  release:
+    types: [published]
+
+env:
+  PYTHON_DEFAULT: "3.11"
+  PIP_CACHE_DIR: ~/.cache/pip
 
 jobs:
-  test-and-lint:
+  # ─────────────────────────────────────────────────────────────
+  # LINT & FORMAT - Fast feedback for developers
+  # ─────────────────────────────────────────────────────────────
+  lint:
+    name: Lint & Format
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -15,16 +25,267 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_DEFAULT }}
+          cache: "pip"
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip setuptools
           pip install ruff
 
-      - name: Lint
+      - name: Lint with Ruff
         run: ruff check .
 
-      - name: Run tests
-        run: pytest
+      - name: Check import sorting
+        run: ruff check . --select I
+
+      - name: Format check with Ruff
+        run: ruff format --check .
+
+  # ─────────────────────────────────────────────────────────────
+  # TEST MATRIX - All Python versions modders actually use
+  # ─────────────────────────────────────────────────────────────
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run tests with coverage
+        run: pytest --tb=short -v --cov=. --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          env_vars: PYTHON_VERSION
+          name: codecov-${{ matrix.python-version }}
+          fail_ci_if_error: false
+
+  # ─────────────────────────────────────────────────────────────
+  # GAME COMPATIBILITY - Test all supported Bethesda games
+  # ─────────────────────────────────────────────────────────────
+  test-games:
+    name: Test ${{ matrix.game }} Support
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        game: ["skyrim", "skyrimse", "skyrimvr", "oblivion", "fallout3", "falloutnv", "fallout4", "starfield"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_DEFAULT }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Test ${{ matrix.game }} parser
+        run: |
+          python -c "
+          from loot_parser import LOOTParser
+          parser = LOOTParser('${{ matrix.game }}')
+          print(f'✓ ${{ matrix.game }} parser initialized')
+          print(f'  Game: {parser.game_id}')
+          print(f'  Masterlist loaded: {len(parser.mod_database)} mods')
+          "
+
+  # ─────────────────────────────────────────────────────────────
+  # PERFORMANCE - Ensure analysis stays fast with large load orders
+  # ─────────────────────────────────────────────────────────────
+  performance:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_DEFAULT }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools
+          pip install -r requirements.txt
+          pip install pytest pytest-benchmark
+
+      - name: Run performance tests
+        run: |
+          echo "Testing analysis performance with large load orders..."
+          python -c "
+          import time
+          from loot_parser import LOOTParser
+          from conflict_detector import ConflictDetector, ModListEntry
+
+          parser = LOOTParser('skyrimse')
+          detector = ConflictDetector(parser)
+
+          # Simulate a 500-mod load order (common for experienced modders)
+          mods = [ModListEntry(f'Mod_{i:04d}.esp', i, True) for i in range(500)]
+
+          start = time.time()
+          conflicts = detector.analyze_load_order(mods)
+          elapsed = time.time() - start
+
+          print(f'✓ Analyzed 500 mods in {elapsed:.2f}s')
+          print(f'  Found {len(conflicts)} issues')
+
+          # Performance budget: should complete in under 5 seconds
+          assert elapsed < 5.0, f'Performance regression: {elapsed:.2f}s > 5s budget'
+          print('✓ Performance budget passed (< 5s for 500 mods)')
+          "
+
+  # ─────────────────────────────────────────────────────────────
+  # DOCKER - Verify container builds for deployment
+  # ─────────────────────────────────────────────────────────────
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: skymodderai:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test Docker image
+        run: |
+          docker run --rm skymodderai:latest python -c "
+          from app import app
+          print('✓ Flask app imports successfully in Docker')
+          from loot_parser import LOOTParser
+          parser = LOOTParser('skyrimse')
+          print(f'✓ LOOT parser works in Docker ({len(parser.mod_database)} mods)')
+          "
+
+  # ─────────────────────────────────────────────────────────────
+  # SECURITY - Scan dependencies for vulnerabilities
+  # ─────────────────────────────────────────────────────────────
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_DEFAULT }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools
+          pip install -r requirements.txt
+          pip install safety pip-audit
+
+      - name: Run safety check
+        run: safety check --full-report || true
+
+      - name: Run pip-audit
+        run: pip-audit || true
+
+  # ─────────────────────────────────────────────────────────────
+  # INTEGRATION - End-to-end API tests
+  # ─────────────────────────────────────────────────────────────
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_DEFAULT }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run integration tests
+        run: |
+          pytest tests/ -v -k "api" --tb=short || true
+
+  # ─────────────────────────────────────────────────────────────
+  # RELEASE - Build and package for distribution
+  # ─────────────────────────────────────────────────────────────
+  release:
+    name: Build Release Artifacts
+    runs-on: ubuntu-latest
+    needs: [lint, test, docker, security]
+    if: github.event_name == 'release'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_DEFAULT }}
+          cache: "pip"
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip setuptools build wheel
+
+      - name: Build source distribution
+        run: python -m build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Upload to GitHub Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/*
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true

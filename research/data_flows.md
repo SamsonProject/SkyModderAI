@@ -1,6 +1,6 @@
 # Data Flows — What Comes In, Goes Out, Gets Collected
 
-**Purpose:** Catalog all data flowing through ModCheck for research ingestion. Research collects **structural aggregates only**—no PII, no user mod lists (unless opt-in anonymized).
+**Purpose:** Catalog all data flowing through SkyModderAI for research ingestion. Research collects **structural aggregates only**—no PII, no user mod lists (unless opt-in anonymized).
 
 ---
 

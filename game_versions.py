@@ -1,5 +1,5 @@
 """
-Game executable version database for ModCheck.
+Game executable version database for SkyModderAI.
 Maps game IDs to known executable versions with compatibility notes.
 Used for version-aware conflict detection and user education.
 

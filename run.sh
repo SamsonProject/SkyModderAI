@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SkyModderAI / ModCheck — Run locally (Linux, macOS, WSL)
+# SkyModderAI — Run locally (Linux, macOS, WSL)
 # Usage: ./run.sh
 set -e
 cd "$(dirname "$0")"
@@ -24,5 +24,5 @@ if [ ! -f "data/skyrimse_mod_database.json" ]; then
     ./venv/bin/python loot_parser.py skyrimse
 fi
 
-echo "Starting ModCheck on http://127.0.0.1:5000"
+echo "Starting SkyModderAI on http://127.0.0.1:5000"
 ./venv/bin/python app.py

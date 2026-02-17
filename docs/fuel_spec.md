@@ -1,6 +1,6 @@
 # Structural Fuel — Export Specification
 
-**Purpose:** Data and structural substrate for constrained-system research. ModCheck provides:
+**Purpose:** Data and structural substrate for constrained-system research. SkyModderAI provides:
 1. Privacy-respecting feedback — errors, conflict patterns, structural data (no PII)
 2. Physically-grounded structure — mod ecosystem as a model of constrained systems
 3. Schema for drive mappings — mod-world to Heart/Intellect/Referee
@@ -55,7 +55,7 @@ Unstable: cycle, missing req, unresolved conflict → crash
 
 ## 3. Drive Mappings
 
-| Drive | ModCheck Analog |
+| Drive | SkyModderAI Analog |
 |-------|-----------------|
 | Wonder-seeking | Complexity gradient: mod count, patch count, depth |
 | Relational depth | Community, engagement over time |
@@ -70,7 +70,7 @@ Unstable: cycle, missing req, unresolved conflict → crash
 
 ```json
 {
-  "source": "modcheck",
+  "source": "skymodderai",
   "timestamp": "ISO8601",
   "game": "skyrimse",
   "structure": {

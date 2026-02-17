@@ -1,5 +1,5 @@
 """
-ModCheck Knowledge Index — Structured knowledge graph for AI assistant navigation.
+SkyModderAI Knowledge Index — Structured knowledge graph for AI assistant navigation.
 
 Maps:
 - Conflict types → resolution patterns, tools, links

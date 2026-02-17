@@ -43,7 +43,7 @@
 | **GitHub Education** | Students, teachers | Pro features, credits |
 | **Oracle Cloud Free Tier** | Anyone | Always-free VMs, storage |
 
-**Strategy:** If ModCheck qualifies as a research/education project, apply. Use credits for heavier analysis (e.g., ML on conflict patterns).
+**Strategy:** If SkyModderAI qualifies as a research/education project, apply. Use credits for heavier analysis (e.g., ML on conflict patterns).
 
 ---
 

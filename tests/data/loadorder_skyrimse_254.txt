@@ -1,0 +1,312 @@
+# Realistic Skyrim SE load order for testing
+# Based on typical Wabbajack/moderator lists
+# 254 plugins (near the limit)
+
+*Skyrim.esm
+*Update.esm
+*Dawnguard.esm
+*HearthFires.esm
+*Dragonborn.esm
+*Unofficial Skyrim Special Edition Patch.esp
+*ccBGSSSE001-Fish.esm
+*ccQDRSSE001-SurvivalMode.esl
+*ccAFSSSE001-FakeCurse.esl
+*LegacyoftheDragonborn.esm
+*Resources - The Great Cities.esp
+*The Great Cities - Minor Cities and Towns.esp
+*The Great Town of Ivarstead.esp
+*The Great Town of Karthwasten.esp
+*The Great Town of Shor's Stone.esp
+*Skyrim Sewers 4.esp
+*Skyrim Extended - Deadlines.esp
+*Cutting Room Floor.esp
+*Undeath.esp
+*Conduit.esp
+*Apocalypse - Magic of Skyrim.esp
+*Ordinator - Perks of Skyrim.esp
+*Apocalypse - Ordinator Compatibility Patch.esp
+*Vokrii - Minimalistic Perks of Skyrim.esp
+*Adamant - A Perk Overhaul.esp
+*Wintersun - Faiths of Skyrim.esp
+*Religion Patch Adamant.esp
+*SkyUI_SE.esp
+*AddressLibraryforSKSEPlugins.esl
+*ngsheath.esl
+*CBP.esl
+*Experience.esl
+*SmoothCam.esl
+*ENB Light.esp
+*Lux Orbis - Master plugin.esm
+*Lux Via.esp
+*Lux Via - plugin.esp
+*Lux.esp
+*Obsidian Weathers.esp
+*Obsidian Weathers - Patch for Lux Via.esp
+*True Storms Special Edition - Thunder Sounds - FOMOD.esp
+*WetandCold.esp
+*Seasons of Skyrim.esp
+*Skyland AIO.esp
+*Nordic Snow.esp
+*Verdant - A Skyrim Grass Plugin SSE Version.esp
+*Skyrim 3D Trees and Plants.esp
+*TerrainLodRedone.esp
+*Skyrim 3D Rocks.esp
+*Skyrim 3D StoneCaves.esp
+*Skyrim 3D Bridge.esp
+*Skyrim 3D Fences.esp
+*Skyrim 3D Gates.esp
+*Skyrim 3D Lamps.esp
+*Skyrim 3D Mountain Flowers.esp
+*Skyrim 3D Plants.esp
+*Skyrim 3D Shrines.esp
+*Skyrim 3D Signs.esp
+*Skyrim 3D Solstheim.esp
+*Skyrim 3D Statues.esp
+*Skyrim 3D Trees.esp
+*Skyrim 3D Water.esp
+*Skyrim 3D Weapons.esp
+*Skyrim 3D Armor.esp
+*Skyrim 3D Clothing.esp
+*Skyrim 3D Food.esp
+*Skyrim 3D Ingredients.esp
+*Skyrim 3D Misc.esp
+*Skyrim 3D Furniture.esp
+*Skyrim 3D Animals.esp
+*Skyrim 3D Creatures.esp
+*Skyrim 3D Monsters.esp
+*Skyrim 3D NPCs.esp
+*Skyrim 3D Enemies.esp
+*Skyrim 3D Bosses.esp
+*Skyrim 3D Draugr.esp
+*Skyrim 3D Falmer.esp
+*Skyrim 3D Giants.esp
+*Skyrim 3D Hagravens.esp
+*Skyrim 3D Mammoths.esp
+*Skyrim 3D Sabrecats.esp
+*Skyrim 3D Skeevers.esp
+*Skyrim 3D Slaughterfish.esp
+*Skyrim 3D Spiders.esp
+*Skyrim 3D Trolls.esp
+*Skyrim 3D Wolves.esp
+*Skyrim 3D Dragons.esp
+*Skyrim 3D Dragon Priests.esp
+*Skyrim 3D Dwarven.esp
+*Skyrim 3D Daedric.esp
+*Skyrim 3D Ebony.esp
+*Skyrim 3D Glass.esp
+*Skyrim 3D Elven.esp
+*Skyrim 3D Steel.esp
+*Skyrim 3D Iron.esp
+*Skyrim 3D Orcish.esp
+*Skyrim 3D Silver.esp
+*Skyrim 3D Nordic.esp
+*Skyrim 3D Imperial.esp
+*Skyrim 3D Stormcloak.esp
+*Skyrim 3D Thalmor.esp
+*Skyrim 3D Forsworn.esp
+*Skyrim 3D Bandit.esp
+*Skyrim 3D Vampire.esp
+*Skyrim 3D Werewolf.esp
+*Skyrim 3D Lich.esp
+*Skyrim 3D Ghost.esp
+*Skyrim 3D Skeleton.esp
+*Skyrim 3D Zombie.esp
+*Skyrim 3D Mudcrab.esp
+*Skyrim 3D Chaurus.esp
+*Skyrim 3D Ice Wraith.esp
+*Skyrim 3D Spriggan.esp
+*Skyrim 3D Wispmother.esp
+*Skyrim 3D Ash Spawn.esp
+*Skyrim 3D Riekling.esp
+*Skyrim 3D Seeker.esp
+*Skyrim 3D Lurker.esp
+*Skyrim 3D Bristleback.esp
+*Skyrim 3D Netch.esp
+*Skyrim 3D Guar.esp
+*Skyrim 3D Alit.esp
+*Skyrim 3D Kagouti.esp
+*Skyrim 3D Shalk.esp
+*Skyrim 3D Cliff Racer.esp
+*Skyrim 3D Scrib.esp
+*Skyrim 3D Nix Hound.esp
+*Skyrim 3D Durzog.esp
+*Skyrim 3D Bull Netch.esp
+*Skyrim 3D Betty Netch.esp
+*Skyrim 3D Fetcherfly.esp
+*Skyrim 3D Felsaad Tern.esp
+*Skyrim 3D Bantam Guar.esp
+*Skyrim 3D Pack Guar.esp
+*Skyrim 3D Riding Guar.esp
+*Skyrim 3D War Guar.esp
+*Skyrim 3D Armored Guar.esp
+*Skyrim 3D Armored Pack Guar.esp
+*Skyrim 3D Armored Riding Guar.esp
+*Skyrim 3D Armored War Guar.esp
+*Skyrim 3D Armored Bull Netch.esp
+*Skyrim 3D Armored Betty Netch.esp
+*Skyrim 3D Armored Netch.esp
+*Skyrim 3D Armored Alit.esp
+*Skyrim 3D Armored Kagouti.esp
+*Skyrim 3D Armored Shalk.esp
+*Skyrim 3D Armored Cliff Racer.esp
+*Skyrim 3D Armored Scrib.esp
+*Skyrim 3D Armored Nix Hound.esp
+*Skyrim 3D Armored Durzog.esp
+*Skyrim 3D Armored Bristleback.esp
+*Skyrim 3D Armored Mudcrab.esp
+*Skyrim 3D Armored Chaurus.esp
+*Skyrim 3D Armored Ice Wraith.esp
+*Skyrim 3D Armored Spriggan.esp
+*Skyrim 3D Armored Wispmother.esp
+*Skyrim 3D Armored Ash Spawn.esp
+*Skyrim 3D Armored Riekling.esp
+*Skyrim 3D Armored Seeker.esp
+*Skyrim 3D Armored Lurker.esp
+*Skyrim 3D Armored Mammoth.esp
+*Skyrim 3D Armored Sabrecat.esp
+*Skyrim 3D Armored Skeever.esp
+*Skyrim 3D Armored Slaughterfish.esp
+*Skyrim 3D Armored Spider.esp
+*Skyrim 3D Armored Troll.esp
+*Skyrim 3D Armored Wolf.esp
+*Skyrim 3D Armored Dragon.esp
+*Skyrim 3D Armored Dragon Priest.esp
+*Skyrim 3D Armored Draugr.esp
+*Skyrim 3D Armored Falmer.esp
+*Skyrim 3D Armored Giant.esp
+*Skyrim 3D Armored Hagraven.esp
+*Skyrim 3D Armored Lich.esp
+*Skyrim 3D Armored Ghost.esp
+*Skyrim 3D Armored Skeleton.esp
+*Skyrim 3D Armored Zombie.esp
+*Skyrim 3D Armored Vampire.esp
+*Skyrim 3D Armored Werewolf.esp
+*Skyrim 3D Armored Bandit.esp
+*Skyrim 3D Armored Forsworn.esp
+*Skyrim 3D Armored Thalmor.esp
+*Skyrim 3D Armored Imperial.esp
+*Skyrim 3D Armored Stormcloak.esp
+*Skyrim 3D Armored Daedric.esp
+*Skyrim 3D Armored Dwarven.esp
+*Skyrim 3D Armored Ebony.esp
+*Skyrim 3D Armored Glass.esp
+*Skyrim 3D Armored Elven.esp
+*Skyrim 3D Armored Steel.esp
+*Skyrim 3D Armored Iron.esp
+*Skyrim 3D Armored Orcish.esp
+*Skyrim 3D Armored Silver.esp
+*Skyrim 3D Armored Nordic.esp
+*Skyrim 3D Armored Enemies.esp
+*Skyrim 3D Armored Bosses.esp
+*Skyrim 3D Armored Creatures.esp
+*Skyrim 3D Armored Animals.esp
+*Skyrim 3D Armored Monsters.esp
+*Skyrim 3D Armored NPCs.esp
+*Skyrim 3D Armored Furniture.esp
+*Skyrim 3D Armored Misc.esp
+*Skyrim 3D Armored Ingredients.esp
+*Skyrim 3D Armored Food.esp
+*Skyrim 3D Armored Clothing.esp
+*Skyrim 3D Armored Armor.esp
+*Skyrim 3D Armored Weapons.esp
+*Skyrim 3D Armored Water.esp
+*Skyrim 3D Armored Trees.esp
+*Skyrim 3D Armored Statues.esp
+*Skyrim 3D Armored Solstheim.esp
+*Skyrim 3D Armored Signs.esp
+*Skyrim 3D Armored Shrines.esp
+*Skyrim 3D Armored Plants.esp
+*Skyrim 3D Armored Mountain Flowers.esp
+*Skyrim 3D Armored Lamps.esp
+*Skyrim 3D Armored Gates.esp
+*Skyrim 3D Armored Fences.esp
+*Skyrim 3D Armored Bridge.esp
+*Skyrim 3D Armored StoneCaves.esp
+*Skyrim 3D Armored Rocks.esp
+*Armored Skyrim Complete.esp
+*EnhancedLightsandFX.esp
+*ELFX - Exteriors.esp
+*ELFX - Weathers.esp
+*Immersive Citizens - AI Overhaul.esp
+*Inconsequential NPCs.esp
+*Relationship Dialogue Overhaul.esp
+*Skyrim Revamped - Complete Enemy Overhaul.esp
+*Deadly Dragons.esp
+*Dragon Combat Overhaul.esp
+*Dragon Improved.esp
+*Dragon Behavior Overhaul.esp
+*Dragon Animation Overhaul.esp
+*Dragon Roar Overhaul.esp
+*Dragon Shout Overhaul.esp
+*Dragon Soul Overhaul.esp
+*Dragon Perk Overhaul.esp
+*Dragon Skill Overhaul.esp
+*Dragon Magic Overhaul.esp
+*Dragon Blood Overhaul.esp
+*Dragon Born Overhaul.esp
+*Dragon Hunter Overhaul.esp
+*Dragon Slayer Overhaul.esp
+*Dragon Knight Overhaul.esp
+*Dragon Priest Overhaul.esp
+*Dragon Cult Overhaul.esp
+*Dragon Worship Overhaul.esp
+*Dragon Temple Overhaul.esp
+*Dragon Lair Overhaul.esp
+*Dragon Nest Overhaul.esp
+*Dragon Spawn Overhaul.esp
+*Dragon Loot Overhaul.esp
+*Dragon Armor Overhaul.esp
+*Dragon Weapon Overhaul.esp
+*Dragon Spell Overhaul.esp
+*Dragon Ability Overhaul.esp
+*Dragon Power Overhaul.esp
+*Dragon Force Overhaul.esp
+*Dragon Fury Overhaul.esp
+*Dragon Rage Overhaul.esp
+*Dragon Might Overhaul.esp
+*Dragon Strength Overhaul.esp
+*Dragon Speed Overhaul.esp
+*Dragon Agility Overhaul.esp
+*Dragon Intelligence Overhaul.esp
+*Dragon Wisdom Overhaul.esp
+*Dragon Charisma Overhaul.esp
+*Dragon Luck Overhaul.esp
+*Dragon Fate Overhaul.esp
+*Dragon Destiny Overhaul.esp
+*Dragon Prophecy Overhaul.esp
+*Dragon Legend Overhaul.esp
+*Dragon Myth Overhaul.esp
+*Dragon Lore Overhaul.esp
+*Dragon History Overhaul.esp
+*Dragon Culture Overhaul.esp
+*Dragon Religion Overhaul.esp
+*Dragon Philosophy Overhaul.esp
+*Dragon Theology Overhaul.esp
+*Dragon Cosmology Overhaul.esp
+*Dragon Ontology Overhaul.esp
+*Dragon Epistemology Overhaul.esp
+*Dragon Axiology Overhaul.esp
+*Dragon Ethics Overhaul.esp
+*Dragon Aesthetics Overhaul.esp
+*Dragon Logic Overhaul.esp
+*Dragon Rhetoric Overhaul.esp
+*Dragon Grammar Overhaul.esp
+*Dragon Syntax Overhaul.esp
+*Dragon Semantics Overhaul.esp
+*Dragon Pragmatics Overhaul.esp
+*Dragon Phonetics Overhaul.esp
+*Dragon Phonology Overhaul.esp
+*Dragon Morphology Overhaul.esp
+*Dragon Etymology Overhaul.esp
+*Dragon Orthography Overhaul.esp
+*Dragon Calligraphy Overhaul.esp
+*Dragon Typography Overhaul.esp
+*Dragon Paleography Overhaul.esp
+*Dragon Epigraphy Overhaul.esp
+*Dragon Numismatics Overhaul.esp
+*Dragon Sigillography Overhaul.esp
+*Dragon Vexillology Overhaul.esp
+*Dragon Heraldry Overhaul.esp
+*Dragon Genealogy Overhaul.esp
+*Dragon Onomastics Overhaul.esp
+*Dragon Toponymy Overhaul.esp

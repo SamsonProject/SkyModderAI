@@ -6,9 +6,6 @@ import json
 from urllib.parse import urlencode, urljoin
 
 import requests
-
-# Import database functions
-from db import ensure_user_unverified, session_create, set_user_verified
 from flask import current_app, redirect, request, url_for
 
 # Import auth utilities
@@ -16,6 +13,9 @@ from auth_utils import make_state_token, verify_state_token
 
 # Import configuration
 from config import config
+
+# Import database functions
+from db import ensure_user_unverified, session_create, set_user_verified
 
 
 # Google OAuth functions

@@ -68,4 +68,4 @@ Name evokes openness (open modding, open source) and agency (claw = grasp, contr
 ## 7. Status
 
 - **Current:** Vision only. No implementation.
-- **Next:** Keep in research docs. Revisit when core ModCheck is stable and research pipeline is running.
+- **Next:** Keep in research docs. Revisit when core SkyModderAI is stable and research pipeline is running.

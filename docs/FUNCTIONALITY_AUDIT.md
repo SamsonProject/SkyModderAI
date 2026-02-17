@@ -167,7 +167,7 @@
 | `FLASK_ENV` (production) | `OPENAI_API_KEY` (AI chat) |
 | — | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BASE_URL` |
 | — | `MAIL_*` (verification email) |
-| — | `MODCHECK_DEV_PRO`, `MODCHECK_TEST_PRO_EMAIL` (dev) |
+| — | `SKYMODDERAI_DEV_PRO`, `SKYMODDERAI_TEST_PRO_EMAIL` (dev) |
 
 ---
 

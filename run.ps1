@@ -1,4 +1,4 @@
-# SkyModderAI / ModCheck — Windows PowerShell run script
+# SkyModderAI — Windows PowerShell run script
 # Run: .\run.ps1
 # Requires Python 3.8+ (py launcher or python in PATH)
 
@@ -18,5 +18,5 @@ if (-not (Test-Path "data\skyrimse_mod_database.json")) {
     & .\venv\Scripts\python loot_parser.py skyrimse
 }
 
-Write-Host "Starting ModCheck on http://127.0.0.1:5000"
+Write-Host "Starting SkyModderAI on http://127.0.0.1:5000"
 & .\venv\Scripts\python app.py
