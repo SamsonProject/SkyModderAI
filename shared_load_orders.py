@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from flask import current_app as app
 
-from .database import get_db
+from db import get_db
 
 
 def generate_share_id() -> str:
