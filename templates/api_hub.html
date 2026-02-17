@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Hub - SkyModderAI</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="auth-layout">
+        <header class="auth-header">
+            <a href="/">← Back to SkyModderAI</a>
+        </header>
+        <div class="auth-card" style="max-width: 960px;">
+            <div class="auth-logo">
+                <h1><span class="logo-icon-rotate" style="vertical-align: middle; margin-right: 8px; display: inline-block;"></span> SkyModderAI</h1>
+                <p class="auth-tagline-top">API Hub</p>
+            </div>
+            <p class="auth-tagline">One API for Nexus/Bethesda modders and mod developers: analysis, search, build generation, dev loops, and safety-aware automation surfaces.</p>
+
+            <h2>Core analysis</h2>
+            <ul>
+                <li><code>POST /api/analyze</code> — Full analysis report.</li>
+                <li><code>POST /api/v1/analyze</code> — API-key dev response format.</li>
+                <li><code>POST /api/modlist/normalize</code> — Messy list parser + fuzzy matching.</li>
+            </ul>
+
+            <h2>Discovery and ranking</h2>
+            <ul>
+                <li><code>GET /api/search</code> — BM25 search for AI/tooling consumers.</li>
+                <li><code>GET /api/mod-search</code> — Typeahead/search UX endpoint.</li>
+                <li><code>GET /api/ai-context</code> — Conflict + resource context surface.</li>
+                <li><code>GET /api/search-solutions</code> — Pro web-augmented fix discovery.</li>
+            </ul>
+
+            <h2>Build and recommendation loop</h2>
+            <ul>
+                <li><code>GET /api/list-preferences/options?game=...</code> — Game-aware build schema.</li>
+                <li><code>POST /api/build-list</code> — Preference-driven list generation.</li>
+                <li><code>POST /api/recommendations</code> — Live suggestions + warnings.</li>
+                <li><code>POST /api/dev-loop/suggest</code> — Samson dev loop suggestions + idle recommendation.</li>
+            </ul>
+
+            <h2>OpenClaw safety automation</h2>
+            <ul>
+                <li><code>GET /api/openclaw/policy</code></li>
+                <li><code>POST /api/openclaw/request-access</code></li>
+                <li><code>POST /api/openclaw/guard-check</code></li>
+                <li><code>GET/POST /api/openclaw/permissions</code></li>
+                <li><code>POST /api/openclaw/plan/propose</code></li>
+                <li><code>POST /api/openclaw/plan/execute</code></li>
+                <li><code>POST /api/openclaw/loop/feedback</code></li>
+                <li><code>GET /api/openclaw/safety-status</code></li>
+                <li><code>GET /api/openclaw/capabilities</code></li>
+                <li><code>GET /api/openclaw/install-manifest</code></li>
+            </ul>
+
+            <h2>Information and growth surfaces</h2>
+            <ul>
+                <li><code>GET /api/information-map</code> — data flow map (input -> processing -> action).</li>
+                <li><code>GET /ai-feed.json</code> — machine-readable product/agent feed.</li>
+                <li><code>GET /api/profile/dashboard</code> — dynamic profile engagement context.</li>
+            </ul>
+
+            <div class="legal-danger-box">
+                <h2>Safety warning</h2>
+                <p>Do not execute high-risk automation without explicit user consent and backups. System-level operations are intentionally constrained.</p>
+                <p>Read full disclosure: <a href="/safety">/safety</a>.</p>
+            </div>
+        </div>
+    </div>
+    <script src="/static/icons/logo-icons.js"></script>
+</body>
+</html>

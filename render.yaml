@@ -1,0 +1,39 @@
+# Render Blueprint — ModCheck deployment
+# https://render.com/docs/blueprint-spec
+# If clone succeeds but requirements.txt not found: set Root Directory in Dashboard
+# to your project subfolder (e.g. mod_compatibility_checker) if files live there.
+services:
+  - type: web
+    name: modcheck
+    runtime: python
+    # Python 3.11 (see .python-version) — 3.14 can cause package issues
+    buildCommand: pip install -r requirements.txt && python3 loot_parser.py skyrimse
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 4 app:app
+    healthCheckPath: /healthz
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PRO_PRICE_ID
+        sync: false
+      - key: STRIPE_OPENCLAW_PRICE_ID
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MODCHECK_OPENCLAW_ENABLED
+        value: "0"
+      - key: OPENCLAW_SANDBOX_ROOT
+        value: "./openclaw_workspace"

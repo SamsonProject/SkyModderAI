@@ -1,0 +1,16 @@
+# SkyModderAI / ModCheck — Docker build exclusions
+venv
+.venv
+__pycache__
+*.pyc
+.git
+.env
+.env.*
+!.env.example
+*.db
+.pytest_cache
+.ruff_cache
+*.md
+!README.md
+tests
+.python-version

@@ -1,0 +1,18 @@
+{
+  "name": "SkyModderAI",
+  "short_name": "SkyModderAI",
+  "description": "Paste your load order. Get answers. Conflict detection, missing requirements, load order fixes—same LOOT data. Skyrim, Fallout, Starfield. Free.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0e27",
+  "theme_color": "#00d4e8",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

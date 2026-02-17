@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90" width="160" height="90">
+  <rect width="160" height="90" fill="#1a2332" rx="4"/>
+  <path d="M80 35 L95 50 L80 65 L65 50 Z" fill="none" stroke="#3d5a80" stroke-width="2"/>
+  <circle cx="80" cy="50" r="4" fill="#3d5a80"/>
+  <text x="80" y="82" text-anchor="middle" fill="#6b7b8c" font-size="10" font-family="system-ui,sans-serif">mod</text>
+</svg>
