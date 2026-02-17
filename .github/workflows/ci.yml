@@ -112,7 +112,7 @@ jobs:
           from loot_parser import LOOTParser
           parser = LOOTParser('${{ matrix.game }}')
           print(f'✓ ${{ matrix.game }} parser initialized')
-          print(f'  Game: {parser.game_id}')
+          print(f'  Game: {parser.game}')
           print(f'  Masterlist loaded: {len(parser.mod_database)} mods')
           "
 
