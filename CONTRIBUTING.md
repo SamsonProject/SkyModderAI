@@ -1,6 +1,6 @@
 # Contributing to SkyModderAI
 
-Thank you for your interest in contributing to SkyModderAI! We appreciate your time and effort in making this project better. This guide will help you get started with contributing to the project.
+Welcome to the vanguard of modding tools. SkyModderAI is a community effort, and we need your expertise to make it the powerhouse it's destined to be. Whether you're a Python wizard, a frontend artist, or a master of load orders, there is a place for you here.
 
 ## Table of Contents
 
@@ -143,15 +143,15 @@ Our CI pipeline automatically runs on every push and pull request. The CI includ
 
 ### CI Jobs
 
-| Job | Description |
-|-----|-------------|
-| **Lint** | Ruff linting and import sorting |
-| **Test** | pytest on Python 3.9, 3.10, 3.11, 3.12 |
-| **Test Games** | Parser initialization for all 8 supported games |
+| Job             | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| **Lint**        | Ruff linting and import sorting                           |
+| **Test**        | pytest on Python 3.9, 3.10, 3.11, 3.12                    |
+| **Test Games**  | Parser initialization for all 8 supported games           |
 | **Performance** | Load order analysis performance budget (<5s for 500 mods) |
-| **Docker** | Docker image build and smoke test |
-| **Security** | Dependency vulnerability scanning (safety, pip-audit) |
-| **Integration** | End-to-end API tests |
+| **Docker**      | Docker image build and smoke test                         |
+| **Security**    | Dependency vulnerability scanning (safety, pip-audit)     |
+| **Integration** | End-to-end API tests                                      |
 
 ### Passing CI
 
@@ -172,7 +172,7 @@ pytest --cov=. --cov-report=term-missing
 
 ## Reporting Issues
 
-If you find a bug or have a suggestion, please open an issue on GitHub. Be sure to include:
+Found a glitch in the matrix? Let us know. When opening an issue, please provide:
 
 - A clear description of the issue
 - Steps to reproduce the issue
@@ -183,18 +183,18 @@ If you find a bug or have a suggestion, please open an issue on GitHub. Be sure 
 
 ## Feature Requests
 
-We welcome feature requests! Please open an issue and use the "Feature Request" template to describe your idea.
+Have a vision for the future of SkyModderAI? We want to hear it. Open a "Feature Request" issue and tell us how we can make this tool even better.
 
 ## License
 
 By contributing to SkyModderAI, you agree that your contributions will be licensed under the [MIT License](LICENSE).
 
-| Task | Linux/macOS | Windows |
-|------|-------------|---------|
-| Run app | `./run.sh` or `make run` | `run.bat` or `run.ps1` |
-| Run tests | `make test` or `./venv/bin/pytest` | `venv\Scripts\pytest` |
+| Task               | Linux/macOS                              | Windows                                       |
+| ------------------ | ---------------------------------------- | --------------------------------------------- |
+| Run app            | `./run.sh` or `make run`                 | `run.bat` or `run.ps1`                        |
+| Run tests          | `make test` or `./venv/bin/pytest`       | `venv\Scripts\pytest`                         |
 | Download LOOT data | `make loot` or `make loot GAME=fallout4` | `venv\Scripts\python loot_parser.py skyrimse` |
-| Clean | `make clean` | Delete `venv`, `__pycache__` |
+| Clean              | `make clean`                             | Delete `venv`, `__pycache__`                  |
 
 ## Environment
 

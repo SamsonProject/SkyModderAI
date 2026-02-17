@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Safety Model | SkyModderAI</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
+
 <body>
     <div class="auth-layout">
         <header class="auth-header">
@@ -13,20 +15,24 @@
         </header>
         <div class="auth-card" style="max-width: 900px;">
             <div class="auth-logo">
-                <h1><span class="logo-icon-rotate" style="vertical-align: middle; margin-right: 8px; display: inline-block;"></span> SkyModderAI</h1>
+                <h1><span class="logo-icon-rotate"
+                        style="vertical-align: middle; margin-right: 8px; display: inline-block;"></span> SkyModderAI
+                </h1>
                 <p class="auth-tagline-top">Safety & Model Constraints</p>
             </div>
 
             <div class="legal-danger-box">
-                <h2>STOP: read this first (plain language)</h2>
-                <p><strong>OpenClaw and automation are experimental.</strong> They can break your mod setup if misused.</p>
+                <h2>STOP: read this first</h2>
+                <p><strong>OpenClaw and automation are experimental.</strong> They can brick your system if misused.</p>
                 <p><strong>Never run without backups.</strong> We cannot recover your saves or local files for you.</p>
-                <p><strong>Hard no-go zones:</strong> BIOS/UEFI, firmware, bootloader, registry hives, kernel/driver changes.</p>
+                <p><strong>Hard no-go zones:</strong> BIOS/UEFI, firmware, bootloader, registry hives, kernel/driver
+                    changes.</p>
                 <p><strong>If you are unsure, do not run it.</strong> Use read-only analysis mode first.</p>
             </div>
 
             <h2>1.0 Scope</h2>
-            <p>This app is for Bethesda mod analysis, recommendations, and dev support. High-risk automation is behind explicit tier gates and guardrails.</p>
+            <p>This app is for Bethesda mod analysis, recommendations, and dev support. High-risk automation is behind
+                explicit tier gates and guardrails.</p>
 
             <h2>2.0 Constraint model (organized disclosure)</h2>
             <h3>2.1 Authorization constraints</h3>
@@ -57,11 +63,14 @@
             </ul>
 
             <h2>3.0 Information processing contract</h2>
-            <p>Data enters via mod lists, dev artifacts, optional telemetry, and community activity. Processing uses parser/ranker/AI layers. Action outputs are constrained by role/tier/safety policy.</p>
+            <p>Data enters via mod lists, dev artifacts, optional telemetry, and community activity. Processing uses
+                parser/ranker/AI layers. Action outputs are constrained by role/tier/safety policy.</p>
             <p>See machine-readable flow map: <a href="/api/information-map"><code>/api/information-map</code></a>.</p>
 
             <h2>4.0 Future goal disclosure</h2>
-            <p>Live modding-as-you-play is an eventual R&amp;D direction as AI and local safety tooling improve. Current implementation focuses on guarded planning loops, explicit permission scopes, and preflight validation before action.</p>
+            <p>Live modding-as-you-play is an eventual R&amp;D direction as AI and local safety tooling improve. Current
+                implementation focuses on guarded planning loops, explicit permission scopes, and preflight validation
+                before action.</p>
 
             <h2>5.0 Recommended user workflow</h2>
             <ol>
@@ -72,9 +81,11 @@
                 <li>Submit loop feedback and iterate one controlled change at a time.</li>
             </ol>
 
-            <p style="margin-top: 1.5rem;"><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/api">API Hub</a></p>
+            <p style="margin-top: 1.5rem;"><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a
+                    href="/api">API Hub</a></p>
         </div>
     </div>
     <script src="/static/icons/logo-icons.js"></script>
 </body>
+
 </html>

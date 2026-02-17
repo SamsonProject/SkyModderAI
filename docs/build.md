@@ -16,6 +16,18 @@ Practical path from architecture to implementation.
 
 ---
 
+## Phase 1.5: The Companion (Gameplay Engine)
+
+**Goal:** A dynamic search engine for gameplay help. "I'm stuck—connect me to the answer."
+
+**Components:**
+- **Search Aggregator:** Deep links to UESP, Fandom, and Reddit.
+- **Mod Context:** Scans active load order to highlight mods relevant to the search query.
+- **Quick Actions:** One-click access to cheats, console commands, and bug fixes.
+- **Test:** User searches "Golden Claw" and sees wiki link + relevant mod warnings immediately.
+
+---
+
 ## Phase 2: Information Preservation
 
 **Goal:** Geometric compression with structural fidelity.

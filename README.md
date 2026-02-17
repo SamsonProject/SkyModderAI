@@ -1,25 +1,25 @@
 # SkyModderAI
 
-**Intelligent Load Order Analysis for Modded Games**
+**The Modding Powerhouse You've Been Waiting For.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9-3.12](https://img.shields.io/badge/python-3.9--3.12-blue.svg)](https://www.python.org/downloads/)
-[![CI](https://github.com/SamsonProject/SkyModderAI/actions/workflows/ci.yml/badge.svg)](https://github.com/SamsonProject/SkyModderAI/actions/workflows/ci.yml)
-[![Coverage](https://codecov.io/gh/SamsonProject/SkyModderAI/branch/main/graph/badge.svg)](https://codecov.io/gh/SamsonProject/SkyModderAI)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
-SkyModderAI is an advanced tool for analyzing and optimizing mod load orders for Bethesda games. It helps you identify conflicts, missing requirements, and provides intelligent suggestions for load order optimization.
+SkyModderAI is not just another tool; it is the intelligent companion your load order deserves. Built to cut through the noise of conflicting plugins and missing masters, it leverages a deep, intimate database of modding knowledge to provide bespoke analysis for your specific setup.
+
+Whether you are building a lightweight vanilla-plus list or a 2,000-plugin masterpiece, SkyModderAI adapts to your needs. It learns from the community, predicts conflicts before they crash your game, and offers solutions that actually work.
 
 ## 🌟 Features
 
-- **Load Order Analysis**: Automatically detects conflicts and issues in your mod load order
-- **Multi-Game Support**: Works with Skyrim (LE/SE/AE/VR), Fallout 4, and Starfield
-- **Intelligent Suggestions**: AI-powered recommendations for load order optimization
-- **Real-time Feedback**: Get instant analysis as you build your mod list
-- **CLI and Web Interface**: Choose your preferred way to interact with the tool
-- **Open Source**: Completely free and open source under the MIT License
-- **Privacy Focused**: All processing happens locally - your mod lists never leave your machine
+- **Predictive Conflict Resolution**: Goes beyond simple rule-checking. Our engine anticipates friction points in your specific combination of mods.
+- **Intimate Database**: Powered by a constantly refining knowledge base that understands the nuance of Bethesda modding.
+- **Bespoke Recommendations**: Get suggestions tailored to your system specs and gameplay style, not generic lists.
+- **Floating Portal System**: Seamlessly browse Nexus, Google, and Amazon without leaving your analysis workflow.
+- **Agent Companion**: An AI assistant that reads the page with you, offering deep insights and context-aware help.
+- **Multi-Game Mastery**: Full support for Skyrim (all versions), Fallout 4, Fallout 3, New Vegas, Oblivion, and Starfield.
+- **Privacy First**: Your data is yours. We process locally and respect your digital sovereignty.
+- **Free Forever**: No paywalls. No "Pro" gates. Just powerful tools supported by the community.
 
 ## 🚀 Quick Start
 
@@ -41,7 +41,7 @@ SkyModderAI is an advanced tool for analyzing and optimizing mod load orders for
    # On Windows
    python -m venv venv
    .\venv\Scripts\activate
-   
+
    # On macOS/Linux
    python3 -m venv venv
    source venv/bin/activate
@@ -344,23 +344,24 @@ Sessions are stored server-side (SQLite). Users can see and revoke devices on th
 
 ## Pricing
 
-Core analysis is free. Always. No paywall on your results—paste, analyze, copy, download. Pro ($5/mo) unlocks the AI helpers and keeps me building. OpenClaw Lab is a separate, higher-risk tier intended for advanced users who review the source and accept experimental constraints. Cancel anytime.
+**Everything is free.**
 
-- **Free** — Unlimited analysis, conflict detection, heaviest mods ranking, suggested load order, copy & download report, Build a List with automatic Analyze handoff, community
-- **Pro** — Live Fix Guide, AI chat, game folder scan, Dev Tools, web search fallback, save & load lists
-- **OpenClaw Lab** — Everything in Pro + experimental local automation pathways gated by acknowledgements, sandbox policy, and explicit user responsibility
+We believe modding tools should be accessible to everyone. There are no paywalls, no subscriptions, and no locked features.
 
-### OpenClaw safety posture
+- **Full Access**: You get the AI chat, the deep analysis, the dev tools, and the experimental features.
+- **Support the Project**: If SkyModderAI saves your load order, consider [buying me a coffee](https://www.buymeacoffee.com/skymodder). It keeps the servers running and the code flowing.
 
-If you enable OpenClaw Lab in your deployment, keep these principles:
+### Safety & Trust
 
-- High fences by default (`SKYMODDERAI_OPENCLAW_ENABLED=0` until you intentionally turn it on)
-- Dedicated workspace boundary (`OPENCLAW_SANDBOX_ROOT`) to respect the rest of the machine
-- Explicit acknowledgements before access (`/api/openclaw/request-access`)
-- Permission-scoped execution (`/api/openclaw/permissions`) and plan approval before execution
-- Immutable guard-check + loop feedback (`/api/openclaw/guard-check`, `/api/openclaw/loop/feedback`)
-- Public implementation transparency (encourage users to review source before buying)
-- Plain-language + technical safety disclosures (`/safety`) for legal/software warnings
+Same LOOT data the community trusts. Missing requirements, load order, incompatibilities, dirty edits—Skyrim, Fallout, Starfield. Free. Less time debugging, more time playing.
+
+Built for community trust: open source core, transparent pricing, and clear guardrails around any high-risk automation.
+
+**Important safety warning**
+
+Always back up saves and mod files before applying suggestions. Experimental automation can break setups if misused.
+
+Never touch system firmware/BIOS settings for modding optimization. That is intentionally out of scope.
 
 ## Tech Stack
 

@@ -173,11 +173,12 @@ def get_recommendations(
             continue
         info = parser.mod_database.get(_norm(name)) if hasattr(parser, "mod_database") else None
         tags = getattr(info, "tags", None) if info else None
+        picture_url = getattr(info, "picture_url", None) if info else None
         entry = {
             "name": name,
             "reason": reason,
             "nexus_url": nexus_base + _url_enc(name),
-            "image_url": MOD_PLACEHOLDER,
+            "image_url": picture_url or MOD_PLACEHOLDER,
         }
         if include_category:
             entry["category"] = _classify_category(name, tags)
@@ -245,7 +246,7 @@ def _curated_fallback(
                     "name": name,
                     "reason": f"Top {category} pick",
                     "nexus_url": nexus_base + _url_enc(name),
-                    "image_url": MOD_PLACEHOLDER,
+                    "image_url": r.picture_url or MOD_PLACEHOLDER,
                     "category": category,
                 }
             )
@@ -306,7 +307,7 @@ def _fallback_popular(parser, game: str, nexus_slug: str, limit: int) -> List[Di
                         "name": name,
                         "reason": "Popular for this game",
                         "nexus_url": nexus_base + _url_enc(name),
-                        "image_url": MOD_PLACEHOLDER,
+                        "image_url": r.picture_url or MOD_PLACEHOLDER,
                     }
                 )
                 if len(out) >= limit:

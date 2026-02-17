@@ -3,12 +3,39 @@
 
 const PLUGIN_LIMIT_WARN = 253;
 let currentUserTier = (typeof window.__USER_TIER__ !== 'undefined' ? window.__USER_TIER__ : 'free');
+let currentUserEmail = null;
 let aiChatEnabled = false;
 let platformCapabilities = {};
 let currentReport = '';
 let currentSuggestedOrder = [];
 let currentAnalysisData = null;
 let lastAnalysisSummary = null;
+let autoAnalyzeTimeout = null;
+
+// Priority 1: Extensive Linking & Keywords
+const SMART_LINKS = {
+    'loot': 'https://loot.github.io/',
+    'nexus': 'https://www.nexusmods.com/',
+    'nexus mods': 'https://www.nexusmods.com/',
+    'mo2': 'https://www.modorganizer.org/',
+    'mod organizer 2': 'https://www.modorganizer.org/',
+    'vortex': 'https://www.nexusmods.com/site/mods/1',
+    'xedit': 'https://tes5edit.github.io/',
+    'sseedit': 'https://tes5edit.github.io/',
+    'skse': 'https://skse.silverlock.org/',
+    'wabbajack': 'https://www.wabbajack.org/',
+    'google': 'https://www.google.com/',
+    'amazon': 'https://www.amazon.com/',
+    'youtube': 'https://www.youtube.com/'
+};
+
+// Pre-compile regexes for performance (Senior Engineer Optimization)
+const SMART_LINK_MATCHERS = Object.keys(SMART_LINKS)
+    .sort((a, b) => b.length - a.length)
+    .map(key => ({
+        regex: new RegExp(`\\b(${key})\\b(?![^<]*>|[^<>]*<\\/a>)`, 'gi'),
+        url: SMART_LINKS[key]
+    }));
 
 // -------------------------------------------------------------------
 // Unified User Context - Single Source of Truth
@@ -18,21 +45,21 @@ const userContext = {
     selectedGame: 'skyrimse',
     gameVersion: '',
     masterlistBranch: '',
-    
+
     // Current work
     currentModList: '',
     currentModListParsed: [],
     lastAnalysisResult: null,
-    
+
     // Saved lists metadata
     savedLists: [],
     currentSavedList: null,
-    
+
     // Search context
     searchQuery: '',
     searchResults: [],
     recentSearches: [],
-    
+
     // UI state
     activeTab: 'analyze',
     filterState: {
@@ -40,11 +67,11 @@ const userContext = {
         warnings: true,
         info: true
     },
-    
+
     // Timestamps for tracking
     lastAnalysisTime: null,
     lastSaveTime: null,
-    
+
     // Initialize from localStorage
     init() {
         try {
@@ -65,7 +92,7 @@ const userContext = {
         } catch (e) {
             console.warn('Failed to restore userContext:', e);
         }
-        
+
         // Listen for cross-tab changes
         window.addEventListener('storage', (e) => {
             if (e.key === 'skymodder_userContext' && e.newValue) {
@@ -78,7 +105,7 @@ const userContext = {
             }
         });
     },
-    
+
     // Save to localStorage
     save() {
         try {
@@ -98,7 +125,7 @@ const userContext = {
             console.warn('Failed to save userContext:', e);
         }
     },
-    
+
     // Merge changes from other tabs
     mergeChanges(data) {
         // Only update if the other tab is newer
@@ -116,16 +143,16 @@ const userContext = {
         this.masterlistBranch = data.masterlistBranch || this.masterlistBranch;
         this.currentModList = data.currentModList || this.currentModList;
         this.recentSearches = data.recentSearches || this.recentSearches;
-        
+
         // Trigger UI updates if needed
         this.notifyChange();
     },
-    
+
     // Notify components of context changes
     notifyChange() {
         window.dispatchEvent(new CustomEvent('userContextChange', { detail: this }));
     },
-    
+
     // Update game context
     setGame(game, version = '', branch = '') {
         this.selectedGame = game;
@@ -134,7 +161,7 @@ const userContext = {
         this.save();
         this.notifyChange();
     },
-    
+
     // Update current mod list
     setModList(listText) {
         this.currentModList = listText;
@@ -145,7 +172,7 @@ const userContext = {
         this.save();
         this.notifyChange();
     },
-    
+
     // Update analysis result
     setAnalysisResult(result) {
         this.lastAnalysisResult = result;
@@ -153,7 +180,7 @@ const userContext = {
         this.save();
         this.notifyChange();
     },
-    
+
     // Add search to recent searches
     addRecentSearch(query) {
         if (!query || !query.trim()) return;
@@ -163,14 +190,14 @@ const userContext = {
         this.recentSearches = this.recentSearches.slice(0, 10); // Keep last 10
         this.save();
     },
-    
+
     // Get context summary for display
     getSummary() {
         const analysis = this.lastAnalysisResult;
         const errorCount = analysis?.errors?.length || 0;
         const warningCount = analysis?.warnings?.length || 0;
         const modCount = this.currentModListParsed.length;
-        
+
         return {
             game: this.selectedGame,
             gameVersion: this.gameVersion,
@@ -186,44 +213,52 @@ const userContext = {
 
 // Initialize userContext immediately
 userContext.init();
+window.userContext = userContext;
 
 // -------------------------------------------------------------------
 // Context Trail - Shows current user context path
 // -------------------------------------------------------------------
 function updateContextTrail() {
     if (!elements.contextTrailContent) return;
-    
+
     const summary = userContext.getSummary();
     const items = [];
-    
+
+    // Hide trail if no mods and no analysis (reduces clutter)
+    if (summary.modCount === 0 && !summary.hasAnalysis) {
+        if (elements.contextTrail) elements.contextTrail.classList.add('hidden');
+        return;
+    }
+    if (elements.contextTrail) elements.contextTrail.classList.remove('hidden');
+
     // Game selector (always shown)
     const gameName = getGameDisplayName(summary.game);
     items.push(`<span class="context-trail-item clickable context-trail-game" onclick="showGameSelector()">${gameName}</span>`);
-    
+
     // Game version if available
     if (summary.gameVersion) {
         items.push(`<span class="context-trail-separator">|</span>`);
         items.push(`<span class="context-trail-item clickable" onclick="showGameVersionSelector()">v${summary.gameVersion}</span>`);
     }
-    
+
     // Masterlist branch if available
     if (summary.masterlistBranch) {
         items.push(`<span class="context-trail-separator">|</span>`);
         items.push(`<span class="context-trail-item clickable" onclick="showMasterlistSelector()">${summary.masterlistBranch}</span>`);
     }
-    
+
     // Mod count
     if (summary.modCount > 0) {
         items.push(`<span class="context-trail-separator">|</span>`);
         items.push(`<span class="context-trail-item clickable" onclick="focusModList()">${summary.modCount} mods</span>`);
     }
-    
+
     // Analysis results
     if (summary.hasAnalysis) {
         items.push(`<span class="context-trail-separator">|</span>`);
         const errorClass = summary.errorCount > 0 ? 'context-trail-errors' : '';
         const warningClass = summary.warningCount > 0 ? 'context-trail-warnings' : '';
-        
+
         if (summary.errorCount > 0) {
             items.push(`<span class="context-trail-item clickable ${errorClass}" onclick="scrollToErrors()">${summary.errorCount} errors</span>`);
         }
@@ -234,18 +269,18 @@ function updateContextTrail() {
             items.push(`<span class="context-trail-item clickable" onclick="scrollToResults()">✓ Clean</span>`);
         }
     }
-    
+
     // Current saved list
     if (summary.currentSavedList) {
         items.push(`<span class="context-trail-separator">|</span>`);
         items.push(`<span class="context-trail-item clickable context-trail-saved-list" onclick="openLibraryList()">${summary.currentSavedList}</span>`);
     }
-    
+
     // Show empty state if no content
     if (items.length === 1) {
         items.push('<span class="context-trail-empty">No mods loaded</span>');
     }
-    
+
     elements.contextTrailContent.innerHTML = items.join('');
 }
 
@@ -312,6 +347,15 @@ function openLibraryList() {
     }
 }
 
+function linkify(text) {
+    if (!text) return '';
+    let linked = text;
+    SMART_LINK_MATCHERS.forEach(({ regex, url }) => {
+        linked = linked.replace(regex, `<a href="${url}" class="smart-link" data-portal="true">$1</a>`);
+    });
+    return linked;
+}
+
 // Listen for userContext changes and update trail
 window.addEventListener('userContextChange', () => {
     updateContextTrail();
@@ -338,10 +382,6 @@ const elements = {
     downloadReportJsonBtn: document.getElementById('download-report-json-btn'),
     newAnalysisBtn: document.getElementById('new-analysis-btn'),
     gameSelect: document.getElementById('game-select'),
-    // New sticky bar elements (Priority 3A)
-    stickyGameSelect: document.getElementById('sticky-game-select'),
-    stickyAnalyzeBtn: document.getElementById('sticky-analyze-btn'),
-    modCountBadge: document.getElementById('mod-count-badge'),
     filterErrors: document.getElementById('filter-errors'),
     filterWarnings: document.getElementById('filter-warnings'),
     filterInfo: document.getElementById('filter-info'),
@@ -388,7 +428,8 @@ let fixGuideSteps = [];
 let fixGuideMeta = { game: '', gameName: '', date: '' };
 
 function hasPaidAccess(tier) {
-    return tier === 'pro' || tier === 'pro_plus' || tier === 'claw';
+    // Marketing revamp: Everything is free.
+    return true;
 }
 
 /**
@@ -436,7 +477,7 @@ async function runModSearch() {
             const modName = mod.mod_name || mod; // Support both object and string for backward compatibility
             row.dataset.index = String(rowIndex++);
             row.dataset.modName = modName;
-            
+
             // Mod image if available
             if (mod.picture_url) {
                 const imgContainer = document.createElement('div');
@@ -446,7 +487,7 @@ async function runModSearch() {
                 imgContainer.style.marginBottom = '12px';
                 imgContainer.style.borderRadius = '8px 8px 0 0';
                 imgContainer.style.overflow = 'hidden';
-                
+
                 const img = document.createElement('img');
                 img.src = mod.picture_url;
                 img.alt = modName;
@@ -454,10 +495,10 @@ async function runModSearch() {
                 img.style.width = '100%';
                 img.style.height = '100%';
                 img.style.objectFit = 'cover';
-                img.onerror = function() {
+                img.onerror = function () {
                     this.style.display = 'none';
                 };
-                
+
                 // Make the image clickable to the Nexus Mods page if ID is available
                 if (mod.nexus_mod_id) {
                     const link = document.createElement('a');
@@ -469,15 +510,15 @@ async function runModSearch() {
                 } else {
                     imgContainer.appendChild(img);
                 }
-                
+
                 row.appendChild(imgContainer);
             }
-            
+
             // Mod name label (make it a link if Nexus Mod ID is available)
             const label = document.createElement(mod.nexus_mod_id ? 'a' : 'span');
             label.className = 'mod-search-name';
             label.textContent = modName;
-            
+
             if (mod.nexus_mod_id) {
                 label.href = `https://www.nexusmods.com/${nexusSlug}/mods/${mod.nexus_mod_id}`;
                 label.target = '_blank';
@@ -493,19 +534,19 @@ async function runModSearch() {
                     label.style.color = 'var(--text-primary)';
                 });
             }
-            
+
             // Quick Add button
             const addBtn = document.createElement('button');
             addBtn.className = 'mod-search-quick-add primary-button small';
             addBtn.textContent = 'Add';
             addBtn.title = `Add ${modName} to current list`;
-            
+
             // Analyze button
             const analyzeBtn = document.createElement('button');
             analyzeBtn.className = 'mod-search-analyze secondary-button small';
             analyzeBtn.textContent = 'Analyze';
             analyzeBtn.title = `Analyze ${modName} for conflicts`;
-            
+
             function addModToList() {
                 const listInput = document.getElementById('mod-list-input');
                 if (listInput) {
@@ -519,66 +560,66 @@ async function runModSearch() {
                 inputEl.value = '';
                 if (clearBtn) clearBtn.classList.add('hidden');
             }
-            
+
             function analyzeMod() {
                 // Create a temporary list with just this mod
                 const tempModList = `*${modName}`;
                 const gameSelect = document.getElementById('game-select');
                 const versionSelect = document.getElementById('game-version');
                 const masterlistSelect = document.getElementById('masterlist-version');
-                
+
                 // Set the mod list and switch to analyze tab
                 const listInput = document.getElementById('mod-list-input');
                 if (listInput) {
                     listInput.value = tempModList;
                     updateModCounter();
                 }
-                
+
                 // Update game/version if provided
                 if (gameSelect && gameSelect.value) {
                     userContext.setGame(gameSelect.value, versionSelect?.value || '', masterlistSelect?.value || '');
                 }
-                
+
                 // Switch to analyze tab and run analysis
                 const analyzeTab = document.querySelector('[data-tab="analyze"]');
                 if (analyzeTab && !analyzeTab.classList.contains('active')) {
                     analyzeTab.click();
                 }
-                
+
                 // Add to recent searches
                 userContext.addRecentSearch(q);
-                
+
                 // Auto-run analysis after a short delay
                 setTimeout(() => {
                     const analyzeBtn = document.getElementById('analyze-btn');
                     if (analyzeBtn) analyzeBtn.click();
                 }, 100);
-                
+
                 resultsEl.classList.add('hidden');
                 inputEl.value = '';
                 if (clearBtn) clearBtn.classList.add('hidden');
             }
-            
+
             addBtn.addEventListener('click', (e) => { e.stopPropagation(); addModToList(); });
             analyzeBtn.addEventListener('click', (e) => { e.stopPropagation(); analyzeMod(); });
             label.addEventListener('mousedown', (e) => { e.preventDefault(); addModToList(); });
-            
+
             row.addEventListener('click', (e) => {
                 if (!e.target.closest('.mod-search-nexus') && !e.target.closest('button')) {
                     e.preventDefault();
                     addModToList();
                 }
             });
-            
+
             row.appendChild(label);
-            
+
             // Action buttons container
             const actions = document.createElement('div');
             actions.className = 'mod-search-actions';
             actions.appendChild(addBtn);
             actions.appendChild(analyzeBtn);
             row.appendChild(actions);
-            
+
             // Nexus link
             const nexusLink = document.createElement('a');
             nexusLink.href = nexusBase + encodeURIComponent(name);
@@ -588,7 +629,7 @@ async function runModSearch() {
             nexusLink.textContent = 'Nexus';
             nexusLink.addEventListener('click', (e) => e.stopPropagation());
             row.appendChild(nexusLink);
-            
+
             resultsEl.appendChild(row);
         });
 
@@ -602,24 +643,24 @@ async function runModSearch() {
                 row.className = 'mod-search-item mod-search-row mod-search-web';
                 row.dataset.index = String(rowIndex++);
                 row.dataset.modName = item.name || '';
-                
+
                 // Mod name label
                 const label = document.createElement('span');
                 label.className = 'mod-search-name';
                 label.textContent = item.name || '';
-                
+
                 // Quick Add button
                 const addBtn = document.createElement('button');
                 addBtn.className = 'mod-search-quick-add primary-button small';
                 addBtn.textContent = 'Add';
                 addBtn.title = `Add ${item.name} to current list`;
-                
+
                 // Analyze button
                 const analyzeBtn = document.createElement('button');
                 analyzeBtn.className = 'mod-search-analyze secondary-button small';
                 analyzeBtn.textContent = 'Analyze';
                 analyzeBtn.title = `Analyze ${item.name} for conflicts`;
-                
+
                 function addModToList() {
                     const listInput = document.getElementById('mod-list-input');
                     if (listInput && item.name) {
@@ -633,7 +674,7 @@ async function runModSearch() {
                     inputEl.value = '';
                     if (clearBtn) clearBtn.classList.add('hidden');
                 }
-                
+
                 function analyzeMod() {
                     if (!item.name) return;
                     // Create a temporary list with just this mod
@@ -641,58 +682,58 @@ async function runModSearch() {
                     const gameSelect = document.getElementById('game-select');
                     const versionSelect = document.getElementById('game-version');
                     const masterlistSelect = document.getElementById('masterlist-version');
-                    
+
                     // Set the mod list and switch to analyze tab
                     const listInput = document.getElementById('mod-list-input');
                     if (listInput) {
                         listInput.value = tempModList;
                         updateModCounter();
                     }
-                    
+
                     // Update game/version if provided
                     if (gameSelect && gameSelect.value) {
                         userContext.setGame(gameSelect.value, versionSelect?.value || '', masterlistSelect?.value || '');
                     }
-                    
+
                     // Switch to analyze tab and run analysis
                     const analyzeTab = document.querySelector('[data-tab="analyze"]');
                     if (analyzeTab && !analyzeTab.classList.contains('active')) {
                         analyzeTab.click();
                     }
-                    
+
                     // Add to recent searches
                     userContext.addRecentSearch(q);
-                    
+
                     // Auto-run analysis after a short delay
                     setTimeout(() => {
                         const analyzeBtn = document.getElementById('analyze-btn');
                         if (analyzeBtn) analyzeBtn.click();
                     }, 100);
-                    
+
                     resultsEl.classList.add('hidden');
                     inputEl.value = '';
                     if (clearBtn) clearBtn.classList.add('hidden');
                 }
-                
+
                 addBtn.addEventListener('click', (e) => { e.stopPropagation(); addModToList(); });
                 analyzeBtn.addEventListener('click', (e) => { e.stopPropagation(); analyzeMod(); });
                 label.addEventListener('mousedown', (e) => { e.preventDefault(); addModToList(); });
                 row.addEventListener('click', (e) => {
-                    if (!e.target.closest('a') && !e.target.closest('button')) { 
-                        e.preventDefault(); 
-                        addModToList(); 
+                    if (!e.target.closest('a') && !e.target.closest('button')) {
+                        e.preventDefault();
+                        addModToList();
                     }
                 });
-                
+
                 row.appendChild(label);
-                
+
                 // Action buttons container
                 const actions = document.createElement('div');
                 actions.className = 'mod-search-actions';
                 actions.appendChild(addBtn);
                 actions.appendChild(analyzeBtn);
                 row.appendChild(actions);
-                
+
                 // External link
                 const link = document.createElement('a');
                 link.href = item.url || (nexusBase + encodeURIComponent(item.name || ''));
@@ -702,7 +743,7 @@ async function runModSearch() {
                 link.textContent = 'Open';
                 link.addEventListener('click', (e) => e.stopPropagation());
                 row.appendChild(link);
-                
+
                 resultsEl.appendChild(row);
             });
         }
@@ -714,30 +755,83 @@ async function runModSearch() {
 }
 
 /**
- * Load supported games into the game selector.
+ * Unified Game State Sync
+ * Links all game selectors and updates dependent data (versions, quickstart, build list).
  */
+const GAME_SELECTORS = ['game-select', 'quickstart-game', 'build-list-game', 'dev-game-select'];
+
+function initGlobalGameSync() {
+    GAME_SELECTORS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', (e) => {
+                updateGlobalGame(e.target.value, id);
+            });
+        }
+    });
+}
+
+async function updateGlobalGame(gameId, sourceId = null) {
+    if (!gameId) return;
+
+    // 1. Sync other selectors
+    GAME_SELECTORS.forEach(id => {
+        if (id === sourceId) return;
+        const el = document.getElementById(id);
+        if (el) el.value = gameId;
+    });
+
+    // 2. Update User Context
+    userContext.setGame(gameId);
+
+    // 3. Update Versions (Analyze tab) - High value tool: Version Adaptation
+    const masterlistSelect = document.getElementById('masterlist-version');
+    const gameVersionSelect = document.getElementById('game-version');
+
+    const p1 = loadMasterlistVersions(gameId).then(v => {
+        if (masterlistSelect) populateMasterlistVersionSelect(masterlistSelect, v);
+    });
+    const p2 = loadGameVersions(gameId).then(v => {
+        if (gameVersionSelect) populateGameVersionSelect(gameVersionSelect, v);
+    });
+
+    // 4. Update Tab Content & Previews
+    loadQuickstartContent();
+    loadBuildListOptions(gameId);
+    fetchAndShowRecommendations();
+    refreshInputMatchPreview({ silent: true });
+
+    await Promise.all([p1, p2]);
+}
+
 async function loadGames() {
     try {
         const response = await fetch('/api/games');
         if (!response.ok) return;
         const data = await response.json();
-        if (!data.games || !elements.gameSelect) return;
+        if (!data.games) return;
         supportedGames = data.games;
-        const currentGame = elements.gameSelect.value;
-        const validIds = new Set(data.games.map(g => g.id));
-        const gameToSelect = validIds.has(currentGame) ? currentGame : (data.default || 'skyrimse');
-        elements.gameSelect.innerHTML = '';
-        data.games.forEach(g => {
-            const opt = document.createElement('option');
-            opt.value = g.id;
-            opt.textContent = g.name;
-            if (g.id === gameToSelect) opt.selected = true;
-            elements.gameSelect.appendChild(opt);
+
+        const storedGame = userContext.selectedGame || localStorage.getItem('skymodder_selected_game');
+        const defaultGame = data.default || 'skyrimse';
+        const gameToSelect = data.games.some(g => g.id === storedGame) ? storedGame : defaultGame;
+
+        // Populate ALL game selectors
+        GAME_SELECTORS.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = '';
+            data.games.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.textContent = g.name;
+                if (g.id === gameToSelect) opt.selected = true;
+                el.appendChild(opt);
+            });
         });
-        const masterlistVersionSelect = document.getElementById('masterlist-version');
-        const gameVersionSelect = document.getElementById('game-version');
-        if (masterlistVersionSelect) loadMasterlistVersions(gameToSelect).then(versions => populateMasterlistVersionSelect(masterlistVersionSelect, versions));
-        if (gameVersionSelect) loadGameVersions(gameToSelect).then(data => populateGameVersionSelect(gameVersionSelect, data));
+
+        // Initial sync
+        updateGlobalGame(gameToSelect);
     } catch (e) {
         console.error('Failed to load games:', e);
     }
@@ -805,7 +899,7 @@ function updateGameVersionInfo() {
     if (info.obse) html += ` <span class="hint">(${info.obse})</span>`;
     if (info.sfse) html += ` <span class="hint">(${info.sfse})</span>`;
     if (info.warning) {
-            html += ` <span class="game-version-warning-hint">${info.warning}</span>`;
+        html += ` <span class="game-version-warning-hint">${info.warning}</span>`;
     }
     infoEl.innerHTML = html;
     infoEl.classList.remove('hidden');
@@ -845,6 +939,7 @@ async function checkUserTier() {
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         const data = await response.json();
         currentUserTier = data.tier || currentUserTier;
+        currentUserEmail = data.email || null;
         aiChatEnabled = !!data.ai_chat_enabled;
         platformCapabilities = data || {};
         initGameFolderScan();
@@ -916,7 +1011,7 @@ async function refreshInputMatchPreview(options = {}) {
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
             if (!silent) alert(data.error || 'Could not parse mod list.');
-            return;
+            return showToast(data.error || 'Could not parse mod list.', 'error');
         }
         if (reqId !== inputMatchRequestSeq) return; // stale response
         const entries = data.entries || [];
@@ -950,7 +1045,7 @@ async function refreshInputMatchPreview(options = {}) {
             showActionFeedback('Auto-formatted list with best-effort matches. Review unknown lines in Match preview.');
         }
     } catch (_) {
-        if (!silent) alert('Could not fetch live matches. Try again.');
+        if (!silent) showToast('Could not fetch live matches. Try again.', 'error');
     } finally {
         if (actionBtn && applyFormatted) actionBtn.disabled = false;
     }
@@ -1023,19 +1118,6 @@ async function fetchAndShowRecommendations() {
                 <button type="button" class="mod-preview-add" title="Add to list" aria-label="Add ${escapeHtml(r.name)} to list">+</button>
             </div>
         `).join('');
-        cards.querySelectorAll('.mod-preview-add').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const card = btn.closest('.mod-preview-card');
-                const name = card?.dataset?.modName;
-                if (name && elements.modListInput) {
-                    const prefix = elements.modListInput.value.trim() ? '\n' : '';
-                    elements.modListInput.value += prefix + '*' + name;
-                    updateModCounter();
-                }
-            });
-        });
     } catch (e) {
         strip.classList.add('hidden');
     }
@@ -1044,20 +1126,17 @@ async function fetchAndShowRecommendations() {
 /**
  * Update the mod counter and show/hide free tier / plugin limit warnings.
  */
-function updateModCounter() {
+function updateModCounter(options = {}) {
     if (!elements.modListInput || !elements.modCount) return;
 
     const text = elements.modListInput.value;
-    
+
     // Update userContext with current mod list
     userContext.setModList(text);
-    
+
     const lines = userContext.currentModListParsed.length;
 
     elements.modCount.textContent = lines === 0 ? '0 mods' : `${lines} mods`;
-    
-    // Update sticky badge (Priority 3A)
-    updateStickyModCount();
 
     // Only show "X enabled / Y total" when we have a recent analysis and the list isn't empty
     if (elements.modCountDetail) {
@@ -1088,6 +1167,15 @@ function updateModCounter() {
     // Live parse/match preview for user input.
     clearTimeout(inputMatchTimeout);
     inputMatchTimeout = setTimeout(() => refreshInputMatchPreview({ silent: true }), 700);
+
+    // Priority 3: Automation - Auto-analyze
+    if (!options.skipAutoAnalyze) {
+        clearTimeout(autoAnalyzeTimeout);
+        autoAnalyzeTimeout = setTimeout(() => {
+            const content = elements.modListInput.value.trim();
+            if (content && content.length > 5) analyzeModList();
+        }, 1500);
+    }
 }
 
 /**
@@ -1104,9 +1192,8 @@ async function scanSystem() {
     const vramEl = document.getElementById('specs-vram');
     const resEl = document.getElementById('specs-resolution');
 
-    if (!btn || !statusEl) return;
-    btn.disabled = true;
-    statusEl.textContent = 'Scanning…';
+    if (btn) btn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Scanning…';
 
     const detected = { cpu: null, gpu: null, ram_gb: null, vram_gb: null, resolution: null };
     const parts = [];
@@ -1167,13 +1254,16 @@ async function scanSystem() {
 
     const count = [detected.cpu, detected.gpu, detected.ram_gb, detected.resolution].filter(Boolean).length;
     if (count > 0) {
-        statusEl.textContent = `Detected ${count} value(s). Add VRAM manually if needed.`;
+        if (statusEl) statusEl.textContent = `Detected ${count} value(s). Add VRAM manually if needed.`;
         currentSpecs = { ...currentSpecs, ...Object.fromEntries(Object.entries(detected).filter(([, v]) => v)) };
+        showToast(`System scanned: ${detected.cpu || ''} ${detected.gpu || ''}`, 'success');
+        saveSpecs(); // Auto-save detected specs
     } else {
-        statusEl.textContent = 'Could not detect specs in this browser. Try Steam System Info paste.';
+        if (statusEl) statusEl.textContent = 'Could not detect specs in this browser. Try Steam System Info paste.';
+        showToast('Could not detect system specs. Browser may be restricted.', 'warning');
     }
 
-    btn.disabled = false;
+    if (btn) btn.disabled = false;
 }
 
 /**
@@ -1207,7 +1297,7 @@ async function loadSpecs() {
                 // Try new key first, then fall back to old key for backward compatibility
                 const stored = localStorage.getItem('skymodderai_specs') || localStorage.getItem('modcheck_specs');
                 if (stored) specs = JSON.parse(stored);
-            } catch (_) {}
+            } catch (_) { }
         }
         currentSpecs = specs;
         const cpu = document.getElementById('specs-cpu');
@@ -1220,7 +1310,7 @@ async function loadSpecs() {
         if (ram) ram.value = specs.ram_gb || '';
         if (vram) vram.value = specs.vram_gb || '';
         if (res) res.value = specs.resolution || '';
-    } catch (_) {}
+    } catch (_) { }
 }
 
 /**
@@ -1261,7 +1351,7 @@ async function saveSpecs() {
         if (steamEl) steamEl.value = '';
         if (statusEl) statusEl.textContent = 'Saved.';
         if (localStorage && currentSpecs) {
-            try { localStorage.setItem('skymodderai_specs', JSON.stringify(currentSpecs)); } catch (_) {}
+            try { localStorage.setItem('skymodderai_specs', JSON.stringify(currentSpecs)); } catch (_) { }
         }
     } catch (e) {
         if (statusEl) statusEl.textContent = 'Failed to save.';
@@ -1352,42 +1442,62 @@ function renderFixGuide() {
         return;
     }
     if (elements.fixGuideSection) elements.fixGuideSection.classList.remove('hidden');
-    let html = '';
+
+    // Live PDF-style rendering
+    let html = `
+        <div class="live-doc-container">
+            <div class="live-doc-header">
+                <div class="live-doc-title">Strategic Fix Plan: ${escapeHtml(fixGuideMeta.gameName)}</div>
+                <div class="live-doc-meta">Generated ${fixGuideMeta.date} • SkyModderAI Agent</div>
+            </div>
+            <div class="live-doc-body">
+    `;
+
     let stepNum = 0;
     fixGuideSteps.forEach((s) => {
+        const parseMd = (window.marked && typeof marked.parse === 'function') ? (s) => marked.parse(s) : (s) => escapeHtml(s);
+
         if (s.type === 'intro') {
-            html += `<div class="fix-guide-intro">${escapeHtml(s.content)}</div>`;
-        } else if (s.type === 'step') {
+            html += `<div class="live-doc-intro">${escapeHtml(s.content)}</div>`;
+        } else if (s.type === 'step' || s.type === 'fix') {
             stepNum++;
-            const sev = s.severity ? ` fix-guide-step-${s.severity}` : '';
-            html += `<div class="fix-guide-step${sev}"><span class="fix-guide-num">${stepNum}</span><div class="fix-guide-step-body">${escapeHtml(s.content)}</div></div>`;
-        } else if (s.type === 'fix') {
-            stepNum++;
-            html += `<div class="fix-guide-fix fix-guide-fix-${s.severity}" data-fix-id="${escapeHtml(s.id || '')}">
-                <span class="fix-guide-num">${stepNum}</span>
-                <div class="fix-guide-fix-body">
-                    ${s.mod ? `<strong>${escapeHtml(s.mod)}</strong>: ` : ''}${escapeHtml(s.message || '')}
-                    ${s.action ? `<p class="fix-guide-action">→ ${escapeHtml(s.action)}</p>` : ''}
-                </div>
-                <label class="fix-guide-check"><input type="checkbox" class="fix-guide-resolved"> Resolved</label>
-            </div>`;
+            const severityClass = s.severity ? ` severity-${s.severity}` : '';
+            let content = '';
+
+            if (s.type === 'fix') {
+                content = `<strong>${escapeHtml(s.mod || '')}</strong>: ${linkify(escapeHtml(s.message || ''))}`;
+                if (s.action) content += `<br><em style="color:var(--accent)">Action:</em> ${linkify(escapeHtml(s.action))}`;
+            } else {
+                content = linkify(escapeHtml(s.content));
+            }
+
+            html += `
+                <div class="live-doc-step${severityClass}" ${s.id ? `data-fix-id="${escapeHtml(s.id)}"` : ''}>
+                    <span class="live-doc-num">${stepNum}.</span>
+                    <div class="live-doc-content">${content}</div>
+                    ${s.type === 'fix' ? `<label class="fix-guide-check"><input type="checkbox" class="fix-guide-resolved"> Mark as Resolved</label>` : ''}
+                </div>`;
         } else if (s.type === 'ai') {
-            stepNum++;
-            const parseMd = (window.marked && typeof marked.parse === 'function') ? (s) => marked.parse(s) : (window.marked && typeof marked === 'function') ? (s) => marked(s) : (s) => s;
-            const body = parseMd ? (() => { try { return parseMd(s.content); } catch(_) { return escapeHtml(s.content); } })() : escapeHtml(s.content);
-            html += `<div class="fix-guide-ai-step">
-                <span class="fix-guide-num">${stepNum}</span>
-                <div class="fix-guide-ai-body">
-                    ${s.question ? `<p class="fix-guide-question">You asked: ${escapeHtml(s.question)}</p>` : ''}
-                    <div class="fix-guide-ai-reply">${body}</div>
-                </div>
-            </div>`;
+            // AI updates inserted as dynamic blocks
+            const body = linkify(parseMd(s.content));
+            html += `
+                <div class="live-doc-ai-update">
+                    <span class="live-doc-ai-badge">Agent Update</span>
+                    ${s.question ? `<p style="font-size:0.85em;color:var(--text-muted);margin-bottom:8px;">Re: ${escapeHtml(s.question)}</p>` : ''}
+                    <div class="live-doc-content">${body}</div>
+                </div>`;
         }
     });
+
+    html += `</div></div>`; // Close body and container
     elements.fixGuideContent.innerHTML = html;
     elements.fixGuideContent.querySelectorAll('.fix-guide-resolved').forEach(cb => {
         cb.addEventListener('change', () => renderFixGuide());
     });
+
+    const composeBtn = document.getElementById('compose-fix-guide-btn');
+    if (composeBtn) composeBtn.addEventListener('click', composeFixGuide);
+
     updateFixGuidePreview();
 }
 
@@ -1412,11 +1522,61 @@ function scrollToFixGuide() {
     if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function downloadFixGuideHTML() {
-    if (!hasPaidAccess(currentUserTier)) {
-        window.location.href = '/signup-pro';
-        return;
+async function composeFixGuide() {
+    const btn = document.getElementById('compose-fix-guide-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Composing...';
     }
+
+    try {
+        const res = await fetch('/api/compose-guide', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                steps: fixGuideSteps,
+                game: fixGuideMeta.gameName
+            })
+        });
+        const data = await res.json();
+        if (data.document) {
+            const parseMd = (window.marked && typeof marked.parse === 'function') ? (s) => marked.parse(s) : (s) => escapeHtml(s);
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>SkyModderAI Strategic Plan - ${escapeHtml(fixGuideMeta.gameName)}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; padding: 40px; max-width: 800px; margin: 0 auto; color: #111; }
+                        h1, h2, h3 { color: #005f73; margin-top: 1.5em; }
+                        code { background: #f4f4f4; padding: 2px 5px; border-radius: 3px; font-family: monospace; }
+                        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+                        blockquote { border-left: 4px solid #00d4e8; margin: 1em 0; padding-left: 15px; color: #555; }
+                        hr { border: 0; border-top: 1px solid #eee; margin: 2em 0; }
+                    </style>
+                </head>
+                <body>
+                    ${parseMd(data.document)}
+                </body>
+                </html>
+            `;
+            const win = window.open('', '_blank');
+            win.document.write(htmlContent);
+            win.document.close();
+            setTimeout(() => win.print(), 500);
+        }
+    } catch (e) {
+        showToast('Failed to compose guide.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Compose PDF Guide';
+        }
+    }
+}
+
+function downloadFixGuideHTML() {
     const html = buildFixGuideHTMLForDownload();
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     const a = document.createElement('a');
@@ -1448,7 +1608,7 @@ function buildFixGuideHTMLForDownload() {
             body += `<div class="fg-fix fg-${s.severity}${done}"><span class="fg-num">${n}</span><strong>${escapeHtml(s.mod || '')}</strong>: ${escapeHtml(s.message || '')}${s.action ? `<p class="fg-action">→ ${escapeHtml(s.action)}</p>` : ''}</div>`;
         } else if (s.type === 'ai') {
             n++;
-            const reply = parseMd ? (() => { try { return parseMd(s.content); } catch(_) { return escapeHtml(s.content); } })() : escapeHtml(s.content);
+            const reply = parseMd ? (() => { try { return parseMd(s.content); } catch (_) { return escapeHtml(s.content); } })() : escapeHtml(s.content);
             body += `<div class="fg-ai"><span class="fg-num">${n}</span>${s.question ? `<p class="fg-q">You asked: ${escapeHtml(s.question)}</p>` : ''}<div class="fg-reply">${reply}</div></div>`;
         }
     });
@@ -1456,39 +1616,45 @@ function buildFixGuideHTMLForDownload() {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SkyModderAI Fix Guide — ${escapeHtml(fixGuideMeta.gameName)}</title>
+<title>Action Plan: ${escapeHtml(fixGuideMeta.gameName)}</title>
 <style>
-:root{--bg:#0a0e27;--card:#0c1220;--text:#e8eef4;--muted:#8b9cb4;--accent:#00d4e8;--err:#ef4444;--warn:#f59e0b;}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:2rem;max-width:720px;margin:0 auto;}
-h1{font-size:1.75rem;margin-bottom:0.5rem;color:var(--accent);}
-.fg-meta{color:var(--muted);font-size:0.9rem;margin-bottom:2rem;}
-.fg-intro{background:var(--card);padding:1rem;border-radius:8px;margin-bottom:1rem;border-left:4px solid var(--accent);}
-.fg-step,.fg-fix,.fg-ai{padding:1rem;margin-bottom:0.75rem;border-radius:8px;background:var(--card);display:flex;gap:1rem;}
-.fg-num{flex-shrink:0;width:28px;height:28px;background:var(--accent);color:var(--bg);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;}
-.fg-fix.fg-error{border-left:4px solid var(--err);}
-.fg-fix.fg-warning{border-left:4px solid var(--warn);}
-.fg-fix.fg-done{opacity:0.7;}
-.fg-action{margin-top:0.5rem;color:var(--muted);font-size:0.95rem;}
-.fg-ai .fg-reply{margin-top:0.5rem;}
-.fg-q{color:var(--muted);font-size:0.9rem;margin-bottom:0.25rem;}
-@media print{body{background:#fff;color:#111;} .fg-intro,.fg-step,.fg-fix,.fg-ai{background:#f8f8f8;border-color:#333;}}
+    @page { margin: 2cm; }
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.5; color: #111; max-width: 800px; margin: 0 auto; padding: 40px; background: #fff; }
+    h1 { font-size: 24px; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 24px; }
+    .meta { color: #666; font-size: 14px; margin-bottom: 32px; font-style: italic; }
+    .fg-intro { background: #f8f9fa; padding: 16px; border-left: 4px solid #333; margin-bottom: 24px; }
+
+    .fg-step, .fg-fix, .fg-ai { margin-bottom: 16px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 4px; page-break-inside: avoid; }
+    .fg-fix.fg-error { border-left: 4px solid #dc2626; background: #fef2f2; }
+    .fg-fix.fg-warning { border-left: 4px solid #d97706; background: #fffbeb; }
+    .fg-fix.fg-done { text-decoration: line-through; opacity: 0.6; }
+
+    .fg-num { font-weight: bold; display: inline-block; width: 24px; color: #555; }
+    .fg-action { margin-top: 8px; font-weight: 600; color: #0284c7; display: block; }
+    .fg-action::before { content: "→ "; }
+
+    .checkbox-print { display: inline-block; width: 14px; height: 14px; border: 1px solid #333; margin-right: 8px; vertical-align: middle; position: relative; top: -1px; }
+    .checkbox-print.checked::after { content: "✓"; position: absolute; top: -4px; left: 1px; font-size: 16px; font-weight: bold; }
+
+    .fg-ai { background: #f0f9ff; border: 1px dashed #0ea5e9; }
+    .fg-q { font-size: 0.85em; color: #64748b; margin-bottom: 4px; }
+
+    @media print {
+        body { padding: 0; max-width: 100%; }
+        .fg-fix.fg-error { border-left-color: #000 !important; border-left-width: 4px !important; }
+        a { text-decoration: none; color: #000; }
+    }
 </style>
 </head>
 <body>
-<h1>SkyModderAI Fix Guide</h1>
-<p class="fg-meta">${escapeHtml(fixGuideMeta.gameName)} — ${escapeHtml(fixGuideMeta.date)}</p>
+<h1>SkyModderAI Action Plan</h1>
+<div class="meta">Generated for ${escapeHtml(fixGuideMeta.gameName)} on ${escapeHtml(fixGuideMeta.date)}</div>
 ${body}
 </body>
 </html>`;
 }
 
 function printFixGuide() {
-    if (!hasPaidAccess(currentUserTier)) {
-        window.location.href = '/signup-pro';
-        return;
-    }
     const win = window.open('', '_blank');
     win.document.write(buildFixGuideHTMLForDownload());
     win.document.close();
@@ -1562,12 +1728,12 @@ function createConflictsSection(title, type, conflicts, nexusGameSlug) {
         const parseMd = (window.marked && typeof marked.parse === 'function') ? (s) => marked.parse(s) : (window.marked && typeof marked === 'function') ? (s) => marked(s) : null;
         if (parseMd) {
             try {
-                message.innerHTML = parseMd(conflict.message || '');
+                message.innerHTML = linkify(parseMd(conflict.message || ''));
             } catch (_) {
-                message.textContent = conflict.message || '';
+                message.innerHTML = linkify(escapeHtml(conflict.message || ''));
             }
         } else {
-            message.textContent = conflict.message || '';
+            message.innerHTML = linkify(escapeHtml(conflict.message || ''));
         }
         item.appendChild(message);
 
@@ -1576,12 +1742,12 @@ function createConflictsSection(title, type, conflicts, nexusGameSlug) {
             action.className = 'conflict-action';
             if (parseMd) {
                 try {
-                    action.innerHTML = parseMd(conflict.suggested_action);
+                    action.innerHTML = linkify(parseMd(conflict.suggested_action));
                 } catch (_) {
-                    action.textContent = conflict.suggested_action;
+                    action.innerHTML = linkify(escapeHtml(conflict.suggested_action));
                 }
             } else {
-                action.textContent = conflict.suggested_action;
+                action.innerHTML = linkify(escapeHtml(conflict.suggested_action));
             }
             item.appendChild(action);
         }
@@ -1590,13 +1756,10 @@ function createConflictsSection(title, type, conflicts, nexusGameSlug) {
         if (modName) item.dataset.affectedMod = modName;
         if (conflict.related_mod) item.dataset.relatedMod = conflict.related_mod;
 
-        const isPro = hasPaidAccess(currentUserTier);
-        if (isPro) {
-            const checkWrap = document.createElement('label');
-            checkWrap.className = 'conflict-resolved-check';
-            checkWrap.innerHTML = '<input type="checkbox" class="conflict-resolved-cb"> Resolved';
-            item.appendChild(checkWrap);
-        }
+        const checkWrap = document.createElement('label');
+        checkWrap.className = 'conflict-resolved-check';
+        checkWrap.innerHTML = '<input type="checkbox" class="conflict-resolved-cb"> Resolved';
+        item.appendChild(checkWrap);
 
         const links = conflict.links || [];
         if (links.length > 0) {
@@ -1690,7 +1853,7 @@ function renderNextActions(nextActions) {
     content.querySelectorAll('.next-action-btn').forEach(el => {
         el.addEventListener('click', async () => {
             let cfg = null;
-            try { cfg = JSON.parse(el.getAttribute('data-next-action') || 'null'); } catch (_) {}
+            try { cfg = JSON.parse(el.getAttribute('data-next-action') || 'null'); } catch (_) { }
             if (!cfg || !cfg.type) return;
             if (cfg.type === 'link' && cfg.url) {
                 window.open(cfg.url, '_blank', 'noopener');
@@ -1765,7 +1928,7 @@ async function analyzeModList() {
     const modList = elements.modListInput.value.trim();
     // No minimum mod count: 1 or 2 mods (or any number) is fine.
     if (!modList) {
-        alert('Please enter at least one mod (e.g. paste a list, use Sample, or add mods from search).');
+        showToast('Please enter at least one mod.', 'warning');
         return;
     }
 
@@ -1793,7 +1956,7 @@ async function analyzeModList() {
 
         if (!response.ok) {
             const error = await response.json().catch(() => ({}));
-            alert(error.error || 'Analysis failed');
+            showToast(error.error || 'Analysis failed', 'error');
             hideLoading();
             isAnalyzing = false;
             return;
@@ -1802,211 +1965,235 @@ async function analyzeModList() {
             const data = await response.json();
             if (!elements.conflictsContainer) return;
 
-        elements.resultsPanel?.classList.remove('limit-reached');
+            elements.resultsPanel?.classList.remove('limit-reached');
 
-        // Ensure conflict arrays exist (defensive for API response shape)
-        const errors = data.conflicts?.errors ?? [];
-        const warnings = data.conflicts?.warnings ?? [];
-        const info = data.conflicts?.info ?? [];
+            // Ensure conflict arrays exist (defensive for API response shape)
+            const errors = data.conflicts?.errors ?? [];
+            const warnings = data.conflicts?.warnings ?? [];
+            const info = data.conflicts?.info ?? [];
 
-        // Clear previous results and results search (fresh analysis = fresh view)
-        elements.conflictsContainer.innerHTML = '';
-        const resultsSearchInput = document.getElementById('results-search-input');
-        if (resultsSearchInput) { resultsSearchInput.value = ''; }
-        const resultsSearchClear = document.getElementById('results-search-clear');
-        if (resultsSearchClear) resultsSearchClear.classList.add('hidden');
+            // Clear previous results and results search (fresh analysis = fresh view)
+            elements.conflictsContainer.innerHTML = '';
+            const resultsSearchInput = document.getElementById('results-search-input');
+            if (resultsSearchInput) { resultsSearchInput.value = ''; }
+            const resultsSearchClear = document.getElementById('results-search-clear');
+            if (resultsSearchClear) resultsSearchClear.classList.add('hidden');
 
-        const nexusSlug = data.nexus_game_slug || 'skyrimspecialedition';
-        if (errors.length) {
-            elements.conflictsContainer.appendChild(
-                createConflictsSection('Errors', 'error', errors, nexusSlug)
-            );
-        }
-        if (warnings.length) {
-            elements.conflictsContainer.appendChild(
-                createConflictsSection('Warnings', 'warning', warnings, nexusSlug)
-            );
-        }
-        if (info.length) {
-            elements.conflictsContainer.appendChild(
-                createConflictsSection('Info', 'info', info, nexusSlug)
-            );
-        }
+            const nexusSlug = data.nexus_game_slug || 'skyrimspecialedition';
+            if (errors.length) {
+                elements.conflictsContainer.appendChild(
+                    createConflictsSection('Errors', 'error', errors, nexusSlug)
+                );
+            }
+            if (warnings.length) {
+                elements.conflictsContainer.appendChild(
+                    createConflictsSection('Warnings', 'warning', warnings, nexusSlug)
+                );
+            }
+            if (info.length) {
+                elements.conflictsContainer.appendChild(
+                    createConflictsSection('Info', 'info', info, nexusSlug)
+                );
+            }
 
-        if (errors.length === 0 && warnings.length === 0 && info.length === 0) {
-            elements.conflictsContainer.innerHTML = '<p class="no-conflicts">No issues found. Your load order looks good.</p>';
-        }
+            if (errors.length === 0 && warnings.length === 0 && info.length === 0) {
+                elements.conflictsContainer.innerHTML = `
+                    <div class="success-state">
+                        <div class="success-icon">✓</div>
+                        <h3>All Clear</h3>
+                        <p>No known conflicts found in your load order.</p>
+                        <p class="hint" style="margin-top:0.5rem">Samson is watching. You are good to go.</p>
+                    </div>
+                `;
+            }
 
-        const gameVersionWarn = data.game_version_warning;
-        if (gameVersionWarn && gameVersionWarn.message) {
-            const warnBox = document.createElement('div');
-            warnBox.className = 'game-version-warning-banner';
-            warnBox.innerHTML = `<strong>Version note:</strong> ${escapeHtml(gameVersionWarn.message)}` +
-                (gameVersionWarn.link ? ` <a href="${escapeHtml(gameVersionWarn.link)}" target="_blank" rel="noopener">Downgrade patcher</a>` : '');
-            elements.conflictsContainer.insertBefore(warnBox, elements.conflictsContainer.firstChild);
-        }
+            const gameVersionWarn = data.game_version_warning;
+            if (gameVersionWarn && gameVersionWarn.message) {
+                const warnBox = document.createElement('div');
+                warnBox.className = 'game-version-warning-banner';
+                warnBox.innerHTML = `<strong>Version note:</strong> ${escapeHtml(gameVersionWarn.message)}` +
+                    (gameVersionWarn.link ? ` <a href="${escapeHtml(gameVersionWarn.link)}" target="_blank" rel="noopener">Downgrade patcher</a>` : '');
+                elements.conflictsContainer.insertBefore(warnBox, elements.conflictsContainer.firstChild);
+            }
 
-        const thingsToVerify = data.things_to_verify || [];
-        if (thingsToVerify.length > 0) {
-            const verifyBox = document.createElement('div');
-            verifyBox.className = 'things-to-verify-box';
-            verifyBox.innerHTML = '<h4>Things to verify on your PC</h4><p class="hint">We can\'t see your system. The masterlist suggests checking:</p><ul></ul>';
-            const ul = verifyBox.querySelector('ul');
-            thingsToVerify.forEach(t => {
-                const li = document.createElement('li');
-                li.textContent = t;
-                ul.appendChild(li);
-            });
-            elements.conflictsContainer.appendChild(verifyBox);
-        }
-
-        const dataSource = data.data_source || '';
-        const masterlistVerDisplay = data.masterlist_version || 'latest';
-        if (dataSource) {
-            const footer = document.createElement('p');
-            footer.className = 'results-data-source hint';
-            const gameForRefresh = data.game || (elements.gameSelect && elements.gameSelect.value) || 'skyrimse';
-            footer.innerHTML = `Data: ${dataSource}${masterlistVerDisplay !== 'latest' ? ` (branch ${masterlistVerDisplay})` : ' (latest)'}. Mod search uses the same data. <button type="button" class="link-button" id="refresh-masterlist-btn" data-game="${gameForRefresh}">Refresh data</button>`;
-            elements.conflictsContainer.appendChild(footer);
-            const refreshBtn = document.getElementById('refresh-masterlist-btn');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', async () => {
-                    refreshBtn.disabled = true;
-                    refreshBtn.textContent = 'Refreshing…';
-                    try {
-                        const r = await fetch('/api/refresh-masterlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ game: refreshBtn.getAttribute('data-game') }) });
-                        const j = await r.json().catch(() => ({}));
-                        if (r.ok && j.success) refreshBtn.textContent = 'Refreshed';
-                        else refreshBtn.textContent = 'Refresh data';
-                    } catch (e) { refreshBtn.textContent = 'Refresh data'; }
-                    refreshBtn.disabled = false;
+            const thingsToVerify = data.things_to_verify || [];
+            if (thingsToVerify.length > 0) {
+                const verifyBox = document.createElement('div');
+                verifyBox.className = 'things-to-verify-box';
+                verifyBox.innerHTML = '<h4>Things to verify on your PC</h4><p class="hint">We can\'t see your system. The masterlist suggests checking:</p><ul></ul>';
+                const ul = verifyBox.querySelector('ul');
+                thingsToVerify.forEach(t => {
+                    const li = document.createElement('li');
+                    li.textContent = t;
+                    ul.appendChild(li);
                 });
+                elements.conflictsContainer.appendChild(verifyBox);
             }
-        }
 
-        // Update summary counts
-        const summary = data.summary ?? {};
-        if (elements.errorCount) elements.errorCount.textContent = summary.errors ?? errors.length;
-        if (elements.warningCount) elements.warningCount.textContent = summary.warnings ?? warnings.length;
-        if (elements.infoCount) elements.infoCount.textContent = summary.info ?? info.length;
-
-        if (data.user_tier) currentUserTier = data.user_tier;
-        currentReport = data.ai_context || data.report;
-        currentSuggestedOrder = data.suggested_load_order || [];
-        currentAnalysisData = data;
-        lastAnalysisSummary = {
-            mod_count: data.mod_count,
-            enabled_count: data.enabled_count,
-            plugin_limit_warning: data.plugin_limit_warning || null
-        };
-
-        // Store analysis result in userContext
-        userContext.setAnalysisResult(data);
-
-        if (hasPaidAccess(currentUserTier)) {
-            buildFixGuideFromAnalysis(data);
-        }
-
-        const systemImpactSection = document.getElementById('system-impact-section');
-        const systemImpactContent = document.getElementById('system-impact-content');
-        const systemImpact = data.system_impact;
-        if (systemImpactSection) {
-            if (systemImpact) {
-                systemImpactSection.classList.remove('hidden');
-                systemImpactContent?.classList.remove('hidden');
-                systemImpactContent.innerHTML = renderSystemImpact(systemImpact);
-            } else {
-                systemImpactSection.classList.add('hidden');
-            }
-        }
-
-        if (elements.loadOrderSection) {
-            const hasLoadOrder = currentSuggestedOrder.length > 0;
-            elements.loadOrderSection.classList.toggle('hidden', !hasLoadOrder);
-            const actionsWrap = document.getElementById('load-order-actions-wrap');
-            if (actionsWrap) actionsWrap.classList.remove('hidden');
-        }
-        // Export (copy/download report) is free for everyone — your analysis, your data
-        const exportWrap = document.getElementById('export-buttons-wrap');
-        const exportProCta = document.getElementById('export-pro-cta');
-        if (exportWrap) exportWrap.classList.remove('hidden');
-        if (exportProCta) exportProCta.classList.add('hidden');
-        if (elements.pluginLimitBanner) {
-            if (data.plugin_limit_warning) {
-                elements.pluginLimitBanner.textContent = data.plugin_limit_warning;
-                elements.pluginLimitBanner.classList.remove('hidden');
-            } else {
-                elements.pluginLimitBanner.classList.add('hidden');
-            }
-        }
-
-        // Mod warnings (plugin limit, VRAM, system strain) with fix links
-        const modWarningsSection = document.getElementById('mod-warnings-section');
-        const modWarnings = data.mod_warnings || [];
-        if (modWarningsSection) {
-            if (modWarnings.length > 0) {
-                modWarningsSection.classList.remove('hidden');
-                modWarningsSection.innerHTML = modWarnings.map(w => {
-                    const link = w.link_url ? `<a href="${escapeHtml(w.link_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(w.link_title || 'How to fix')}</a>` : '';
-                    const extra = w.link_extra ? ` <a href="${escapeHtml(w.link_extra.url || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(w.link_extra.title || 'More')}</a>` : '';
-                    return `<div class="mod-warning mod-warning-${w.severity || 'info'}"><span>${escapeHtml(w.message || '')}</span>${link ? ` — ${link}` : ''}${extra}</div>`;
-                }).join('');
-            } else {
-                modWarningsSection.classList.add('hidden');
-                modWarningsSection.innerHTML = '';
-            }
-        }
-
-        applyConflictFilters();
-        updateModCounter();
-
-        const canChat = hasPaidAccess(currentUserTier) && aiChatEnabled;
-        if (elements.chatSection) elements.chatSection.classList.toggle('hidden', !canChat);
-        if (canChat && elements.chatMessages) {
-            elements.chatMessages.innerHTML = '';
-            appendChatMessage('assistant', "Hi! I'm here to help with your load order. Ask me about any conflict above, how to fix it, or what to do next. I have your full analysis—just ask.");
-        }
-        if (elements.chatUpgradeCta) {
-            elements.chatUpgradeCta.classList.toggle('hidden', canChat);
-            const upgradeText = document.getElementById('chat-upgrade-text');
-            if (upgradeText) {
-                const total = (summary?.errors || 0) + (summary?.warnings || 0) + (summary?.info || 0);
-                if (hasPaidAccess(currentUserTier)) {
-                    upgradeText.textContent = 'Your paid tier includes AI chat—set OPENAI_API_KEY to enable.';
-                } else if (total > 0) {
-                    upgradeText.textContent = `Found ${total} issue${total === 1 ? '' : 's'}. Get Pro to chat with our AI—ask questions, get step-by-step help.`;
-                } else {
-                    upgradeText.textContent = 'Get Pro to unlock AI chat, Live Fix Guide, and save mod lists.';
+            const dataSource = data.data_source || '';
+            const masterlistVerDisplay = data.masterlist_version || 'latest';
+            if (dataSource) {
+                const footer = document.createElement('p');
+                footer.className = 'results-data-source hint';
+                const gameForRefresh = data.game || (elements.gameSelect && elements.gameSelect.value) || 'skyrimse';
+                footer.innerHTML = `Data: ${dataSource}${masterlistVerDisplay !== 'latest' ? ` (branch ${masterlistVerDisplay})` : ' (latest)'}. Mod search uses the same data. <button type="button" class="link-button" id="refresh-masterlist-btn" data-game="${gameForRefresh}">Refresh data</button>`;
+                elements.conflictsContainer.appendChild(footer);
+                const refreshBtn = document.getElementById('refresh-masterlist-btn');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', async () => {
+                        refreshBtn.disabled = true;
+                        refreshBtn.textContent = 'Refreshing…';
+                        try {
+                            const r = await fetch('/api/refresh-masterlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ game: refreshBtn.getAttribute('data-game') }) });
+                            const j = await r.json().catch(() => ({}));
+                            if (r.ok && j.success) refreshBtn.textContent = 'Refreshed';
+                            else refreshBtn.textContent = 'Refresh data';
+                        } catch (e) { refreshBtn.textContent = 'Refresh data'; }
+                        refreshBtn.disabled = false;
+                    });
                 }
             }
-        }
-        const analysisFeedbackPanel = document.getElementById('analysis-feedback-panel');
-        if (analysisFeedbackPanel) analysisFeedbackPanel.classList.remove('hidden');
-        trackClientActivity('analyze_success', {
-            game: data.game || game,
-            mod_count: data.mod_count || 0,
-            enabled_count: data.enabled_count || 0,
-            errors: summary?.errors || 0,
-            warnings: summary?.warnings || 0,
-        });
-        if (elements.resultsPanel) {
-            elements.resultsPanel.classList.remove('hidden');
-            // Auto-scroll to results after analysis (Priority 3B)
-            autoScrollToResults();
-        }
-        
-        // Apply Priority 3C & 3D enhancements to results
-        setTimeout(() => {
-            colorCodeConflictItems();
-            addQuickFixChips();
-        }, 200); // Small delay to ensure DOM is ready
+
+            // Update summary counts
+            const summary = data.summary ?? {};
+            if (elements.errorCount) elements.errorCount.textContent = summary.errors ?? errors.length;
+            if (elements.warningCount) elements.warningCount.textContent = summary.warnings ?? warnings.length;
+            if (elements.infoCount) elements.infoCount.textContent = summary.info ?? info.length;
+
+            if (data.user_tier) currentUserTier = data.user_tier;
+            currentReport = data.ai_context || data.report;
+            currentSuggestedOrder = data.suggested_load_order || [];
+            currentAnalysisData = data;
+            lastAnalysisSummary = {
+                mod_count: data.mod_count,
+                enabled_count: data.enabled_count,
+                plugin_limit_warning: data.plugin_limit_warning || null
+            };
+
+            // Store analysis result in userContext
+            userContext.setAnalysisResult(data);
+
+            if (hasPaidAccess(currentUserTier)) {
+                buildFixGuideFromAnalysis(data);
+            }
+
+            const systemImpactSection = document.getElementById('system-impact-section');
+            const systemImpactContent = document.getElementById('system-impact-content');
+            const systemImpact = data.system_impact;
+            if (systemImpactSection) {
+                if (systemImpact) {
+                    systemImpactSection.classList.remove('hidden');
+                    systemImpactContent?.classList.remove('hidden');
+                    systemImpactContent.innerHTML = renderSystemImpact(systemImpact);
+                } else {
+                    systemImpactSection.classList.add('hidden');
+                }
+            }
+
+            if (elements.loadOrderSection) {
+                const hasLoadOrder = currentSuggestedOrder.length > 0;
+                elements.loadOrderSection.classList.toggle('hidden', !hasLoadOrder);
+                const actionsWrap = document.getElementById('load-order-actions-wrap');
+                if (actionsWrap) actionsWrap.classList.remove('hidden');
+            }
+            // Export (copy/download report) is free for everyone — your analysis, your data
+            const exportWrap = document.getElementById('export-buttons-wrap');
+            const exportProCta = document.getElementById('export-pro-cta');
+            if (exportWrap) exportWrap.classList.remove('hidden');
+            if (exportProCta) exportProCta.classList.add('hidden');
+            if (elements.pluginLimitBanner) {
+                if (data.plugin_limit_warning) {
+                    elements.pluginLimitBanner.textContent = data.plugin_limit_warning;
+                    elements.pluginLimitBanner.classList.remove('hidden');
+                } else {
+                    elements.pluginLimitBanner.classList.add('hidden');
+                }
+            }
+
+            // Mod warnings (plugin limit, VRAM, system strain) with fix links
+            const modWarningsSection = document.getElementById('mod-warnings-section');
+            const modWarnings = data.mod_warnings || [];
+            if (modWarningsSection) {
+                if (modWarnings.length > 0) {
+                    modWarningsSection.classList.remove('hidden');
+                    modWarningsSection.innerHTML = modWarnings.map(w => {
+                        const link = w.link_url ? `<a href="${escapeHtml(w.link_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(w.link_title || 'How to fix')}</a>` : '';
+                        const extra = w.link_extra ? ` <a href="${escapeHtml(w.link_extra.url || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(w.link_extra.title || 'More')}</a>` : '';
+                        return `<div class="mod-warning mod-warning-${w.severity || 'info'}"><span>${escapeHtml(w.message || '')}</span>${link ? ` — ${link}` : ''}${extra}</div>`;
+                    }).join('');
+                } else {
+                    modWarningsSection.classList.add('hidden');
+                    modWarningsSection.innerHTML = '';
+                }
+            }
+
+            applyConflictFilters();
+            updateModCounter({ skipAutoAnalyze: true });
+
+            // Trigger AI Strategic Summary if enabled
+            if (hasPaidAccess(currentUserTier) && aiChatEnabled) {
+                generateAiSummary(data.ai_context || data.report, data.game);
+            }
+
+            const canChat = hasPaidAccess(currentUserTier) && aiChatEnabled;
+            if (elements.chatSection) elements.chatSection.classList.toggle('hidden', !canChat);
+            if (canChat && elements.chatMessages) {
+                elements.chatMessages.innerHTML = '';
+                appendChatMessage('assistant', "Hi! I'm here to help with your load order. Ask me about any conflict above, how to fix it, or what to do next. I have your full analysis—just ask.");
+            }
+            const analysisFeedbackPanel = document.getElementById('analysis-feedback-panel');
+            if (analysisFeedbackPanel) analysisFeedbackPanel.classList.remove('hidden');
+            trackClientActivity('analyze_success', {
+                game: data.game || game,
+                mod_count: data.mod_count || 0,
+                enabled_count: data.enabled_count || 0,
+                errors: summary?.errors || 0,
+                warnings: summary?.warnings || 0,
+            });
+            if (elements.resultsPanel) {
+                elements.resultsPanel.classList.remove('hidden');
+                // Auto-scroll to results after analysis (Priority 3B)
+                autoScrollToResults();
+            }
+
+            // Apply Priority 3C & 3D enhancements to results
+            setTimeout(() => {
+                colorCodeConflictItems();
+                addQuickFixChips();
+            }, 200); // Small delay to ensure DOM is ready
         }
     } catch (error) {
         console.error('Analysis error:', error);
-        alert('Analysis failed. Please check your connection and try again.');
+        showToast('Analysis failed. Please check your connection and try again.', 'error');
     } finally {
         isAnalyzing = false;
         hideLoading();
+    }
+}
+
+async function generateAiSummary(context, game) {
+    const container = document.getElementById('ai-summary-section');
+    if (!container) return;
+
+    container.classList.remove('hidden');
+    container.innerHTML = '<div class="ai-summary-loading"><span class="spinner-small"></span> Generating Strategic Plan...</div>';
+
+    try {
+        const res = await fetch('/api/analyze/summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ context, game })
+        });
+        const data = await res.json();
+        if (data.summary) {
+            const parseMd = (window.marked && typeof marked.parse === 'function') ? (s) => marked.parse(s) : (s) => escapeHtml(s);
+            container.innerHTML = `<div class="ai-summary-content">${parseMd(data.summary)}</div>`;
+        } else {
+            container.classList.add('hidden');
+        }
+    } catch (e) {
+        console.error("AI Summary failed", e);
+        container.classList.add('hidden');
     }
 }
 
@@ -2020,7 +2207,7 @@ function appendChatMessage(role, text, modPreviews, topPicks) {
     const p = document.createElement('div');
     p.className = 'chat-msg-body';
     const parseMd = (window.marked && typeof marked.parse === 'function') ? (s) => marked.parse(s) : (window.marked && typeof marked === 'function') ? (s) => marked(s) : (s) => s;
-    p.innerHTML = role === 'assistant' ? parseMd(String(text || '')) : escapeHtml(String(text || ''));
+    p.innerHTML = role === 'assistant' ? linkify(parseMd(String(text || ''))) : escapeHtml(String(text || ''));
     div.appendChild(p);
     if (role === 'assistant') {
         if (topPicks && typeof topPicks === 'object' && Object.keys(topPicks).length > 0) {
@@ -2097,6 +2284,7 @@ async function sendChatMessage(e) {
     e.preventDefault();
     const input = elements.chatInput;
     const btn = elements.chatSendBtn;
+    const agentInput = document.getElementById('agent-input'); // Support agent window input
     const msg = input?.value?.trim();
     if (!msg || !elements.chatMessages) return;
     input.value = '';
@@ -2106,10 +2294,17 @@ async function sendChatMessage(e) {
         const gameSelect = document.getElementById('game-select');
         const game = (gameSelect && gameSelect.value) ? gameSelect.value : 'skyrimse';
         const modList = parseModListFromTextarea();
+        const pageContext = capturePageContext();
         const res = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: msg, context: currentReport || '', game, mod_list: modList })
+            body: JSON.stringify({
+                message: msg,
+                context: currentReport || '',
+                page_context: pageContext,
+                game,
+                mod_list: modList
+            })
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
@@ -2133,6 +2328,10 @@ function openCheckoutModal() {
     if (modal) {
         modal.classList.remove('hidden');
         modal.setAttribute('aria-hidden', 'false');
+        const emailInput = document.getElementById('checkout-email');
+        if (emailInput && currentUserEmail) {
+            emailInput.value = currentUserEmail;
+        }
     }
 }
 
@@ -2148,25 +2347,60 @@ function closeCheckoutModal() {
 }
 
 function showActionFeedback(message) {
-    const feedback = document.getElementById('action-feedback');
-    if (feedback) {
-        feedback.textContent = message;
-        window.setTimeout(() => {
-            if (feedback.textContent === message) {
-                feedback.textContent = '';
-            }
-        }, 3500);
-        return;
-    }
-    alert(message);
+    showToast(message, 'success');
 }
+
+function initToastSystem() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .toast-container {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; gap: 8px; z-index: 10002;
+            pointer-events: none;
+        }
+        .toast {
+            background: var(--card-bg); color: var(--text-primary);
+            border: 1px solid var(--border-color); border-radius: 8px;
+            padding: 12px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-size: 0.95rem; opacity: 0; transform: translateY(10px);
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: auto; display: flex; align-items: center; gap: 12px;
+        }
+        .toast.visible { opacity: 1; transform: translateY(0); }
+        .toast-success { border-left: 4px solid var(--accent-primary); }
+        .toast-error { border-left: 4px solid #ef4444; }
+        .toast-warning { border-left: 4px solid #f59e0b; }
+    `;
+    document.head.appendChild(style);
+    const container = document.createElement('div');
+    container.className = 'toast-container';
+    container.id = 'toast-container';
+    document.body.appendChild(container);
+}
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return; // Should be initialized
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    // Trigger reflow
+    void toast.offsetWidth;
+    toast.classList.add('visible');
+    setTimeout(() => {
+        toast.classList.remove('visible');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+window.showToast = showToast;
 
 function trackClientActivity(eventType, eventData = {}) {
     fetch('/api/activity/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ event_type: eventType, event_data: eventData })
-    }).catch(() => {});
+    }).catch(() => { });
 }
 
 function initAnalysisFeedbackPanel() {
@@ -2279,7 +2513,7 @@ async function submitCheckout(event) {
     const input = document.getElementById('checkout-email');
     const btn = document.getElementById('checkout-submit-btn');
     if (!input || !input.value.trim() || !input.value.includes('@')) {
-        alert('Please enter a valid email.');
+        showToast('Please enter a valid email.', 'warning');
         return;
     }
     const email = input.value.trim();
@@ -2304,7 +2538,7 @@ async function submitCheckout(event) {
         }
     } catch (err) {
         console.error('Checkout error:', err);
-        alert(err.message || 'Checkout failed. Please try again.');
+        showToast(err.message || 'Checkout failed. Please try again.', 'error');
         if (btn) {
             btn.disabled = false;
             btn.textContent = 'Continue to checkout';
@@ -2397,7 +2631,7 @@ function applyConflictFilters() {
  */
 function copyLoadOrderAsPluginsTxt() {
     if (!currentSuggestedOrder.length) {
-        alert('No suggested load order available. Run analysis first.');
+        showToast('No suggested load order available. Run analysis first.', 'warning');
         return;
     }
     const text = currentSuggestedOrder.map(name => '*' + name).join('\n');
@@ -2407,7 +2641,7 @@ function copyLoadOrderAsPluginsTxt() {
             elements.copyLoadOrderBtn.textContent = 'Copied!';
             setTimeout(() => { elements.copyLoadOrderBtn.textContent = orig; }, 2000);
         }
-    }).catch(() => alert('Failed to copy.'));
+    }).catch(() => showToast('Failed to copy.', 'error'));
 }
 
 /**
@@ -2425,7 +2659,7 @@ function applyLoadOrder() {
  */
 function downloadReport() {
     if (!currentReport) {
-        alert('No report to download. Run analysis first.');
+        showToast('No report to download. Run analysis first.', 'warning');
         return;
     }
     const game = currentAnalysisData?.game || (elements.gameSelect && elements.gameSelect.value) || 'unknown';
@@ -2456,7 +2690,7 @@ function downloadReport() {
  */
 function downloadReportJson() {
     if (!currentAnalysisData) {
-        alert('No report JSON available. Run analysis first.');
+        showToast('No report JSON available. Run analysis first.', 'warning');
         return;
     }
     const payload = {
@@ -2483,7 +2717,7 @@ async function pasteFromClipboard() {
         elements.modListInput.value = text;
         updateModCounter();
     } catch (e) {
-        alert('Could not read clipboard. Paste with Ctrl+V into the text area.');
+        showToast('Could not read clipboard. Paste with Ctrl+V.', 'error');
     }
 }
 
@@ -2505,18 +2739,18 @@ async function loadSampleList() {
         const res = await fetch(`/api/sample-mod-list?game=${encodeURIComponent(game)}`);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-            alert(data.error || `Could not load sample (${res.status}). Try again.`);
+            showToast(data.error || `Could not load sample (${res.status}).`, 'error');
             return;
         }
         const modList = (data.mod_list != null) ? String(data.mod_list) : '';
         modListInput.value = modList;
         updateModCounter();
         if (modList.length === 0) {
-            alert(`No sample list for "${game}". Try another game.`);
+            showToast(`No sample list for "${game}".`, 'info');
         }
     } catch (e) {
         console.error('Failed to load sample:', e);
-        alert('Could not load sample list. Check your connection and try again.');
+        showToast('Could not load sample list.', 'error');
     } finally {
         if (sampleBtn) {
             sampleBtn.disabled = false;
@@ -2530,7 +2764,7 @@ async function loadSampleList() {
  */
 function copyReport() {
     if (!currentReport) {
-        alert('No report to copy.');
+        showToast('No report to copy.', 'warning');
         return;
     }
     navigator.clipboard.writeText(currentReport)
@@ -2543,7 +2777,7 @@ function copyReport() {
         })
         .catch(err => {
             console.error('Clipboard error:', err);
-            alert('Failed to copy to clipboard.');
+            showToast('Failed to copy to clipboard.', 'error');
         });
 }
 
@@ -2662,6 +2896,7 @@ if (elements.clearBtn) {
     elements.clearBtn.addEventListener('click', () => {
         lastAnalysisSummary = null; // so "X enabled / Y total" and plugin limit warning reset
         if (elements.modListInput) {
+            userContext.setAnalysisResult(null); // Clear analysis to hide context trail
             elements.modListInput.value = '';
             updateModCounter();
         }
@@ -2775,7 +3010,7 @@ async function processGameFolderFiles(files) {
             try {
                 const text = await file.text();
                 keyFilesContent[path] = text.slice(0, 8000);
-            } catch (_) {}
+            } catch (_) { }
         }
         if (GAME_FOLDER_PLUGIN_EXT.some(ext => lowerPath.endsWith(ext))) {
             plugins.push(path.replace(/^.*[/\\]/, ''));
@@ -2839,30 +3074,13 @@ function initGameFolderScan() {
     const dropZone = document.getElementById('game-folder-drop-zone');
     const browseBtn = document.getElementById('game-folder-browse-btn');
     const fileInput = document.getElementById('game-folder-input');
-    const proCta = document.getElementById('game-folder-scan-pro-cta');
     const statusEl = document.getElementById('game-folder-scan-status');
     if (!dropZone || !fileInput) return;
 
     function updateTierUi() {
-        const isPro = hasPaidAccess(currentUserTier);
-        dropZone.classList.toggle('game-folder-drop-disabled', !isPro);
-        dropZone.setAttribute('aria-disabled', isPro ? 'false' : 'true');
-        if (browseBtn) browseBtn.disabled = !isPro;
-        if (proCta) proCta.classList.toggle('hidden', isPro);
-        if (!isPro && statusEl) {
-            statusEl.classList.remove('hidden');
-            statusEl.textContent = 'Pro required for folder scan. Upgrade to enable this button.';
-        } else if (isPro && statusEl && statusEl.textContent.includes('Pro required')) {
-            statusEl.textContent = '';
-            statusEl.classList.add('hidden');
-        }
     }
 
     const handleFiles = async (fileList) => {
-        if (!hasPaidAccess(currentUserTier)) {
-            proCta?.classList.remove('hidden');
-            return;
-        }
         if (!fileList || fileList.length === 0) return;
         const files = [];
         const arr = Array.isArray(fileList) ? fileList : Array.from(fileList);
@@ -2882,10 +3100,6 @@ function initGameFolderScan() {
     };
 
     async function openFolderPicker() {
-        if (!hasPaidAccess(currentUserTier)) {
-            proCta?.classList.remove('hidden');
-            return;
-        }
         // Prefer native directory picker when available; fallback to webkitdirectory input.
         if (window.showDirectoryPicker) {
             try {
@@ -2907,10 +3121,6 @@ function initGameFolderScan() {
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('game-folder-drop-active'); });
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('game-folder-drop-active'));
         dropZone.addEventListener('drop', async (e) => {
-            if (!hasPaidAccess(currentUserTier)) {
-                proCta?.classList.remove('hidden');
-                return;
-            }
             e.preventDefault();
             e.stopPropagation();
             dropZone.classList.remove('game-folder-drop-active');
@@ -2925,7 +3135,7 @@ function initGameFolderScan() {
                             await runGameFolderScan(files.map(f => ({ path: f.path, file: f.file })));
                             return;
                         }
-                    } catch (_) {}
+                    } catch (_) { }
                 }
                 const files = [];
                 for (let i = 0; i < items.length; i++) {
@@ -2936,11 +3146,11 @@ function initGameFolderScan() {
                     const withPath = files.map(f => ({ path: f.webkitRelativePath || f.name, file: f }));
                     if (!withPath.some(f => (f.path || '').includes('/'))) {
                         statusEl?.classList.remove('hidden');
-                        if (statusEl) statusEl.textContent = 'Your browser selected files, not a folder tree. Choose the top-level folder or use drag/drop.';
+                        if (statusEl) showToast('Your browser selected files, not a folder tree. Choose the top-level folder.', 'warning');
                     }
                     await runGameFolderScan(withPath);
                 } else {
-                    alert('Drop a folder (not individual files). Or use "click to browse" to select the folder.');
+                    showToast('Drop a folder (not individual files).', 'warning');
                 }
             }
         });
@@ -2964,7 +3174,6 @@ let cloudSavedLists = null;
 let cloudSavedItems = null;
 
 async function fetchCloudSavedLists() {
-    if (!hasPaidAccess(currentUserTier)) return null;
     try {
         const res = await fetch('/api/list-preferences', { method: 'GET' });
         if (!res.ok) return null;
@@ -2982,20 +3191,19 @@ async function fetchCloudSavedLists() {
 }
 
 async function upsertCloudSavedList(name, list, game) {
-    if (!hasPaidAccess(currentUserTier)) return false;
     try {
         const gameVersion = document.getElementById('game-version')?.value || '';
         const masterlistVersion = document.getElementById('masterlist-version')?.value || '';
-        
+
         // Include analysis snapshot if available
         const analysisSnapshot = userContext.lastAnalysisResult ? {
             summary: {
                 errors: userContext.lastAnalysisResult.conflicts?.errors?.length || 0,
                 warnings: userContext.lastAnalysisResult.conflicts?.warnings?.length || 0,
                 info: userContext.lastAnalysisResult.conflicts?.info?.length || 0,
-                total: (userContext.lastAnalysisResult.conflicts?.errors?.length || 0) + 
-                       (userContext.lastAnalysisResult.conflicts?.warnings?.length || 0) + 
-                       (userContext.lastAnalysisResult.conflicts?.info?.length || 0)
+                total: (userContext.lastAnalysisResult.conflicts?.errors?.length || 0) +
+                    (userContext.lastAnalysisResult.conflicts?.warnings?.length || 0) +
+                    (userContext.lastAnalysisResult.conflicts?.info?.length || 0)
             },
             plugin_limit_warning: userContext.lastAnalysisResult.plugin_limit_warning,
             suggested_load_order: userContext.lastAnalysisResult.suggested_load_order,
@@ -3003,7 +3211,7 @@ async function upsertCloudSavedList(name, list, game) {
             mod_warnings: userContext.lastAnalysisResult.mod_warnings,
             saved_at: new Date().toISOString()
         } : null;
-        
+
         const res = await fetch('/api/list-preferences', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -3042,12 +3250,8 @@ function getSavedLists() {
     } catch (_) { return {}; }
 }
 function saveListToStorage() {
-    if (!hasPaidAccess(currentUserTier)) {
-        window.location.href = '/signup-pro';
-        return;
-    }
     const list = elements.modListInput?.value?.trim();
-    if (!list) { alert('No mod list to save.'); return; }
+    if (!list) { showToast('No mod list to save.', 'warning'); return; }
     const name = prompt('Name this list (e.g. "Skyrim 2024 build"):');
     if (!name || !name.trim()) return;
     const game = elements.gameSelect?.value || 'skyrimse';
@@ -3056,7 +3260,7 @@ function saveListToStorage() {
         if (okCloud) {
             await refreshSavedListsSource();
             populateLoadSavedSelect();
-            alert('Saved.');
+            showToast('List saved.', 'success');
             return;
         }
         const saved = getSavedLists();
@@ -3064,8 +3268,8 @@ function saveListToStorage() {
         try {
             localStorage.setItem(SAVED_LISTS_KEY, JSON.stringify(saved));
             populateLoadSavedSelect();
-            alert('Saved.');
-        } catch (e) { alert('Could not save.'); }
+            showToast('List saved locally.', 'success');
+        } catch (e) { showToast('Could not save list.', 'error'); }
     })();
 }
 function populateLoadSavedSelect() {
@@ -3114,7 +3318,7 @@ function loadSavedList() {
     if (!key) return;
     const saved = getSavedListsUnified();
     const item = saved[key];
-    if (!item || !item.list) { alert('List not found.'); return; }
+    if (!item || !item.list) { showToast('List not found.', 'error'); return; }
     if (elements.modListInput) {
         elements.modListInput.value = item.list;
         updateModCounter();
@@ -3142,7 +3346,7 @@ if (importFileBtn && importFileInput) {
             elements.modListInput.value = text;
             updateModCounter();
         } catch (err) {
-            alert('Could not read file. Try a .txt file.');
+            showToast('Could not read file. Try a .txt file.', 'error');
         }
         importFileInput.value = '';
     });
@@ -3206,14 +3410,7 @@ if (elements.modListInput) {
 function initMainTabs() {
     const tabs = document.querySelectorAll('.main-tab');
     const panels = document.querySelectorAll('.tab-panel');
-    const marketingSections = document.getElementById('marketing-sections');
-    const proBtn = document.getElementById('pro-upgrade-btn');
     function updateForTab(target) {
-        const isCommunity = target === 'community';
-        const isDev = target === 'dev';
-        const isPro = (typeof window.__USER_TIER__ !== 'undefined' && hasPaidAccess(window.__USER_TIER__));
-        if (marketingSections) marketingSections.classList.toggle('hidden', isCommunity || isDev || isPro);
-        if (proBtn) proBtn.classList.toggle('hidden', isCommunity);
     }
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -3231,6 +3428,7 @@ function initMainTabs() {
             if (target === 'build-list') initBuildListIfNeeded();
             if (target === 'quickstart') loadQuickstartContent();
             if (target === 'dev') initDevTools();
+            if (target === 'gameplay' && window.GameplayUI) window.GameplayUI.init('gameplay-container');
         });
     });
     updateForTab('analyze');
@@ -3282,7 +3480,6 @@ function initDevTools() {
     const copyBtn = document.getElementById('dev-copy-report-btn');
     const downloadBtn = document.getElementById('dev-download-report-btn');
     const loopSuggestBtn = document.getElementById('dev-loop-suggest-btn');
-    const proCta = document.getElementById('dev-pro-cta');
 
     if (analyzeBtn) analyzeBtn.addEventListener('click', runDevAnalyze);
     if (sampleBtn) sampleBtn.addEventListener('click', showDevSampleReport);
@@ -3322,11 +3519,6 @@ function initDevTools() {
 }
 
 async function runDevLoopSuggest() {
-    const isPro = hasPaidAccess(currentUserTier);
-    if (!isPro) {
-        showDevProCta();
-        return;
-    }
     const outEl = document.getElementById('dev-loop-output');
     const btn = document.getElementById('dev-loop-suggest-btn');
     const game = (document.getElementById('dev-game-select')?.value || 'skyrimse');
@@ -3386,12 +3578,9 @@ async function runDevLoopSuggest() {
 function showDevSampleReport() {
     const resultsEl = document.getElementById('dev-results');
     const reportEl = document.getElementById('dev-report-content');
-    const proCta = document.getElementById('dev-pro-cta');
-    const isPro = hasPaidAccess(currentUserTier);
     if (!resultsEl || !reportEl) return;
     reportEl.innerHTML = (typeof marked !== 'undefined' ? marked.parse(DEV_SAMPLE_REPORT) : escapeHtml(DEV_SAMPLE_REPORT).replace(/\n/g, '<br>'));
     resultsEl.classList.remove('hidden');
-    if (proCta && !isPro) proCta.classList.remove('hidden');
 }
 
 function copyDevReport() {
@@ -3399,8 +3588,8 @@ function copyDevReport() {
     if (!reportEl?.textContent) return;
     navigator.clipboard.writeText(reportEl.textContent).then(() => {
         const btn = document.getElementById('dev-copy-report-btn');
-        if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); }
-    }).catch(() => alert('Could not copy.'));
+        if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); showToast('Report copied.', 'success'); }
+    }).catch(() => showToast('Could not copy.', 'error'));
 }
 
 function downloadDevReport() {
@@ -3436,67 +3625,85 @@ function renderDevFileList() {
 }
 
 async function handleDevFiles(fileList) {
-    const ext = ['.psc', '.esp', '.esm', '.esl', '.ini', '.json', '.txt', '.md', '.toml', '.yaml', '.yml'];
+    const textExt = ['.psc', '.ini', '.json', '.txt', '.md', '.toml', '.yaml', '.yml'];
+    const binExt = ['.esp', '.esm', '.esl'];
     const added = [];
     for (let i = 0; i < Math.min(fileList.length, 25); i++) {
         const f = fileList[i];
         const name = (f.name || '').toLowerCase();
-        if (!ext.some(e => name.endsWith(e)) && !name.includes('readme') && !name.includes('license')) continue;
+        const isText = textExt.some(e => name.endsWith(e)) || name.includes('readme') || name.includes('license');
+        const isBin = binExt.some(e => name.endsWith(e));
+
+        if (!isText && !isBin) continue;
+
         try {
-            const text = await f.text();
-            added.push({ path: f.webkitRelativePath || f.name, content: text.slice(0, 15000) });
-        } catch (_) {}
+            let content = '';
+            if (isBin) {
+                content = `(Binary plugin file: ${f.name})`;
+            } else {
+                const text = await f.text();
+                content = text.slice(0, 15000);
+            }
+            added.push({ path: f.webkitRelativePath || f.name, content: content });
+        } catch (_) { }
     }
     devUploadedFiles = [...devUploadedFiles, ...added].slice(0, 25);
     renderDevFileList();
 }
 
 async function runDevAnalyze() {
-    const isPro = hasPaidAccess(currentUserTier);
-    if (!isPro) {
-        showDevProCta();
-        return;
-    }
 
     const repoInput = document.getElementById('dev-repo-url');
     const pasteInput = document.getElementById('dev-paste-input');
     const activeTab = document.querySelector('.dev-input-tab.active');
     const mode = activeTab?.dataset.mode || 'repo';
 
-    const repoUrl = (repoInput?.value || '').trim();
-    const pasteContent = (pasteInput?.value || '').trim();
     const game = (document.getElementById('dev-game-select')?.value || 'skyrimse');
-    const hasRepo = repoUrl && repoUrl.includes('github.com');
-    const hasFiles = devUploadedFiles.length > 0;
-    const hasPaste = pasteContent.length > 20;
-
     const statusEl = document.getElementById('dev-status');
     const resultsEl = document.getElementById('dev-results');
     const reportEl = document.getElementById('dev-report-content');
     const analyzeBtn = document.getElementById('dev-analyze-btn');
-    const proCta = document.getElementById('dev-pro-cta');
     if (!statusEl || !resultsEl || !reportEl) return;
 
-    if (!hasRepo && !hasFiles && !hasPaste) {
-        statusEl.textContent = 'Add a repo URL, upload files, or paste code.';
+    let payload = { game };
+    let isValid = false;
+
+    if (mode === 'repo') {
+        const repoUrl = (repoInput?.value || '').trim();
+        if (repoUrl && repoUrl.includes('github.com')) {
+            payload.repo_url = repoUrl;
+            isValid = true;
+            statusEl.textContent = 'Fetching repo…';
+        } else {
+            statusEl.textContent = 'Please enter a valid GitHub URL.';
+        }
+    } else if (mode === 'upload') {
+        if (devUploadedFiles.length > 0) {
+            payload.files = devUploadedFiles;
+            isValid = true;
+            statusEl.textContent = 'Analyzing uploaded files…';
+        } else {
+            statusEl.textContent = 'Please upload at least one file.';
+        }
+    } else if (mode === 'paste') {
+        const pasteContent = (pasteInput?.value || '').trim();
+        if (pasteContent.length > 20) {
+            payload.files = [{ path: 'pasted.txt', content: pasteContent }];
+            isValid = true;
+            statusEl.textContent = 'Analyzing pasted code…';
+        } else {
+            statusEl.textContent = 'Please paste code (at least 20 chars).';
+        }
+    }
+
+    if (!isValid) {
         statusEl.classList.remove('hidden');
         return;
     }
 
-    statusEl.textContent = mode === 'repo' && hasRepo ? 'Fetching repo…' : 'Analyzing…';
     statusEl.classList.remove('hidden');
     resultsEl.classList.add('hidden');
-    if (proCta) proCta.classList.add('hidden');
     if (analyzeBtn) analyzeBtn.disabled = true;
-
-    let payload = { game };
-    if (hasRepo) {
-        payload.repo_url = repoUrl;
-    } else if (hasFiles) {
-        payload.files = devUploadedFiles;
-    } else {
-        payload.files = [{ path: 'pasted.txt', content: pasteContent }];
-    }
 
     try {
         const res = await fetch('/api/dev-analyze', {
@@ -3512,25 +3719,8 @@ async function runDevAnalyze() {
         statusEl.textContent = data.files_analyzed ? `Analyzed ${data.files_analyzed} file(s).` : 'Done.';
     } catch (err) {
         statusEl.textContent = err.message || 'Analysis failed.';
-        if (err.message && err.message.includes('Pro')) {
-            showDevProCta();
-        }
     } finally {
         if (analyzeBtn) analyzeBtn.disabled = false;
-    }
-}
-
-function showDevProCta() {
-    const proCta = document.getElementById('dev-pro-cta');
-    const resultsEl = document.getElementById('dev-results');
-    const reportEl = document.getElementById('dev-report-content');
-    if (proCta) {
-        proCta.classList.remove('hidden');
-        proCta.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    if (resultsEl && reportEl && !reportEl.textContent.trim()) {
-        reportEl.innerHTML = '<p class="dev-cta-placeholder">Pro unlocks AI dev reports. Paste a repo, upload files, or <a href="#" onclick="document.getElementById(\'dev-sample-btn\')?.click(); return false;">view a sample</a>.</p>';
-        resultsEl.classList.remove('hidden');
     }
 }
 
@@ -3620,7 +3810,7 @@ async function loadQuickstartContent() {
                 <p class="hint"><code>*</code> = enabled, no <code>*</code> = disabled. SkyModderAI understands both.</p>
             </div>`;
 
-        toolsEl.innerHTML = Object.values(tools).map(t => 
+        toolsEl.innerHTML = Object.values(tools).map(t =>
             `<li>${quickLink(t.url || '#', t.name || '')} — ${escapeHtml(t.desc || '')}</li>`
         ).join('');
 
@@ -3768,17 +3958,6 @@ function initBuildListIfNeeded() {
     if (toAnalyzeBtn) {
         toAnalyzeBtn.addEventListener('click', () => sendBuildListToAnalyze({ autoAnalyze: true, focusAnalyze: true }));
     }
-    const proCheck = document.getElementById('build-list-pro-setups');
-    const proWrap = document.getElementById('build-list-pro-check-wrap');
-    if (proWrap && !hasPaidAccess(currentUserTier)) {
-        proWrap.style.opacity = '0.6';
-        if (proCheck) proCheck.disabled = true;
-    }
-    if (gameSelect) {
-        gameSelect.addEventListener('change', () => {
-            loadBuildListOptions(gameSelect.value || 'skyrimse');
-        });
-    }
 }
 
 async function loadBuildListOptions(gameId = 'skyrimse') {
@@ -3796,6 +3975,11 @@ async function loadBuildListOptions(gameId = 'skyrimse') {
                 </select>
             </div>
         `).join('');
+
+        // Automation: Auto-build when preferences change
+        container.querySelectorAll('select').forEach(s => {
+            s.addEventListener('change', () => runBuildList());
+        });
     } catch (e) {
         container.innerHTML = '<p class="hint">Could not load options.</p>';
     }
@@ -3817,7 +4001,7 @@ async function runBuildList() {
         const key = el.dataset.pref;
         if (key && el.value) preferences[key] = el.value;
     });
-    const proSetups = document.getElementById('build-list-pro-setups')?.checked && hasPaidAccess(currentUserTier);
+    const proSetups = document.getElementById('build-list-pro-setups')?.checked;
     try {
         const specs = getCurrentSpecs();
         const body = { game, preferences, pro_setups: proSetups, limit: 50 };
@@ -3829,7 +4013,7 @@ async function runBuildList() {
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-            alert(data.error || 'Failed to build list.');
+            showToast(data.error || 'Failed to build list.', 'error');
             return;
         }
         const mods = data.mods || [];
@@ -3846,7 +4030,7 @@ async function runBuildList() {
         const setups = data.setups || [];
         if (setups.length > 0 && setupsEl) {
             setupsEl.classList.remove('hidden');
-            setupsEl.innerHTML = '<h4>Pro: AI setups</h4>' + setups.map(s => `
+            setupsEl.innerHTML = '<h4>AI setups</h4>' + setups.map(s => `
                 <div class="build-list-setup">
                     <h5>${escapeHtml(s.name || 'Setup')}</h5>
                     <p class="build-list-setup-rationale">${escapeHtml(s.rationale || '')}</p>
@@ -3862,7 +4046,7 @@ async function runBuildList() {
         showActionFeedback('List generated. Sending to Analyze automatically…');
         sendBuildListToAnalyze({ autoAnalyze: true, focusAnalyze: true });
     } catch (e) {
-        alert('Network error. Try again.');
+        showToast('Network error. Try again.', 'error');
     } finally {
         btn.disabled = false;
         btn.textContent = 'Generate List';
@@ -3872,8 +4056,8 @@ async function runBuildList() {
 function copyBuildListAsPluginsTxt() {
     const lines = lastBuiltListMods.map(m => '*' + (m.name || '').replace(/^[\*\+\-]?\s*/, ''));
     const text = lines.join('\n');
-    if (!text) { alert('No list to copy.'); return; }
-    navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard.')).catch(() => alert('Could not copy.'));
+    if (!text) { showToast('No list to copy.', 'warning'); return; }
+    navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard.', 'success')).catch(() => showToast('Could not copy.', 'error'));
 }
 
 function sendBuildListToAnalyze(options = {}) {
@@ -3881,7 +4065,7 @@ function sendBuildListToAnalyze(options = {}) {
     const focusAnalyze = options.focusAnalyze !== false;
     const lines = lastBuiltListMods.map(m => '*' + (m.name || '').replace(/^[\*\+\-]?\s*/, ''));
     const text = lines.join('\n');
-    if (!text) { alert('No list to send.'); return; }
+    if (!text) { showToast('No list to send.', 'warning'); return; }
     if (elements.modListInput) {
         elements.modListInput.value = text;
         updateModCounter();
@@ -3918,6 +4102,10 @@ async function loadCommunityFeed() {
         const res = await fetch(`/api/community/posts?${params}`);
         const data = await res.json().catch(() => ({ posts: [] }));
         const posts = data.posts || [];
+        if (data.tags && !window.communityTagsLoaded) {
+            updateCommunityTagsUI(data.tags);
+            window.communityTagsLoaded = true;
+        }
         loadCommunityHealth();
         if (posts.length === 0) {
             feed.innerHTML = '<p class="hint">No posts yet. Be the first to share a tip or say hi!</p>';
@@ -3928,6 +4116,32 @@ async function loadCommunityFeed() {
     } catch (e) {
         feed.innerHTML = '<p class="hint">Could not load posts. Try again later.</p>';
         loadCommunityHealth();
+    }
+}
+
+function updateCommunityTagsUI(tags) {
+    // Update post creation dropdown
+    const tagSelect = document.getElementById('community-post-tag');
+    if (tagSelect) {
+        const currentVal = tagSelect.value;
+        tagSelect.innerHTML = tags.map(t =>
+            `<option value="${escapeHtml(t)}">${escapeHtml(t.charAt(0).toUpperCase() + t.slice(1))}</option>`
+        ).join('');
+        if (tags.includes(currentVal)) tagSelect.value = currentVal;
+    }
+
+    // Update filter buttons
+    const filterContainer = document.querySelector('.community-filter-tags');
+    if (filterContainer) {
+        const currentTag = communityFilterTag;
+        let html = `<button type="button" class="community-tag-btn${currentTag === '' ? ' active' : ''}" data-tag="">All</button>`;
+        html += tags.map(t => {
+            const activeClass = t === currentTag ? ' active' : '';
+            return `<button type="button" class="community-tag-btn${activeClass}" data-tag="${escapeHtml(t)}">
+                ${escapeHtml(t.charAt(0).toUpperCase() + t.slice(1))}
+            </button>`;
+        }).join('');
+        filterContainer.innerHTML = html;
     }
 }
 
@@ -3953,24 +4167,22 @@ function renderCommunityPost(p) {
     const repliesHtml = (p.replies || []).map(r => `
         <div class="community-reply">
             <span class="community-reply-meta">${escapeHtml(r.user)}${r.is_pro ? ' <span class="community-pro-badge community-pro-badge-sm">Pro</span>' : ''} · ${formatDate(r.created_at)}</span>
-            <div class="community-reply-content">${escapeHtml(r.content)}</div>
+                <div class="community-reply-content">${linkify(escapeHtml(r.content))}</div>
             <button type="button" class="community-report-btn" data-reply="${r.id}">Report</button>
         </div>
     `).join('');
     const voteUp = p.my_vote === 1 ? ' community-vote-active' : '';
-    const voteDn = p.my_vote === -1 ? ' community-vote-active' : '';
     return `
         <article class="community-post-item" data-post-id="${p.id}">
             <div class="community-post-header">
                 <span class="community-post-tag community-post-tag-${escapeHtml(p.tag || 'general')}">${escapeHtml((p.tag || 'general').charAt(0).toUpperCase() + (p.tag || 'general').slice(1))}</span>
                 <div class="community-post-meta">${escapeHtml(p.user)}${proBadge} · ${formatDate(p.created_at)}</div>
             </div>
-            <div class="community-post-content">${escapeHtml(p.content)}</div>
+            <div class="community-post-content">${linkify(escapeHtml(p.content))}</div>
             <div class="community-post-actions-row">
                 <div class="community-votes">
                     <button type="button" class="community-vote-btn community-vote-up${voteUp}" data-post="${p.id}" aria-label="Helpful">▲</button>
-                    <span class="community-vote-count">${p.votes || 0}</span>
-                    <button type="button" class="community-vote-btn community-vote-down${voteDn}" data-post="${p.id}" aria-label="Not helpful">▼</button>
+                    <span class="community-vote-count" style="margin-left:4px;">${p.votes || 0}</span>
                 </div>
                 <button type="button" class="community-reply-btn secondary-button" data-post="${p.id}">Reply</button>
                 <button type="button" class="community-report-btn secondary-button" data-post="${p.id}">Report</button>
@@ -3988,10 +4200,8 @@ function bindCommunityPostHandlers() {
     document.querySelectorAll('.community-vote-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             const postId = parseInt(btn.dataset.post, 10);
-            const isUp = btn.classList.contains('community-vote-up');
             const current = btn.classList.contains('community-vote-active');
-            let vote = isUp ? 1 : -1;
-            if (current) vote = 0;
+            const vote = current ? 0 : 1; // Toggle: if active (1), send 0. If inactive, send 1.
             try {
                 const res = await fetch(`/api/community/posts/${postId}/vote`, {
                     method: 'POST',
@@ -4003,7 +4213,7 @@ function bindCommunityPostHandlers() {
                     trackClientActivity('community_vote', { post_id: postId, vote });
                     loadCommunityFeed();
                 }
-            } catch (_) {}
+            } catch (_) { }
         });
     });
     document.querySelectorAll('.community-reply-btn').forEach(btn => {
@@ -4019,7 +4229,7 @@ function bindCommunityPostHandlers() {
             const form = document.getElementById(`reply-form-${postId}`);
             const textarea = form?.querySelector('.community-reply-input');
             const content = textarea?.value?.trim() || '';
-            if (content.length < 3) { alert('Reply must be at least 3 characters.'); return; }
+            if (content.length < 3) { showToast('Reply must be at least 3 characters.', 'warning'); return; }
             btn.disabled = true;
             try {
                 const res = await fetch(`/api/community/posts/${postId}/replies`, {
@@ -4033,8 +4243,8 @@ function bindCommunityPostHandlers() {
                     form.classList.add('hidden');
                     trackClientActivity('community_reply', { post_id: postId });
                     loadCommunityFeed();
-                } else alert(data.error || 'Failed to reply');
-            } catch (e) { alert('Network error'); }
+                } else showToast(data.error || 'Failed to reply', 'error');
+            } catch (e) { showToast('Network error', 'error'); }
             btn.disabled = false;
         });
     });
@@ -4054,9 +4264,9 @@ function bindCommunityPostHandlers() {
                 });
                 const data = await res.json().catch(() => ({}));
                 if (res.ok && data.success) showActionFeedback('Report submitted. Thanks for helping keep this space useful.');
-                else alert(data.error || 'Failed to submit report');
+                else showToast(data.error || 'Failed to submit report', 'error');
             } catch (e) {
-                alert('Network error');
+                showToast('Network error', 'error');
             }
             btn.disabled = false;
         });
@@ -4094,7 +4304,7 @@ function initCommunityPost() {
     btn.addEventListener('click', async () => {
         const content = input.value.trim();
         if (content.length < 3) {
-            alert('Post must be at least 3 characters.');
+            showToast('Post must be at least 3 characters.', 'warning');
             return;
         }
         btn.disabled = true;
@@ -4107,7 +4317,7 @@ function initCommunityPost() {
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
-                alert(data.error || 'Failed to post');
+                showToast(data.error || 'Failed to post', 'error');
                 return;
             }
             input.value = '';
@@ -4115,19 +4325,23 @@ function initCommunityPost() {
             trackClientActivity('community_post', { tag: (tagSelect && tagSelect.value) || 'general' });
             loadCommunityFeed();
         } catch (e) {
-            alert('Network error. Try again.');
+            showToast('Network error. Try again.', 'error');
         } finally {
             btn.disabled = false;
         }
     });
-    document.querySelectorAll('.community-tag-btn').forEach(b => {
-        b.addEventListener('click', () => {
+    // Use delegation for dynamic tags
+    const filterContainer = document.querySelector('.community-filter-tags');
+    if (filterContainer) {
+        filterContainer.addEventListener('click', (e) => {
+            const b = e.target.closest('.community-tag-btn');
+            if (!b) return;
             document.querySelectorAll('.community-tag-btn').forEach(x => x.classList.remove('active'));
             b.classList.add('active');
             communityFilterTag = b.dataset.tag || '';
             loadCommunityFeed();
         });
-    });
+    }
     document.querySelectorAll('.community-sort-btn').forEach(b => {
         b.addEventListener('click', () => {
             document.querySelectorAll('.community-sort-btn').forEach(x => x.classList.remove('active'));
@@ -4155,10 +4369,25 @@ function initCommunityPost() {
 const COMMAND_ACTIONS = [
     { id: 'analyze', label: 'Analyze mod list', shortcut: 'Ctrl+Enter', fn: () => analyzeModList() },
     { id: 'focus-mod-list', label: 'Focus mod list', fn: () => elements.modListInput?.focus() },
+    { id: 'scan-hardware', label: 'Scan hardware specs', fn: () => scanSystem() },
+    {
+        id: 'scan-folder',
+        label: 'Scan game folder',
+        fn: () => {
+            const btn = document.getElementById('game-folder-browse-btn');
+            if (btn) btn.click();
+            else {
+                document.querySelector('.main-tab[data-tab="analyze"]')?.click();
+                setTimeout(() => document.getElementById('game-folder-browse-btn')?.click(), 200);
+            }
+        }
+    },
     { id: 'focus-mod-search', label: 'Search mods', fn: () => document.getElementById('mod-search-input')?.focus() },
     { id: 'tab-analyze', label: 'Go to Analyze', fn: () => document.querySelector('.main-tab[data-tab="analyze"]')?.click() },
     { id: 'tab-quickstart', label: 'Go to Quick Start', fn: () => document.querySelector('.main-tab[data-tab="quickstart"]')?.click() },
     { id: 'tab-build-list', label: 'Go to Build a List', fn: () => document.querySelector('.main-tab[data-tab="build-list"]')?.click() },
+    { id: 'tab-library', label: 'Go to Library', fn: () => document.querySelector('.main-tab[data-tab="library"]')?.click() },
+    { id: 'tab-gameplay', label: 'Go to Gameplay', fn: () => document.querySelector('.main-tab[data-tab="gameplay"]')?.click() },
     { id: 'tab-dev', label: 'Go to Dev Tools', fn: () => document.querySelector('.main-tab[data-tab="dev"]')?.click() },
     { id: 'dev-analyze', label: 'Analyze dev project', shortcut: 'Ctrl+Enter', fn: () => { document.querySelector('.main-tab[data-tab="dev"]')?.click(); setTimeout(() => runDevAnalyze(), 100); } },
     { id: 'tab-community', label: 'Go to Community', fn: () => document.querySelector('.main-tab[data-tab="community"]')?.click() },
@@ -4168,7 +4397,6 @@ const COMMAND_ACTIONS = [
     { id: 'sample', label: 'Load sample list', fn: () => loadSampleList() },
     { id: 'profile', label: 'Open profile', fn: () => window.location.href = '/profile' },
     { id: 'signup', label: 'Open signup', fn: () => window.location.href = '/signup-pro' },
-    { id: 'pricing', label: 'Go to pricing section', fn: () => { window.location.hash = 'pricing'; } },
 ];
 
 function openCommandPalette() {
@@ -4209,6 +4437,695 @@ function runCommandPaletteSearch(q) {
             if (a && a.fn) { closeCommandPalette(); a.fn(); }
         });
     });
+}
+
+// -------------------------------------------------------------------
+// Theme System
+// -------------------------------------------------------------------
+const THEMES = {
+    'slate': {
+        name: 'Slate (Default)',
+        colors: {
+            '--bg-app': '#0f172a', '--bg-panel': '#1e293b', '--bg-input': '#020617',
+            '--text-main': '#f8fafc', '--text-muted': '#94a3b8', '--border': '#334155',
+            '--accent': '#38bdf8', '--accent-hover': '#0ea5e9', '--accent-text': '#0f172a',
+            '--danger': '#ef4444', '--success': '#22c55e', '--warning': '#f59e0b',
+            '--shadow-sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+            '--shadow-md': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06)'
+        }
+    },
+    'obsidian': {
+        name: 'Obsidian',
+        colors: {
+            '--bg-app': '#111111', '--bg-panel': '#1e1e1e', '--bg-input': '#252525',
+            '--text-main': '#e0e0e0', '--text-muted': '#888888', '--border': '#333333',
+            '--accent': '#a855f7', '--accent-hover': '#9333ea', '--accent-text': '#ffffff',
+            '--danger': '#ff5555', '--success': '#4caf50', '--warning': '#ff9800',
+            '--shadow-sm': 'none', '--shadow-md': '0 4px 12px rgba(0,0,0,0.5)'
+        }
+    },
+    'nexus': {
+        name: 'Nexus',
+        colors: {
+            '--bg-app': '#222222', '--bg-panel': '#2b2b2b', '--bg-input': '#1a1a1a',
+            '--text-main': '#ffffff', '--text-muted': '#9b9b9b', '--border': '#404040',
+            '--accent': '#da8e35', '--accent-hover': '#e69d45', '--accent-text': '#000000',
+            '--danger': '#d32f2f', '--success': '#388e3c', '--warning': '#fbc02d',
+            '--shadow-sm': '0 1px 3px rgba(0,0,0,0.3)', '--shadow-md': '0 4px 6px rgba(0,0,0,0.4)'
+        }
+    },
+    'dawn': {
+        name: 'Dawn',
+        colors: {
+            '--bg-app': '#f8fafc', '--bg-panel': '#ffffff', '--bg-input': '#f1f5f9',
+            '--text-main': '#0f172a', '--text-muted': '#64748b', '--border': '#e2e8f0',
+            '--accent': '#0ea5e9', '--accent-hover': '#0284c7', '--accent-text': '#ffffff',
+            '--danger': '#ef4444', '--success': '#22c55e', '--warning': '#f59e0b',
+            '--shadow-sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+            '--shadow-md': '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+        }
+    }
+};
+
+function applyTheme(key) {
+    const t = THEMES[key] || THEMES['slate'];
+    const root = document.documentElement;
+    for (const [k, v] of Object.entries(t.colors)) {
+        root.style.setProperty(k, v);
+    }
+    localStorage.setItem('skymodder_theme', key);
+    const sel = document.getElementById('theme-select');
+    if (sel) sel.value = key;
+}
+
+function initModernTheme() {
+    // Inject a cohesive, modern color scheme and UI reset
+    const style = document.createElement('style');
+    style.textContent = `
+        :root {
+            /* Spacing & Radius (Shared) */
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+
+            /* Layout Lane */
+            --content-width: 1200px;
+        }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Universal Layout Lane */
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: var(--content-width);
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Map existing variables to new scheme if they exist */
+        :root {
+            --card-bg: var(--bg-panel);
+            --text-primary: var(--text-main);
+            --text-secondary: var(--text-muted);
+            --border-color: var(--border);
+            --accent-primary: var(--accent);
+        }
+
+        /* Unified Component Styling */
+        .card, .tab-panel, .modal-content, .library-card, .gp-layout {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Typography Standardization */
+        h1, h2, h3, h4, h5, h6 { color: var(--text-main); margin-top: 0; line-height: 1.3; }
+        h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        h3 { font-size: 1.25rem; font-weight: 600; margin: 2rem 0 1rem 0; }
+        p { margin-bottom: 1rem; line-height: 1.6; color: var(--text-muted); max-width: 75ch; }
+        ul, ol { margin-bottom: 1.5rem; padding-left: 1.5rem; color: var(--text-muted); }
+        li { margin-bottom: 0.5rem; line-height: 1.6; }
+        a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
+        a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+        /* Input Standardization */
+        input[type="text"], input[type="email"], input[type="password"], input[type="search"], textarea, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+            outline: none;
+        }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-main); font-size: 0.9rem; }
+
+        /* Button Standardization */
+        button, .primary-button, .secondary-button, .danger-button {
+            height: 40px;
+            padding: 0 1.25rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .primary-button {
+            background-color: var(--accent);
+            color: var(--accent-text);
+        }
+        .primary-button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .secondary-button {
+            background-color: transparent;
+            border-color: var(--border);
+            color: var(--text-main);
+        }
+        .secondary-button:hover {
+            background-color: rgba(255,255,255,0.05);
+            border-color: var(--text-muted);
+        }
+
+        .danger-button { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: transparent; }
+        .danger-button:hover { background: rgba(239, 68, 68, 0.2); }
+
+        /* Result Badges & States */
+        .conflict-type-badge {
+            background: var(--bg-input); border: 1px solid var(--border);
+            color: var(--text-muted); padding: 2px 8px; border-radius: 12px;
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .conflict-related-badge {
+            background: rgba(56, 189, 248, 0.1); color: var(--accent);
+            padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;
+        }
+        .success-state {
+            text-align: center; padding: 3rem 2rem; background: var(--bg-panel);
+            border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 2rem;
+        }
+        .success-icon { width: 48px; height: 48px; background: rgba(34, 197, 94, 0.1); color: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1rem auto; }
+        .success-state h3 { font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--text-main); }
+
+        /* Dev Tools Polish */
+        #dev-drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-lg);
+            padding: 3rem 2rem;
+            text-align: center;
+            background: var(--bg-input);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+        #dev-drop-zone:hover, #dev-drop-zone.dev-drop-active {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, 0.03);
+            transform: scale(1.005);
+        }
+        .dev-file-chip {
+            display: inline-flex;
+            align-items: center;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            margin: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+        .dev-file-remove {
+            margin-left: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1.1rem;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+        .dev-file-remove:hover { color: var(--danger); }
+        #dev-report-content {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-main);
+            background: var(--bg-input);
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            margin-top: 1rem;
+            max-width: 900px;
+        }
+        #dev-report-content h2, #dev-report-content h3 {
+            margin-top: 1.5em;
+            margin-bottom: 0.75em;
+            color: var(--accent);
+        }
+        #dev-report-content ul {
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+        }
+        #dev-report-content li {
+            margin-bottom: 0.5em;
+        }
+        .dev-tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+        .dev-input-tab {
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-weight: 500;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+        }
+        .dev-input-tab:hover { color: var(--text-main); }
+        .dev-input-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+    `;
+    document.head.appendChild(style);
+
+    const saved = localStorage.getItem('skymodder_theme') || 'slate';
+    applyTheme(saved);
+
+    // Live Document (PDF-like) Styles
+    const docStyle = document.createElement('style');
+    docStyle.textContent = `
+        .live-doc-container {
+            background: #ffffff;
+            color: #1e293b;
+            padding: 48px;
+            border-radius: 2px;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.15);
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.6;
+            margin: 0 auto;
+            max-width: 850px;
+            position: relative;
+        }
+        body:not(.light-mode) .live-doc-container {
+            background: #1e293b; color: #e2e8f0; border: 1px solid #334155;
+        }
+        .live-doc-header {
+            border-bottom: 2px solid var(--accent); margin-bottom: 32px; padding-bottom: 16px;
+            display: flex; justify-content: space-between; align-items: flex-end;
+        }
+        .live-doc-title {
+            font-size: 24px; font-weight: 700; color: var(--text-main);
+            font-family: 'Inter', sans-serif; letter-spacing: -0.02em;
+        }
+        .live-doc-meta {
+            font-size: 13px; color: var(--text-muted); font-family: 'Inter', sans-serif;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .live-doc-intro {
+            font-style: italic; color: var(--text-muted); margin-bottom: 32px;
+            padding-bottom: 24px; border-bottom: 1px solid var(--border);
+        }
+        .live-doc-step {
+            margin-bottom: 20px; padding: 4px 0 4px 16px; border-left: 3px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        .live-doc-step:hover { border-left-color: var(--accent); background: rgba(255,255,255,0.02); }
+        .live-doc-step.severity-error { border-left-color: var(--danger); }
+        .live-doc-step.severity-warning { border-left-color: var(--warning); }
+        .live-doc-num {
+            font-family: 'Inter', sans-serif; font-weight: 700; color: var(--accent);
+            margin-right: 8px; font-size: 0.9em;
+        }
+        .live-doc-content { display: inline; }
+        .live-doc-content strong { font-weight: 600; color: var(--text-main); }
+        .live-doc-content a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+        .live-doc-ai-update {
+            margin: 32px 0; padding: 24px; background: rgba(56, 189, 248, 0.05);
+            border: 1px dashed var(--accent); border-radius: 8px; position: relative;
+            animation: doc-fade-in 0.5s ease-out;
+        }
+        @keyframes doc-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .live-doc-ai-badge {
+            position: absolute; top: -10px; left: 20px; background: var(--bg-panel); color: var(--accent);
+            padding: 0 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+            border: 1px solid var(--accent); border-radius: 4px;
+        }
+    `;
+    document.head.appendChild(docStyle);
+}
+
+// -------------------------------------------------------------------
+// Marketing Revamp: Donation Header & Footer
+// -------------------------------------------------------------------
+function initDonationUI() {
+    // Inject styles for donation UI
+    const style = document.createElement('style');
+    style.textContent = `
+        .donation-header {
+            background: linear-gradient(90deg, var(--bg-panel) 0%, var(--bg-app) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .donation-link {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+        .donation-link:hover { opacity: 0.8; }
+        .app-footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 4rem;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Inject Header
+    const header = document.createElement('div');
+    header.className = 'donation-header';
+    header.innerHTML = `
+        <span>SkyModderAI is free & open source.</span>
+        <a href="#" onclick="upgradeToPro(); return false;" class="donation-link">
+            <span>☕</span> Buy me a coffee
+        </a>
+    `;
+    document.body.insertBefore(header, document.body.firstChild);
+
+    // Inject Footer
+    const footer = document.createElement('footer');
+    footer.className = 'app-footer';
+    footer.innerHTML = `
+        <div style="display:flex;justify-content:center;align-items:center;gap:1.5rem;flex-wrap:wrap;">
+            <p style="margin:0">Built for the community. <a href="https://www.buymeacoffee.com/skymodder" target="_blank" style="color:var(--text-main)">Support development</a></p>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+                <label for="theme-select" style="font-size:0.85rem;color:var(--text-muted)">Theme:</label>
+                <select id="theme-select" style="padding:4px 8px;font-size:0.85rem;background:var(--bg-input);color:var(--text-main);border:1px solid var(--border);border-radius:4px;">
+                    ${Object.entries(THEMES).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('')}
+                </select>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(footer);
+
+    document.getElementById('theme-select').addEventListener('change', (e) => {
+        applyTheme(e.target.value);
+    });
+}
+
+// -------------------------------------------------------------------
+// Agent Window - Floating AI Companion
+// -------------------------------------------------------------------
+function initAgentWindow() {
+    const style = document.createElement('style');
+    style.textContent = `
+        #agent-toggle { position: fixed; bottom: 24px; left: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: var(--accent-text); border: none; cursor: pointer; box-shadow: var(--shadow-md); z-index: 10001; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        #agent-toggle:hover { transform: scale(1.05); }
+        #agent-window { position: fixed; bottom: 96px; left: 24px; width: 380px; height: 600px; max-height: 80vh; background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); z-index: 10000; display: flex; flex-direction: column; transform: translateY(20px); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden; }
+        #agent-window.active { transform: translateY(0); opacity: 1; pointer-events: all; }
+        .agent-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-panel); }
+        .agent-title { font-weight: 600; font-size: 1rem; color: var(--text-main); }
+        .agent-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; background: var(--bg-app); }
+        .agent-input-area { padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--bg-panel); }
+        .agent-input { flex: 1; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 10px 14px; border-radius: 20px; resize: none; height: 44px; font-family: inherit; line-height: 1.4; }
+        .agent-input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+        .agent-send { background: var(--accent); color: var(--accent-text); border: none; border-radius: 50%; width: 44px; height: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; font-weight: bold; font-size: 1.2rem; padding-bottom: 2px; }
+        .agent-send:hover { background: var(--accent-hover); }
+        .chat-msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 0.95rem; line-height: 1.5; }
+        .chat-msg-user { align-self: flex-end; background: var(--accent); color: var(--accent-text); border-bottom-right-radius: 2px; }
+        .chat-msg-assistant { align-self: flex-start; background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); border-bottom-left-radius: 2px; }
+        @media (max-width: 480px) { #agent-window { width: 92%; left: 4%; right: 4%; bottom: 80px; height: 60vh; } }
+    `;
+    document.head.appendChild(style);
+
+    const toggle = document.createElement('button');
+    toggle.id = 'agent-toggle';
+    toggle.innerHTML = '<img src="/static/icons/samson_dog.svg" alt="Samson" style="width:36px;height:36px;pointer-events:none;">';
+    toggle.title = 'Open Agent';
+    document.body.appendChild(toggle);
+
+    const win = document.createElement('div');
+    win.id = 'agent-window';
+    win.innerHTML = `
+        <div class="agent-header">
+            <span class="agent-title">Samson</span>
+            <button id="agent-close" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.5rem;line-height:1;">×</button>
+        </div>
+        <div class="agent-body" id="agent-messages">
+            <div class="chat-msg chat-msg-assistant"><div class="chat-msg-body">Hi! I'm Samson. I can see your load order. How can I help?</div></div>
+        </div>
+        <form class="agent-input-area" id="agent-form">
+            <textarea class="agent-input" id="agent-input" placeholder="Ask anything..."></textarea>
+            <button type="submit" class="agent-send">➤</button>
+        </form>
+    `;
+    document.body.appendChild(win);
+
+    const msgs = document.getElementById('agent-messages');
+    const input = document.getElementById('agent-input');
+    const form = document.getElementById('agent-form');
+
+    toggle.addEventListener('click', () => {
+        win.classList.toggle('active');
+        if (win.classList.contains('active')) input.focus();
+    });
+
+    document.getElementById('agent-close').addEventListener('click', () => win.classList.remove('active'));
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+
+        // UI Update
+        const userDiv = document.createElement('div');
+        userDiv.className = 'chat-msg chat-msg-user';
+        userDiv.innerHTML = `<div class="chat-msg-body">${escapeHtml(text)}</div>`;
+        msgs.appendChild(userDiv);
+        input.value = '';
+        msgs.scrollTop = msgs.scrollHeight;
+
+        // Prepare context
+        const pageContext = capturePageContext();
+        const modList = parseModListFromTextarea();
+        const game = elements.gameSelect?.value || 'skyrimse';
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: text,
+                    context: currentReport || '',
+                    page_context: pageContext,
+                    game,
+                    mod_list: modList
+                })
+            });
+            const data = await res.json().catch(() => ({}));
+
+            const botDiv = document.createElement('div');
+            botDiv.className = 'chat-msg chat-msg-assistant';
+            const parseMd = (window.marked && typeof marked.parse === 'function') ? (s) => marked.parse(s) : (s) => escapeHtml(s);
+            botDiv.innerHTML = `<div class="chat-msg-body">${linkify(parseMd(data.reply || data.error || 'Error.'))}</div>`;
+            msgs.appendChild(botDiv);
+            msgs.scrollTop = msgs.scrollHeight;
+        } catch (e) {
+            const errDiv = document.createElement('div');
+            errDiv.className = 'chat-msg chat-msg-assistant';
+            errDiv.innerHTML = `<div class="chat-msg-body">Network error.</div>`;
+            msgs.appendChild(errDiv);
+        }
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            form.dispatchEvent(new Event('submit'));
+        }
+    });
+}
+
+function capturePageContext() {
+    const activeTab = document.querySelector('.main-tab.active');
+    const tabName = activeTab ? activeTab.dataset.tab : 'unknown';
+    let content = `Current Tab: ${tabName}\n`;
+
+    if (tabName === 'analyze') {
+        const report = document.getElementById('conflicts-container')?.innerText;
+        if (report) content += `Analysis Report (visible text):\n${report.slice(0, 3000)}\n`;
+    } else if (tabName === 'quickstart') {
+        content += "User is looking at Quick Start guide.\n";
+    } else if (tabName === 'community') {
+        const feed = document.getElementById('community-feed')?.innerText;
+        if (feed) content += `Community Feed (visible):\n${feed.slice(0, 2000)}\n`;
+    } else if (tabName === 'dev') {
+        const devReport = document.getElementById('dev-report-content')?.innerText;
+        if (devReport) content += `Dev Report:\n${devReport.slice(0, 2000)}\n`;
+    }
+    return content;
+}
+
+// -------------------------------------------------------------------
+// Priority 4: Dynamic Floating Links & Portal System
+// -------------------------------------------------------------------
+function initFloatingPortal() {
+    // Inject CSS for portal and smart links
+    const style = document.createElement('style');
+    style.textContent = `
+        .smart-link { color: var(--accent-primary); text-decoration: none; border-bottom: 1px dashed var(--accent-primary); transition: all 0.2s; }
+        .smart-link:hover { background: rgba(0, 212, 232, 0.1); border-bottom-style: solid; cursor: alias; }
+        #floating-portal {
+            position: fixed; bottom: 20px; right: 20px; width: 400px; height: 500px;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 9999; display: flex; flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+            transform: translateY(20px); opacity: 0; pointer-events: none;
+        }
+        #floating-portal.active { transform: translateY(0); opacity: 1; pointer-events: all; }
+        .portal-header {
+            padding: 12px 16px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center; cursor: move;
+        }
+        .portal-title { font-weight: 600; font-size: 0.9rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+        .portal-controls button { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem; padding: 0 4px; }
+        .portal-controls button:hover { color: var(--text-primary); }
+        .portal-body { flex: 1; position: relative; background: var(--card-bg); color: var(--text-primary); }
+        .portal-body iframe { width: 100%; height: 100%; border: none; }
+        .portal-fallback {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--card-bg); color: var(--text-primary);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; text-align: center;
+        }
+        #link-preview-image { height: 180px; background-size: cover; background-position: center; border-radius: 6px 6px 0 0; margin: -12px -12px 12px -12px; }
+        #link-preview-image.empty { display: none; }
+    `;
+    document.head.appendChild(style);
+
+    // Create Portal DOM
+    const portal = document.createElement('div');
+    portal.id = 'floating-portal';
+    portal.innerHTML = `
+        <div class="portal-header" id="portal-drag-handle">
+            <span class="portal-title">🌐 Browsing</span>
+            <div class="portal-controls">
+                <button id="portal-close">×</button>
+            </div>
+        </div>
+        <div class="portal-body">
+            <iframe id="portal-frame" name="portal-frame"></iframe>
+            <div id="portal-fallback" class="portal-fallback hidden">
+                <p style="margin-bottom:1rem">This site cannot be embedded directly.</p>
+                <a id="portal-ext-link" href="#" target="_blank" class="primary-button">Open in New Tab</a>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(portal);
+
+    // Event Listeners
+    document.body.addEventListener('click', (e) => {
+        if (e.target.classList.contains('smart-link')) {
+            e.preventDefault();
+            openPortal(e.target.href);
+        }
+    });
+
+    document.getElementById('portal-close').addEventListener('click', () => {
+        portal.classList.remove('active');
+        document.getElementById('portal-frame').src = 'about:blank';
+    });
+
+    // Draggable logic
+    const handle = document.getElementById('portal-drag-handle');
+    let isDragging = false, startX, startY, initLeft, initTop;
+
+    handle.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        const rect = portal.getBoundingClientRect();
+        initLeft = rect.left;
+        initTop = rect.top;
+        portal.style.right = 'auto';
+        portal.style.bottom = 'auto';
+        portal.style.left = initLeft + 'px';
+        portal.style.top = initTop + 'px';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        portal.style.left = (initLeft + dx) + 'px';
+        portal.style.top = (initTop + dy) + 'px';
+    });
+
+    window.addEventListener('mouseup', () => isDragging = false);
+}
+
+function openPortal(url) {
+    const portal = document.getElementById('floating-portal');
+    const frame = document.getElementById('portal-frame');
+    const fallback = document.getElementById('portal-fallback');
+    const extLink = document.getElementById('portal-ext-link');
+    const title = portal.querySelector('.portal-title');
+
+    portal.classList.add('active');
+    title.textContent = `🌐 ${new URL(url).hostname}`;
+
+    // Check for known blockers
+    const blockers = ['google.com', 'amazon.com', 'github.com', 'nexusmods.com'];
+    const isBlocked = blockers.some(b => url.includes(b));
+
+    if (isBlocked) {
+        frame.classList.add('hidden');
+        fallback.classList.remove('hidden');
+        extLink.href = url;
+    } else {
+        fallback.classList.add('hidden');
+        frame.classList.remove('hidden');
+        frame.src = url;
+    }
 }
 
 // -------------------------------------------------------------------
@@ -4271,6 +5188,7 @@ function initLinkPreviews() {
         popover.classList.add('link-preview-visible');
         popover.setAttribute('aria-hidden', 'false');
         if (url !== lastFetchUrl) {
+            // Reset state
             titleEl.textContent = 'Loading…';
             descEl.textContent = '';
             imgEl.style.backgroundImage = '';
@@ -4283,6 +5201,7 @@ function initLinkPreviews() {
                     titleEl.textContent = data.title || 'Untitled';
                     descEl.textContent = data.description || '';
                     if (data.image) {
+                        // Dynamic live preview picture
                         imgEl.style.backgroundImage = `url(${data.image})`;
                         imgEl.classList.remove('empty');
                     } else {
@@ -4337,19 +5256,107 @@ function initLinkPreviews() {
 }
 
 function initCommandPalette() {
+    // Inject Styles for Vercel/Linear-like Command Palette
+    const style = document.createElement('style');
+    style.textContent = `
+        #command-palette {
+            position: fixed; inset: 0; z-index: 10000;
+            display: flex; align-items: flex-start; justify-content: center;
+            padding-top: 14vh;
+            backdrop-filter: blur(4px);
+            background-color: rgba(15, 23, 42, 0.6);
+            opacity: 0; pointer-events: none; transition: opacity 0.15s ease-out;
+        }
+        #command-palette:not(.hidden) { opacity: 1; pointer-events: auto; }
+        #command-palette.hidden { display: none; }
+
+        .command-palette-modal {
+            width: 100%; max-width: 600px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            animation: cp-slide-in 0.2s ease-out;
+        }
+        @keyframes cp-slide-in {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .command-palette-header {
+            padding: 16px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+        }
+        #command-palette-input {
+            width: 100%; background: transparent; border: none;
+            font-size: 1.1rem; color: var(--text-main); padding: 0; outline: none;
+        }
+        #command-palette-input::placeholder { color: var(--text-muted); }
+        #command-palette-results { max-height: 320px; overflow-y: auto; padding: 8px; }
+        .command-palette-item {
+            width: 100%; display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 12px; background: transparent; border: none;
+            color: var(--text-muted); border-radius: 6px; cursor: pointer;
+            text-align: left; font-size: 0.95rem; transition: all 0.1s;
+        }
+        .command-palette-item:hover, .command-palette-item.highlighted {
+            background: var(--accent); color: var(--accent-text);
+        }
+        .command-palette-item.highlighted .command-palette-shortcut {
+            color: rgba(0,0,0,0.6); background: rgba(0,0,0,0.1);
+        }
+        .command-palette-shortcut {
+            font-size: 0.75rem; background: rgba(255,255,255,0.1);
+            padding: 2px 6px; border-radius: 4px; font-family: monospace;
+        }
+        .command-palette-footer {
+            padding: 8px 16px; background: rgba(0,0,0,0.2);
+            border-top: 1px solid var(--border); font-size: 0.75rem;
+            color: var(--text-muted); display: flex; justify-content: flex-end; gap: 12px;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Ensure DOM structure exists
+    let palette = document.getElementById('command-palette');
+    if (!palette) {
+        palette = document.createElement('div');
+        palette.id = 'command-palette';
+        palette.className = 'hidden';
+        palette.innerHTML = `
+            <div class="command-palette-backdrop" style="position:absolute;inset:0;"></div>
+            <div class="command-palette-modal">
+                <div class="command-palette-header">
+                    <span style="color:var(--text-muted)">🔍</span>
+                    <input type="text" id="command-palette-input" placeholder="Type a command..." autocomplete="off">
+                </div>
+                <div id="command-palette-results"></div>
+                <div class="command-palette-footer">
+                    <span>Use <strong>↑↓</strong> to navigate</span>
+                    <span><strong>Enter</strong> to select</span>
+                    <span><strong>Esc</strong> to close</span>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(palette);
+    }
+
     const trigger = document.getElementById('command-palette-trigger');
-    const palette = document.getElementById('command-palette');
     const input = document.getElementById('command-palette-input');
-    const backdrop = palette?.querySelector('.command-palette-backdrop');
+    const backdrop = palette.querySelector('.command-palette-backdrop');
+
     if (trigger) trigger.addEventListener('click', openCommandPalette);
     if (backdrop) backdrop.addEventListener('click', closeCommandPalette);
+
     if (input) {
         input.addEventListener('input', () => runCommandPaletteSearch(input.value));
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') { closeCommandPalette(); return; }
-            const items = palette?.querySelectorAll('.command-palette-item') ?? [];
-            const current = palette?.querySelector('.command-palette-item.highlighted');
+            const items = palette.querySelectorAll('.command-palette-item');
+            const current = palette.querySelector('.command-palette-item.highlighted');
             let idx = current ? parseInt(current.dataset.index, 10) : 0;
+
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
                 idx = Math.min(idx + 1, items.length - 1);
@@ -4365,15 +5372,17 @@ function initCommandPalette() {
                 return;
             }
             if (e.key === 'Enter') {
-                const target = idx >= 0 && items[idx] ? items[idx] : items[0];
-                if (target) { target.click(); e.preventDefault(); }
+                e.preventDefault();
+                const target = (idx >= 0 && items[idx]) ? items[idx] : items[0];
+                if (target) target.click();
             }
         });
     }
+
     document.addEventListener('keydown', (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
             e.preventDefault();
-            if (palette?.classList.contains('hidden')) openCommandPalette();
+            if (palette.classList.contains('hidden')) openCommandPalette();
             else closeCommandPalette();
         }
     });
@@ -4408,7 +5417,7 @@ function loadShareFromUrl() {
             updateModCounter();
             document.querySelector('.main-tab[data-tab="analyze"]')?.click();
         }
-    } catch (_) {}
+    } catch (_) { }
 }
 
 function initPageActionBindings() {
@@ -4431,6 +5440,8 @@ function initPageActionBindings() {
     modalCloseTargets.forEach((el) => {
         el.addEventListener('click', closeCheckoutModal);
     });
+    const checkoutForm = document.getElementById('checkout-form');
+    if (checkoutForm) checkoutForm.addEventListener('submit', submitCheckout);
 }
 
 // -------------------------------------------------------------------
@@ -4439,56 +5450,32 @@ function initPageActionBindings() {
 
 // Game state management for sync across tabs (Priority 3G)
 const gameState = {
-    get game() { 
-        return localStorage.getItem('skymodder_selected_game') || 'skyrimse'; 
+    get game() {
+        return localStorage.getItem('skymodder_selected_game') || 'skyrimse';
     },
-    set game(val) { 
+    set game(val) {
         localStorage.setItem('skymodder_selected_game', val);
         document.querySelectorAll('.game-selector').forEach(el => el.value = val);
     }
 };
 
-// Initialize sticky analyze bar functionality (Priority 3A)
-function initStickyAnalyzeBar() {
-    if (!elements.stickyGameSelect || !elements.stickyAnalyzeBtn) return;
-    
-    // Sync game selector with main selector
-    elements.stickyGameSelect.value = gameState.game;
-    
-    // Game selector change handler
-    elements.stickyGameSelect.addEventListener('change', (e) => {
-        gameState.game = e.target.value;
-        if (elements.gameSelect) {
-            elements.gameSelect.value = e.target.value;
-            elements.gameSelect.dispatchEvent(new Event('change'));
-        }
-    });
-    
-    // Analyze button handler
-    elements.stickyAnalyzeBtn.addEventListener('click', () => {
-        if (elements.analyzeBtn) {
-            elements.analyzeBtn.click();
-        }
-    });
-}
-
 // localStorage session persistence (Priority 3F)
 function initLocalStoragePersistence() {
     if (!elements.modListInput) return;
-    
+
     // Save on every change
     elements.modListInput.addEventListener('input', () => {
         localStorage.setItem('skymodder_modlist', elements.modListInput.value);
         localStorage.setItem('skymodder_game', elements.gameSelect?.value || 'skyrimse');
         localStorage.setItem('skymodder_saved_at', Date.now());
-        updateModCounter(); // Update sticky badge
+        updateModCounter();
     });
-    
+
     // Check for saved session on page load
     const saved = localStorage.getItem('skymodder_modlist');
     const savedAt = localStorage.getItem('skymodder_saved_at');
     const ageMinutes = savedAt ? (Date.now() - savedAt) / 60000 : 999;
-    
+
     if (saved && saved.trim().length > 0 && ageMinutes < 480) { // 8 hours
         showRestoreBanner(saved, ageMinutes);
     }
@@ -4499,16 +5486,16 @@ function showRestoreBanner(savedList, ageMinutes) {
     const banner = document.createElement('div');
     banner.className = 'index-info-banner';
     banner.innerHTML = `
-        <span>📋 You have a mod list from ${Math.round(ageMinutes)} minutes ago. 
-        <button type="button" class="link-button" onclick="restoreSavedSession()">Restore it</button> or 
+        <span>📋 You have a mod list from ${Math.round(ageMinutes)} minutes ago.
+        <button type="button" class="link-button" onclick="restoreSavedSession()">Restore it</button> or
         <button type="button" class="link-button" onclick="dismissRestoreBanner()">dismiss</button></span>
     `;
-    
+
     const mainContent = document.querySelector('main');
     if (mainContent) {
         mainContent.insertBefore(banner, mainContent.firstChild);
     }
-    
+
     // Store saved list globally for restoration
     window._savedModList = savedList;
 }
@@ -4519,7 +5506,7 @@ function restoreSavedSession() {
         elements.modListInput.value = window._savedModList;
         updateModCounter();
         refreshInputMatchPreview({ silent: true });
-        
+
         // Restore game selection
         const savedGame = localStorage.getItem('skymodder_game');
         if (savedGame) {
@@ -4536,12 +5523,46 @@ function dismissRestoreBanner() {
     delete window._savedModList;
 }
 
-// Update mod count badge in sticky bar
-function updateStickyModCount() {
-    if (elements.modCountBadge && elements.modListInput) {
-        const count = parseModList(elements.modListInput.value).length;
-        elements.modCountBadge.textContent = `${count} mod${count !== 1 ? 's' : ''}`;
+/**
+ * Parse mod list text into array of mod names.
+ * Handles plugins.txt format (* prefix = enabled), MO2 format (+/- prefix), and plain lists.
+ */
+function parseModList(text) {
+    if (!text) return [];
+    const lines = text.split('\n');
+    const mods = [];
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        let modName = trimmed;
+        if (modName.startsWith('*') || modName.startsWith('+') || modName.startsWith('-')) {
+            modName = modName.slice(1);
+        }
+        if (modName.includes('/') || modName.includes('\\')) {
+            modName = modName.split('/').pop().split('\\').pop();
+        }
+        if (modName && (modName.endsWith('.esp') || modName.endsWith('.esm') || modName.endsWith('.esl'))) {
+            mods.push(modName);
+        }
     }
+    return mods;
+}
+
+/**
+ * Get display name for a game ID.
+ */
+function getGameDisplayName(gameId) {
+    const gameNames = {
+        skyrim: 'Skyrim LE',
+        skyrimse: 'Skyrim SE',
+        skyrimvr: 'Skyrim VR',
+        oblivion: 'Oblivion',
+        fallout3: 'Fallout 3',
+        falloutnv: 'Fallout New Vegas',
+        fallout4: 'Fallout 4',
+        starfield: 'Starfield'
+    };
+    return gameNames[gameId] || gameId || 'Skyrim SE';
 }
 
 // Auto-scroll to results after analysis (Priority 3B)
@@ -4560,7 +5581,7 @@ function colorCodeConflictItems() {
     conflictItems.forEach(item => {
         // Remove existing color classes
         item.classList.remove('error', 'warning', 'info');
-        
+
         // Add appropriate class based on content
         const text = item.textContent.toLowerCase();
         if (text.includes('error') || text.includes('critical') || text.includes('failed')) {
@@ -4579,12 +5600,12 @@ function addQuickFixChips() {
     conflictItems.forEach((item, index) => {
         // Skip if already has a quick fix chip
         if (item.querySelector('.quick-fix-chip')) return;
-        
+
         const chip = document.createElement('button');
         chip.className = 'quick-fix-chip';
         chip.textContent = '⚡ Quick Fix';
         chip.onclick = () => openQuickFix(item.textContent, index);
-        
+
         // Append to the end of the conflict item
         item.appendChild(chip);
     });
@@ -4637,7 +5658,7 @@ function showInlineResolution(item, resolution) {
             <button type="button" class="secondary-button" onclick="this.closest('.quick-fix-panel').remove()">Close</button>
         </div>
     `;
-    
+
     item.parentNode.insertBefore(panel, item.nextSibling);
 }
 
@@ -4648,13 +5669,9 @@ window.dismissRestoreBanner = dismissRestoreBanner;
 // -------------------------------------------------------------------
 // Initialization
 // -------------------------------------------------------------------
-initCommandPalette();
-initLinkPreviews();
 loadShareFromUrl();
 initPageActionBindings();
-initFeedbackModal();
-initAnalysisFeedbackPanel();
-initMainTabs();
+initToastSystem();
 initCommunityPost();
 initQuickstartGameSelect();
 initQuickstartLivePreview();
@@ -4663,23 +5680,9 @@ checkUserTier();
 initGameFolderScan();
 initDevTools();
 // Initialize Priority 3 features
-initStickyAnalyzeBar();
-initLocalStoragePersistence();
 updateModCounter();
 
-const masterlistVersionSelect = document.getElementById('masterlist-version');
 const gameVersionSelect = document.getElementById('game-version');
-if (elements.gameSelect) {
-    elements.gameSelect.addEventListener('change', () => {
-        const gameId = elements.gameSelect.value;
-        if (masterlistVersionSelect) loadMasterlistVersions(gameId).then(versions => populateMasterlistVersionSelect(masterlistVersionSelect, versions));
-        if (gameVersionSelect) loadGameVersions(gameId).then(data => populateGameVersionSelect(gameVersionSelect, data));
-        // Mod list is intentionally preserved — accidental game switch shouldn't wipe work.
-        // User can Clear or paste over if switching games intentionally.
-        fetchAndShowRecommendations();
-        refreshInputMatchPreview({ silent: true });
-    });
-}
 if (gameVersionSelect) {
     gameVersionSelect.addEventListener('change', updateGameVersionInfo);
 }
@@ -4702,7 +5705,7 @@ let libraryFilters = {
 
 function initLibrary() {
     if (!elements.libraryGrid) return;
-    
+
     // Search functionality
     if (elements.librarySearch) {
         elements.librarySearch.addEventListener('input', (e) => {
@@ -4713,7 +5716,7 @@ function initLibrary() {
             renderLibrary();
         });
     }
-    
+
     if (elements.librarySearchClear) {
         elements.librarySearchClear.addEventListener('click', () => {
             elements.librarySearch.value = '';
@@ -4722,7 +5725,7 @@ function initLibrary() {
             renderLibrary();
         });
     }
-    
+
     // Filter functionality
     ['libraryFilterGame', 'libraryFilterVersion', 'libraryFilterMasterlist'].forEach(id => {
         const el = elements[id];
@@ -4734,12 +5737,12 @@ function initLibrary() {
             });
         }
     });
-    
+
     // Refresh button
     if (elements.libraryRefreshBtn) {
         elements.libraryRefreshBtn.addEventListener('click', loadLibrary);
     }
-    
+
     // Load library on first show
     const libraryTab = document.querySelector('[data-tab="library"]');
     if (libraryTab) {
@@ -4753,30 +5756,30 @@ function initLibrary() {
 
 async function loadLibrary() {
     if (!elements.libraryGrid) return;
-    
+
     if (elements.libraryStatus) {
         elements.libraryStatus.textContent = 'Loading your library...';
     }
-    
+
     try {
         const params = new URLSearchParams();
         if (libraryFilters.game) params.append('game', libraryFilters.game);
         if (libraryFilters.game_version) params.append('game_version', libraryFilters.game_version);
         if (libraryFilters.masterlist_version) params.append('masterlist_version', libraryFilters.masterlist_version);
-        
+
         const response = await fetch(`/api/list-preferences?${params.toString()}`);
         if (!response.ok) {
             throw new Error('Failed to load library');
         }
-        
+
         const data = await response.json();
         libraryItems = data.items || [];
-        
+
         // Populate filter dropdowns with available options
         populateLibraryFilters();
-        
+
         renderLibrary();
-        
+
         if (elements.libraryStatus) {
             elements.libraryStatus.textContent = `${libraryItems.length} item${libraryItems.length !== 1 ? 's' : ''}`;
         }
@@ -4805,7 +5808,7 @@ function populateLibraryFilters() {
         });
         elements.libraryFilterVersion.value = currentValue;
     }
-    
+
     // Populate masterlist versions
     if (elements.libraryFilterMasterlist) {
         const versions = [...new Set(libraryItems.map(item => item.masterlist_version).filter(Boolean))];
@@ -4823,7 +5826,7 @@ function populateLibraryFilters() {
 
 function renderLibrary() {
     if (!elements.libraryGrid) return;
-    
+
     let filtered = libraryItems.filter(item => {
         if (libraryFilters.search) {
             const searchStr = libraryFilters.search;
@@ -4837,44 +5840,48 @@ function renderLibrary() {
         if (libraryFilters.masterlist_version && item.masterlist_version !== libraryFilters.masterlist_version) return false;
         return true;
     });
-    
+
     if (filtered.length === 0) {
         elements.libraryGrid.innerHTML = '<p class="hint">No saved lists found matching your filters.</p>';
         return;
     }
-    
+
     elements.libraryGrid.innerHTML = filtered.map(item => createLibraryCard(item)).join('');
-    
+
     // Add event listeners to cards
     elements.libraryGrid.querySelectorAll('.library-card').forEach(card => {
         const itemId = parseInt(card.dataset.id);
         const item = libraryItems.find(i => i.id === itemId);
         if (!item) return;
-        
+
         // Load button
         const loadBtn = card.querySelector('.library-load-btn');
         if (loadBtn) {
             loadBtn.addEventListener('click', () => loadLibraryItem(item));
         }
-        
+
         // Analyze button
         const analyzeBtn = card.querySelector('.library-analyze-btn');
         if (analyzeBtn) {
             analyzeBtn.addEventListener('click', () => analyzeLibraryItem(item));
         }
-        
+
+        // Duplicate button
+        const dupBtn = card.querySelector('.library-duplicate-btn');
+        if (dupBtn) dupBtn.addEventListener('click', () => duplicateLibraryItem(item));
+
         // Rename button
         const renameBtn = card.querySelector('.library-rename-btn');
         if (renameBtn) {
             renameBtn.addEventListener('click', () => renameLibraryItem(item));
         }
-        
+
         // Edit tags/notes button
         const editBtn = card.querySelector('.library-edit-btn');
         if (editBtn) {
             editBtn.addEventListener('click', () => editLibraryItem(item));
         }
-        
+
         // Delete button
         const deleteBtn = card.querySelector('.library-delete-btn');
         if (deleteBtn) {
@@ -4888,8 +5895,9 @@ function createLibraryCard(item) {
     const versionInfo = [item.game_version, item.masterlist_version].filter(Boolean).join(' | ');
     const tagsDisplay = item.tags ? item.tags.split(',').map(tag => `<span class="library-tag">${tag.trim()}</span>`).join('') : '';
     const notesDisplay = item.notes ? `<p class="library-notes">${item.notes}</p>` : '';
-    const updatedDate = new Date(item.updated_at || item.saved_at).toLocaleDateString();
-    
+    const updatedDate = new Date(item.updated_at || item.saved_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const modCount = item.list_text.split('\n').filter(line => line.trim() && !line.trim().startsWith('#')).length;
+
     // Analysis health indicator
     let healthDisplay = '';
     if (item.analysis_snapshot) {
@@ -4898,7 +5906,7 @@ function createLibraryCard(item) {
         const warningCount = analysis.summary?.warnings || 0;
         const infoCount = analysis.summary?.info || 0;
         const total = analysis.summary?.total || 0;
-        
+
         let healthClass = 'health-clean';
         let healthText = 'Clean';
         if (errorCount > 0) {
@@ -4911,37 +5919,37 @@ function createLibraryCard(item) {
             healthClass = 'health-info';
             healthText = `${infoCount} note${infoCount !== 1 ? 's' : ''}`;
         }
-        
+
         healthDisplay = `<div class="library-health ${healthClass}" title="Analysis health: ${total} total issues">${healthText}</div>`;
     } else {
         healthDisplay = '<div class="library-health health-unknown" title="No analysis data">Not analyzed</div>';
     }
-    
+
     return `
         <div class="library-card" data-id="${item.id}">
             <div class="library-card-header">
-                <h3 class="library-card-title">${escapeHtml(item.name)}</h3>
-                <div class="library-card-meta">
-                    <span class="library-game">${gameName}</span>
-                    ${versionInfo ? `<span class="library-versions">${versionInfo}</span>` : ''}
-                    <span class="library-date">${updatedDate}</span>
+                <div class="library-card-top">
+                    <h3 class="library-card-title">${escapeHtml(item.name)}</h3>
+                    ${healthDisplay}
                 </div>
-                ${healthDisplay}
+                <div class="library-card-meta">
+                    <span class="library-game-badge">${gameName}</span>
+                    <span class="library-date">Updated ${updatedDate}</span>
+                </div>
             </div>
             <div class="library-card-body">
                 ${tagsDisplay ? `<div class="library-tags">${tagsDisplay}</div>` : ''}
                 ${notesDisplay}
-                <p class="library-mod-count">${item.list_text.split('\\n').filter(line => line.trim()).length} mods</p>
-                ${item.analysis_snapshot ? `
-                    <div class="library-analysis-info">
-                        <span class="analysis-date">Analyzed: ${new Date(item.analysis_snapshot.saved_at).toLocaleDateString()}</span>
-                        ${item.analysis_snapshot.plugin_limit_warning ? `<span class="plugin-warning">Plugin limit warning</span>` : ''}
-                    </div>
-                ` : ''}
+                <div class="library-stats-badges" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+                    <span class="conflict-type-badge" style="background:var(--bg-input)">📦 ${modCount} Mods</span>
+                    ${versionInfo ? `<span class="conflict-type-badge" style="background:var(--bg-input)">v${versionInfo}</span>` : ''}
+                    ${item.analysis_snapshot ? `<span class="conflict-type-badge" style="color:var(--success);border-color:var(--success)">Analyzed</span>` : ''}
+                </div>
             </div>
             <div class="library-card-actions">
                 <button type="button" class="library-load-btn secondary-button small">Load</button>
                 <button type="button" class="library-analyze-btn primary-button small">Analyze</button>
+                <button type="button" class="library-duplicate-btn secondary-button small">Duplicate</button>
                 <button type="button" class="library-rename-btn secondary-button small">Rename</button>
                 <button type="button" class="library-edit-btn secondary-button small">Edit</button>
                 <button type="button" class="library-delete-btn danger-button small">Delete</button>
@@ -4956,20 +5964,20 @@ function loadLibraryItem(item) {
     if (analyzeTab) {
         analyzeTab.click();
     }
-    
+
     if (elements.modListInput) {
         elements.modListInput.value = item.list_text;
         updateModCounter();
     }
-    
+
     if (elements.gameSelect) {
         elements.gameSelect.value = item.game;
         // Trigger change to update versions
         elements.gameSelect.dispatchEvent(new Event('change'));
     }
-    
+
     // Show success message
-    showStatus(`Loaded "${item.name}" into analyzer`, 'success');
+    showToast(`Loaded "${item.name}" into analyzer`, 'success');
 }
 
 function analyzeLibraryItem(item) {
@@ -4982,140 +5990,269 @@ function analyzeLibraryItem(item) {
     }, 100);
 }
 
+async function duplicateLibraryItem(item) {
+    const newName = `${item.name} (Copy)`;
+    try {
+        const res = await fetch('/api/list-preferences', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: newName,
+                list: item.list_text,
+                game: item.game,
+                game_version: item.game_version,
+                masterlist_version: item.masterlist_version,
+                source: 'duplicate',
+                analysis_snapshot: item.analysis_snapshot
+            })
+        });
+        if (res.ok) {
+            showToast('List duplicated.', 'success');
+            loadLibrary();
+        } else {
+            showToast('Failed to duplicate.', 'error');
+        }
+    } catch (e) {
+        showToast('Network error.', 'error');
+    }
+}
+
 async function renameLibraryItem(item) {
-    const newName = prompt('Enter new name:', item.name);
-    if (!newName || newName === item.name) return;
-    
+    const res = await openVaultModal('Rename Vault Item', [{ id: 'name', label: 'Name', value: item.name }]);
+    if (!res || !res.name || res.name === item.name) return;
+
     try {
         const response = await fetch('/api/list-preferences', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: item.id, new_name: newName })
+            body: JSON.stringify({ id: item.id, new_name: res.name })
         });
-        
+
         if (!response.ok) throw new Error('Failed to rename');
-        
+
         // Update local data
         const idx = libraryItems.findIndex(i => i.id === item.id);
         if (idx !== -1) {
-            libraryItems[idx].name = newName;
+            libraryItems[idx].name = res.name;
         }
-        
+
         renderLibrary();
-        showStatus('Renamed successfully', 'success');
+        showToast('Renamed successfully', 'success');
     } catch (error) {
         console.error('Rename error:', error);
-        showStatus('Failed to rename', 'error');
+        showToast('Failed to rename', 'error');
     }
 }
 
 async function editLibraryItem(item) {
-    const tags = prompt('Tags (comma-separated):', item.tags || '');
-    const notes = prompt('Notes:', item.notes || '');
-    
-    if (tags === null || notes === null) return; // User cancelled
-    
+    const res = await openVaultModal('Edit Metadata', [
+        { id: 'tags', label: 'Tags (comma-separated)', value: item.tags || '' },
+        { id: 'notes', label: 'Notes', type: 'textarea', value: item.notes || '' }
+    ]);
+    if (!res) return;
+
     try {
         const updateData = { id: item.id };
-        if (tags !== item.tags) updateData.tags = tags;
-        if (notes !== item.notes) updateData.notes = notes;
-        
+        if (res.tags !== item.tags) updateData.tags = res.tags;
+        if (res.notes !== item.notes) updateData.notes = res.notes;
+
         if (Object.keys(updateData).length === 1) return; // No changes
-        
+
         const response = await fetch('/api/list-preferences', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateData)
         });
-        
+
         if (!response.ok) throw new Error('Failed to update');
-        
+
         // Update local data
         const idx = libraryItems.findIndex(i => i.id === item.id);
         if (idx !== -1) {
             Object.assign(libraryItems[idx], updateData);
         }
-        
+
         renderLibrary();
-        showStatus('Updated successfully', 'success');
+        showToast('Updated successfully', 'success');
     } catch (error) {
         console.error('Edit error:', error);
-        showStatus('Failed to update', 'error');
+        showToast('Failed to update', 'error');
     }
 }
 
 async function deleteLibraryItem(item) {
-    if (!confirm(`Delete "${item.name}"? This cannot be undone.`)) return;
-    
+    const res = await openVaultModal(`Delete "${item.name}"?`, [], 'Delete');
+    if (res === null) return; // Cancelled (openVaultModal returns null on cancel)
+
     try {
         const response = await fetch('/api/list-preferences', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: item.id })
         });
-        
+
         if (!response.ok) throw new Error('Failed to delete');
-        
+
         // Update local data
         libraryItems = libraryItems.filter(i => i.id !== item.id);
-        
+
         renderLibrary();
-        showStatus('Deleted successfully', 'success');
+        showToast('Deleted successfully', 'success');
     } catch (error) {
         console.error('Delete error:', error);
-        showStatus('Failed to delete', 'error');
+        showToast('Failed to delete', 'error');
     }
 }
 
+function initVaultUI() {
+    // Inject Vault Modal CSS & HTML
+    const style = document.createElement('style');
+    style.textContent = `
+        #vault-modal { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        #vault-modal.active { opacity: 1; pointer-events: auto; }
+        .vault-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        .vault-dialog { position: relative; width: 100%; max-width: 420px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); padding: 24px; transform: scale(0.95); transition: transform 0.2s; }
+        #vault-modal.active .vault-dialog { transform: scale(1); }
+        .vault-title { font-size: 1.25rem; font-weight: 600; color: var(--text-main); margin-bottom: 16px; }
+        .vault-field { margin-bottom: 16px; }
+        .vault-field label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
+        .vault-field input, .vault-field textarea { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 6px; font-family: inherit; }
+        .vault-field input:focus, .vault-field textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+        .vault-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+    `;
+    document.head.appendChild(style);
+
+    const modal = document.createElement('div');
+    modal.id = 'vault-modal';
+    modal.innerHTML = `
+        <div class="vault-backdrop"></div>
+        <div class="vault-dialog">
+            <h3 class="vault-title" id="vault-title"></h3>
+            <div id="vault-body"></div>
+            <div class="vault-actions">
+                <button class="secondary-button" id="vault-cancel">Cancel</button>
+                <button class="primary-button" id="vault-confirm">Save</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.querySelector('.vault-backdrop').addEventListener('click', closeVaultModal);
+    document.getElementById('vault-cancel').addEventListener('click', closeVaultModal);
+}
+
+let vaultResolve = null;
+
+function openVaultModal(title, fields, confirmLabel = 'Save') {
+    return new Promise((resolve) => {
+        vaultResolve = resolve;
+        document.getElementById('vault-title').textContent = title;
+        const body = document.getElementById('vault-body');
+        body.innerHTML = fields.map(f => `
+            <div class="vault-field">
+                ${f.label ? `<label>${f.label}</label>` : ''}
+                ${f.type === 'textarea'
+                ? `<textarea id="${f.id}" rows="${f.rows || 3}">${escapeHtml(f.value || '')}</textarea>`
+                : `<input type="${f.type || 'text'}" id="${f.id}" value="${escapeHtml(f.value || '')}" ${f.placeholder ? `placeholder="${f.placeholder}"` : ''}>`
+            }
+            </div>
+        `).join('');
+
+        const confirmBtn = document.getElementById('vault-confirm');
+        confirmBtn.textContent = confirmLabel;
+        confirmBtn.className = confirmLabel === 'Delete' ? 'danger-button' : 'primary-button';
+
+        const newBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+        newBtn.addEventListener('click', () => {
+            const result = {};
+            fields.forEach(f => {
+                const el = document.getElementById(f.id);
+                if (el) result[f.id] = el.value;
+            });
+            closeVaultModal();
+            resolve(result); // Resolve with object (or empty object for delete)
+        });
+
+        const modal = document.getElementById('vault-modal');
+        modal.classList.add('active');
+        setTimeout(() => {
+            const first = body.querySelector('input, textarea');
+            if (first) first.focus();
+        }, 50);
+    });
+}
+
+function closeVaultModal() {
+    document.getElementById('vault-modal').classList.remove('active');
+    if (vaultResolve) { vaultResolve(null); vaultResolve = null; }
+}
+
 // Wait for the DOM to be fully loaded before initializing
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Initialize all components
+    initModernTheme();
+    initVaultUI();
     initLibrary();
+    initGlobalGameSync();
     initMainTabs();
     initCommandPalette();
     initLinkPreviews();
-    initPageActionBindings();
     initLocalStoragePersistence();
-    initStickyAnalyzeBar();
-    
+    initFloatingPortal();
+    initDonationUI();
+    initAgentWindow();
+
+    // Hotfix: Remove "(plain language)" text if present in static HTML
+    // (User feedback: "It's right at the front of the webpage")
+    (function cleanUpSafetyText() {
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+        let node;
+        while (node = walker.nextNode()) {
+            if (node.nodeValue && node.nodeValue.includes('(plain language)')) {
+                node.nodeValue = node.nodeValue.replace(/\s*\(plain language\)/g, '');
+            }
+        }
+    })();
+
     // Load any shared list from URL if present
     loadShareFromUrl();
-    
+
     // Initialize game folder scan if on the analyze page
     if (document.querySelector('.tab-panel#panel-analyze')) {
         initGameFolderScan();
     }
-    
+
     // Initialize quickstart if on the quickstart page
     if (document.querySelector('.tab-panel#panel-quickstart')) {
         loadQuickstartContent();
         initQuickstartLivePreview();
-        initQuickstartGameSelect();
     }
-    
+
     // Initialize dev tools if on the dev page
     if (document.querySelector('.tab-panel#panel-dev')) {
         initDevTools();
     }
-    
+
     // Initialize build list if on the build list page
     if (document.querySelector('.tab-panel#panel-build-list')) {
         initBuildListIfNeeded();
     }
-    
+
     // Initialize community if on the community page
     if (document.querySelector('.tab-panel#panel-community')) {
         loadCommunityFeed();
         loadCommunityHealth();
         bindCommunityPostHandlers();
     }
-    
+
     // Initialize analysis feedback panel
     initAnalysisFeedbackPanel();
     initFeedbackModal();
-    
+
     // Expose Library functions globally
     window.loadLibrary = loadLibrary;
-    
+
     console.log('SkyModderAI initialized successfully');
 });

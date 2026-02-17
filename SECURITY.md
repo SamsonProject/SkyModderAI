@@ -1,11 +1,13 @@
 # Security Policy
 
+Your security and the integrity of your system are paramount. SkyModderAI is designed with a "safety-first" architecture, especially regarding the experimental OpenClaw features.
+
 ## Reporting Security Issues
-Please email security@skymodderai.com instead of opening a public issue.
+If you discover a vulnerability, please prioritize discretion to protect the community. Email us directly at security@skymodderai.com rather than opening a public issue. We will work with you to validate and resolve the issue promptly.
 
 ## Supported Versions
-Only the latest main branch is supported.
+We actively support and patch the latest release on the `main` branch. Please ensure you are running the most recent version to benefit from the latest security enhancements.
 
 ## Known Limitations
-- OpenClaw is experimental and disabled by default
-- Session tokens stored server-side; no distributed session support yet
+- **OpenClaw Sandbox**: The OpenClaw automation engine is experimental and disabled by default. It operates within a strict sandbox environment to prevent unauthorized system access.
+- **Session Management**: Session tokens are currently managed server-side.

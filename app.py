@@ -131,10 +131,16 @@ try:
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "").strip()
-AI_CHAT_ENABLED = OPENAI_AVAILABLE and bool(OPENAI_API_KEY)
-if OPENAI_AVAILABLE and not OPENAI_API_KEY:
-    logger.info("OPENAI_API_KEY not set; AI chat disabled")
+
+# Flexible LLM Configuration (OpenAI, Qwen, LocalAI, etc.)
+LLM_API_KEY = os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY") or os.environ.get("OPEN_AI_KEY", "").strip()
+LLM_BASE_URL = os.environ.get("LLM_BASE_URL")  # e.g. https://dashscope.aliyuncs.com/compatible-mode/v1
+LLM_MODEL = os.environ.get("LLM_MODEL") or os.environ.get("OPENAI_CHAT_MODEL", "gpt-4o-mini")
+
+AI_CHAT_ENABLED = OPENAI_AVAILABLE and bool(LLM_API_KEY)
+
+if OPENAI_AVAILABLE and not LLM_API_KEY:
+    logger.info("LLM_API_KEY not set; AI chat disabled")
 
 
 # -------------------------------------------------------------------
@@ -300,6 +306,10 @@ def check_data_ready():
             app._data_loading = False
 
 
+def get_ai_client():
+    """Return configured AI client (OpenAI or compatible)."""
+    return openai.OpenAI(api_key=LLM_API_KEY, base_url=LLM_BASE_URL)
+
 # BASE_URL configuration for OAuth callbacks
 BASE_URL = os.environ.get("BASE_URL", "https://skymodderai.onrender.com").rstrip("/")
 
@@ -307,9 +317,10 @@ BASE_URL = os.environ.get("BASE_URL", "https://skymodderai.onrender.com").rstrip
 stripe_price_id = config.STRIPE_PRO_PRICE_ID or ""
 stripe_openclaw_price_id = config.STRIPE_OPENCLAW_PRICE_ID or ""
 stripe_webhook_secret = config.STRIPE_WEBHOOK_SECRET or ""
+# Marketing revamp: Everything is free. Payments enabled for donation.
 PAYMENTS_ENABLED = config.PAYMENTS_ENABLED and STRIPE_AVAILABLE
 
-OPENCLAW_ENABLED = os.environ.get("SKYMODDERAI_OPENCLAW_ENABLED", "").lower() in (
+OPENCLAW_ENABLED = os.environ.get("SKYMODDERAI_OPENCLAW_ENABLED", "0").lower() in (
     "1",
     "true",
     "yes",
@@ -649,6 +660,18 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS conflict_stats (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                game TEXT,
+                mod_a TEXT,
+                mod_b TEXT,
+                conflict_type TEXT,
+                last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                occurrence_count INTEGER DEFAULT 1,
+                UNIQUE(game, mod_a, mod_b, conflict_type)
+            )
+        """)
         db.commit()
 
 
@@ -938,12 +961,14 @@ def set_user_tier(email, tier, customer_id=None, subscription_id=None):
 
 def has_paid_access(tier: str) -> bool:
     """True when tier includes paid features available in Pro."""
-    return tier in PAID_TIERS
+    # Marketing revamp: Everything is free.
+    return True
 
 
 def is_openclaw_tier(tier: str) -> bool:
     """True when tier is OpenClaw Lab."""
-    return tier == "claw"
+    # Marketing revamp: Everything is free.
+    return True
 
 
 def tier_label(tier: str) -> str:
@@ -2048,6 +2073,7 @@ def index():
         user_tier=user_tier,
         payments_enabled=PAYMENTS_ENABLED,
         error_message=error_message,
+        openclaw_enabled=OPENCLAW_ENABLED,
     )
 
 
@@ -2268,7 +2294,7 @@ def verify_email():
     sess_token, max_age = session_create(
         email, remember_me=True, user_agent=request.headers.get("User-Agent")
     )
-    resp = redirect(url_for("verified"))
+    resp = redirect(url_for("index"))
     if sess_token:
         resp.set_cookie(
             SESSION_COOKIE_NAME,
@@ -2760,8 +2786,6 @@ def api_list_preferences():
     tier = get_user_tier(user_email) if user_email else "free"
     if not user_email:
         return api_error("Login required.", 401)
-    if not has_paid_access(tier):
-        return api_error("Paid subscription required for cloud saved lists.", 403)
 
     if request.method == "GET":
         game = (request.args.get("game") or "").strip().lower() or None
@@ -2913,7 +2937,7 @@ def api_build_list():
         if isinstance(specs, dict):
             specs = {k: v for k, v in specs.items() if v}
         tier = get_user_tier(user_email) if user_email else "free"
-        is_pro = has_paid_access(tier)
+        is_pro = True  # All users get full features
 
         try:
             p = get_parser(game)
@@ -2960,7 +2984,7 @@ def api_build_list():
 
 def _ai_generate_setups(game, preferences, nexus_slug, parser, limit=3, specs=None):
     """Pro: Generate multiple mod list setups via AI. Returns list of {name, mods, rationale}."""
-    if not OPENAI_API_KEY:
+    if not LLM_API_KEY:
         return []
     specs = specs or {}
     prefs_str = ", ".join(f"{k}={v}" for k, v in preferences.items() if v and v != "any")
@@ -2970,9 +2994,9 @@ def _ai_generate_setups(game, preferences, nexus_slug, parser, limit=3, specs=No
         spec_str = f" User's system: {', '.join(spec_parts)}. Tailor setups to their rig (e.g. favor performance mods for low VRAM)."
     prompt = f"""Generate {limit} distinct mod list setups for {game} with preferences: {prefs_str or "general"}.{spec_str} Each setup should have a short name, 8-15 mod names (exact plugin names from LOOT), and a one-line rationale. Return JSON array: [{{"name":"...","mods":["Mod1.esp",...],"rationale":"..."}}]. Use only real mod names from the LOOT masterlist."""
     try:
-        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        client = get_ai_client()
         r = client.chat.completions.create(
-            model=os.environ.get("OPENAI_CHAT_MODEL", "gpt-4o-mini"),
+            model=LLM_MODEL,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=800,
             temperature=0.7,
@@ -2994,6 +3018,88 @@ def _ai_generate_setups(game, preferences, nexus_slug, parser, limit=3, specs=No
     except Exception as e:
         logger.debug("AI setups parse error: %s", e)
     return []
+
+
+@app.route("/api/analyze/summary", methods=["POST"])
+@rate_limit(RATE_LIMIT_ANALYZE, "ai_summary")
+def api_analyze_summary():
+    """Generate a high-level strategic summary of the analysis using AI."""
+    if not AI_CHAT_ENABLED:
+        return jsonify({"error": "AI not enabled"}), 503
+
+    data = request.get_json() or {}
+    context = data.get("context") or ""
+
+    if not context:
+        return jsonify({"summary": ""})
+
+    system = (
+        "You are SkyModderAI, an expert modding engineer. Analyze the provided load order report and provide a 'Strategic Plan'. "
+        "1. Executive Summary: State of the build (Stable/Critical/Messy). "
+        "2. Top Priorities: The 3 most important things to fix immediately. "
+        "3. Plan of Attack: A brief, encouraging, professional path forward. "
+        "Be concise, authoritative, and well-spoken."
+    )
+
+    try:
+        client = get_ai_client()
+        r = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": context[:15000]}
+            ],
+            max_tokens=600,
+            temperature=0.3,
+        )
+        summary = (r.choices[0].message.content or "").strip()
+        return jsonify({"summary": summary})
+    except Exception as e:
+        logger.error(f"AI Summary error: {e}")
+        return jsonify({"error": "Could not generate summary."}), 500
+
+
+@app.route("/api/compose-guide", methods=["POST"])
+@rate_limit(RATE_LIMIT_ANALYZE, "compose_guide")
+def api_compose_guide():
+    """Compose a professional PDF-ready guide from the current fix steps."""
+    if not AI_CHAT_ENABLED:
+        return jsonify({"error": "AI not enabled"}), 503
+
+    data = request.get_json() or {}
+    steps = data.get("steps") or []
+    game = data.get("game") or "Unknown Game"
+
+    if not steps:
+        return jsonify({"document": ""})
+
+    # Format steps for AI context
+    steps_text = "\n".join([f"{i+1}. [{s.get('type', 'step').upper()}] {s.get('content') or s.get('message') or ''}" for i, s in enumerate(steps)])
+
+    system = (
+        "You are SkyModderAI. The user has a list of modding issues and steps. "
+        "Compose a beautiful, well-spoken, professional guide based on these steps. "
+        "Use Markdown. "
+        "Structure it as: 'Executive Summary', 'Action Plan' (step-by-step), and 'Final Verification'. "
+        "The tone should be expert, reassuring, and clear. This text will be converted to a PDF."
+    )
+
+    try:
+        client = get_ai_client()
+        r = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": f"Game: {game}\n\nRaw Steps:\n{steps_text}"}
+            ],
+            max_tokens=2500,
+            temperature=0.3,
+        )
+        document = (r.choices[0].message.content or "").strip()
+        return jsonify({"document": document})
+    except Exception as e:
+        logger.error(f"AI Compose error: {e}")
+        return jsonify({"error": "Could not compose guide."}), 500
 
 
 # Community: blocklist for moderation (hate, harassment, spam patterns)
@@ -3052,6 +3158,10 @@ COMMUNITY_TAGS = [
     "starfield",
     "tool",
     "dev",
+    "character",
+    "structure",
+    "spell",
+    "modlist",
 ]
 
 
@@ -3068,7 +3178,7 @@ def api_community_posts_list():
             sort = "new"
         db = get_db()
         sql = """SELECT p.id, p.user_email, p.content, p.tag, p.created_at,
-                 COALESCE((SELECT SUM(v.vote) FROM community_votes v WHERE v.post_id = p.id), 0) AS vote_sum,
+                 COALESCE((SELECT SUM(v.vote) FROM community_votes v WHERE v.post_id = p.id AND v.vote > 0), 0) AS vote_sum,
                  (SELECT COUNT(*) FROM community_replies r WHERE r.post_id = p.id AND r.moderated = 0) AS reply_count
                  FROM community_posts p WHERE p.moderated = 0"""
         params = []
@@ -3212,11 +3322,11 @@ def api_community_reply(post_id):
 @app.route("/api/community/posts/<int:post_id>/vote", methods=["POST"])
 @login_required_api
 def api_community_vote(post_id):
-    """Vote on a post (1, -1, or 0 to remove)."""
+    """Vote on a post (1 or 0 to remove)."""
     data = request.get_json() or {}
     vote = data.get("vote", 0)
-    if vote not in (1, -1, 0):
-        return jsonify({"error": "Invalid vote"}), 400
+    if vote not in (1, 0):
+        return jsonify({"error": "Invalid vote (upvotes only)"}), 400
     try:
         db = get_db()
         exists = db.execute(
@@ -3331,7 +3441,7 @@ def mod_search():
         return jsonify({"matches": [], "web_suggestions": []})
     user_email = session.get("user_email")
     user_tier = get_user_tier(user_email) if user_email else "free"
-    is_pro = has_paid_access(user_tier)
+    is_pro = True
     try:
         p = get_parser(game, version=version)
         engine = get_search_engine(p)
@@ -3778,11 +3888,6 @@ def search_solutions():
     if not q:
         return jsonify({"solutions": [], "error": "q or query required"})
     user_email = session.get("user_email")
-    user_tier = get_user_tier(user_email) if user_email else "free"
-    if not has_paid_access(user_tier):
-        return jsonify(
-            {"solutions": [], "error": "Paid subscription required for web solution search"}
-        ), 403
     try:
         from web_search import search_solutions_web
 
@@ -4089,6 +4194,10 @@ def analyze_mods():
         all_visible = err_list + warn_list + info_list
         things_to_verify = _extract_things_to_verify(all_visible)
         game_name = GAME_DISPLAY_NAMES.get(game, game)
+
+        # Refinement Cycle: Log conflicts to learn from them
+        _log_conflict_stats(game, all_visible)
+
         masterlist_ver = getattr(active_parser, "version", "latest")
 
         specs = data.get("specs") or get_user_specs(user_email) or {}
@@ -4439,28 +4548,119 @@ _PROBLEM_KEYWORDS = frozenset(
 )
 
 
+def _log_conflict_stats(game, conflicts):
+    """Log conflict occurrences to build a predictive database (The 'Bins')."""
+    if not conflicts:
+        return
+    try:
+        db = get_db()
+        for c in conflicts:
+            # Handle both dict (from API) and object (from detector)
+            if isinstance(c, dict):
+                mod_a = c.get('affected_mod')
+                mod_b = c.get('related_mod')
+                c_type = c.get('type')
+            else:
+                mod_a = getattr(c, 'affected_mod', None)
+                mod_b = getattr(c, 'related_mod', None)
+                c_type = getattr(c, 'type', None)
+
+            if not mod_a: continue
+            mod_b = mod_b or ''
+            c_type = c_type or 'unknown'
+
+            db.execute("""
+                INSERT INTO conflict_stats (game, mod_a, mod_b, conflict_type, last_seen, occurrence_count)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
+                ON CONFLICT(game, mod_a, mod_b, conflict_type)
+                DO UPDATE SET occurrence_count = occurrence_count + 1, last_seen = CURRENT_TIMESTAMP
+            """, (game, mod_a, mod_b, c_type))
+        db.commit()
+    except Exception as e:
+        logger.debug(f"Failed to log conflict stats: {e}")
+
+
+def _get_deep_mod_context(game, message, user_mod_list):
+    """Retrieve deep LOOT metadata for mods mentioned in chat (The 'Deep Dive')."""
+    if not message: return ""
+    p = get_parser(game)
+    mentioned = set()
+    msg_lower = message.lower()
+
+    # Check user's active list
+    for m in user_mod_list:
+        if m.lower() in msg_lower:
+            mentioned.add(m)
+
+    info = []
+    for m in mentioned:
+        meta = p.get_mod_info(m)
+        if meta:
+            tags = ", ".join(meta.tags) if meta.tags else "None"
+            msgs = " ".join([msg.get('content', '') for msg in meta.messages])
+            # Provide raw technical data that generic LLMs usually lack
+            info.append(f"Deep Data for {m}:\n- Tags: {tags}\n- LOOT Messages: {msgs or 'None'}\n- CRC: {meta.crc or 'N/A'}")
+
+    return "\n\n".join(info)
+
+
+def _get_community_intelligence(game, user_mod_list):
+    """Query the 'Intimate Database' for community conflict stats involving these mods."""
+    if not user_mod_list:
+        return ""
+    try:
+        db = get_db()
+        # Sanitize and limit mod list for SQL query
+        safe_mods = list(set(user_mod_list))[:100]
+        if not safe_mods: return ""
+
+        placeholders = ','.join(['?'] * len(safe_mods))
+        sql = f"""
+            SELECT mod_a, mod_b, conflict_type, occurrence_count
+            FROM conflict_stats
+            WHERE game = ?
+            AND (mod_a IN ({placeholders}) OR mod_b IN ({placeholders}))
+            AND occurrence_count > 1
+            ORDER BY occurrence_count DESC
+            LIMIT 5
+        """
+        params = [game] + safe_mods + safe_mods
+        rows = db.execute(sql, params).fetchall()
+
+        if not rows: return ""
+
+        info = []
+        for r in rows:
+            mod_b_str = f" + {r['mod_b']}" if r['mod_b'] else ""
+            info.append(f"- {r['mod_a']}{mod_b_str} -> {r['conflict_type']} (Frequency: {r['occurrence_count']})")
+
+        return "Community Patterns (The Bins):\n" + "\n".join(info)
+    except Exception as e:
+        logger.debug(f"Community intelligence lookup failed: {e}")
+        return ""
+
+
 @app.route("/api/chat", methods=["POST"])
 @rate_limit(RATE_LIMIT_ANALYZE, "chat")
 def chat():
-    """Pro: chat about your load order / conflicts. Key from OPENAI_API_KEY env only."""
+    """Pro: chat about your load order / conflicts. Key from LLM_API_KEY env only."""
     if not AI_CHAT_ENABLED:
         return jsonify(
-            {"error": "AI chat is not configured. Set OPENAI_API_KEY in your environment."}
+            {"error": "AI chat is not configured. Set LLM_API_KEY in your environment."}
         ), 503
     user_email = session.get("user_email")
     tier = get_user_tier(user_email) if user_email else "free"
-    if not has_paid_access(tier):
-        return jsonify({"error": "AI chat is included with paid tiers (Pro/OpenClaw)."}), 403
     data = request.get_json() or {}
     message = (data.get("message") or "").strip()
     if not message:
         return jsonify({"error": "Message is required."}), 400
     context = (data.get("context") or "").strip()
+    page_context = (data.get("page_context") or "").strip()
     game = (data.get("game") or DEFAULT_GAME).lower()
     # Fetch scattered web solutions when user asks about a problem
     web_solutions = []
     msg_lower = message.lower()
-    if any(kw in msg_lower for kw in _PROBLEM_KEYWORDS) and has_paid_access(tier):
+    if any(kw in msg_lower for kw in _PROBLEM_KEYWORDS):
         try:
             from web_search import search_solutions_web
 
@@ -4471,6 +4671,23 @@ def chat():
             )
         except Exception as e:
             logger.debug("Web solutions fetch failed: %s", e)
+
+    # Build profile context
+    profile_summary = ""
+    if user_email:
+        specs = get_user_specs(user_email)
+        saved_lists = list_user_saved_lists(user_email)
+        profile_summary = f"\nUser Profile:\n- Email: {user_email}\n"
+        if specs:
+            profile_summary += f"- Specs: {json.dumps(specs)}\n"
+        if saved_lists:
+            profile_summary += f"- Saved Lists: {len(saved_lists)} lists ({', '.join(l['name'] for l in saved_lists[:3])}...)\n"
+
+    # Deep Dive: Inject intimate database knowledge for mentioned mods
+    mod_list = data.get("mod_list") or []
+    deep_context = _get_deep_mod_context(game, message, mod_list)
+    community_context = _get_community_intelligence(game, mod_list)
+
     system = (
         "You are the SkyModderAI assistant. Your task: help the user fix their load order and feel confident doing it. "
         "Ease them into the process—acknowledge what they're dealing with, then guide step by step. "
@@ -4483,7 +4700,10 @@ def chat():
         "Suggest Nexus, xEdit, or LOOT when relevant. Don't make up mod names or links. "
         "When community solutions are provided, you may cite them to help the user find scattered fixes. "
         "When Top mod picks are provided (Utility, Design, Fun, Environmental), you may suggest them "
-        "when the user asks for recommendations—e.g. 'For design, try X' or 'A great utility pick is Y'."
+        "when the user asks for recommendations—e.g. 'For design, try X' or 'A great utility pick is Y'. "
+        "You have access to the user's profile, page content, and deep LOOT metadata. "
+        "Tailor your advice specifically to their mod list and specs. Be predictive: anticipate issues based on the community patterns."
+        f"{profile_summary}"
     )
     parts = []
     if context:
@@ -4491,6 +4711,13 @@ def chat():
 
         pruned, _ = prune_input_context(context, user_message=message, max_chars=10000)
         parts.append(f"Context from the user's last SkyModderAI analysis:\n\n{pruned}")
+    if page_context:
+        parts.append(f"Current Page Content (what the user is looking at):\n\n{page_context[:5000]}")
+    if deep_context:
+        parts.append(f"Deep LOOT Metadata (Intimate Database):\n{deep_context}")
+    if community_context:
+        parts.append(community_context)
+
     if web_solutions:
         sol_block = "Community solutions (from Reddit/Nexus):\n" + "\n".join(
             f"- [{s.get('title', '')}]({s.get('url', '')}): {(s.get('snippet') or '')[:150]}..."
@@ -4500,7 +4727,6 @@ def chat():
     # Pre-fetch recommendations + top picks for AI context and response
     rec_payload = {"recommendations": [], "top_picks": {}}
     try:
-        mod_list = data.get("mod_list") or []
         if not mod_list and context:
             import re
 
@@ -4525,9 +4751,9 @@ def chat():
     parts.append(f"User question: {message}")
     user_content = "\n\n".join(parts)
     try:
-        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        client = get_ai_client()
         r = client.chat.completions.create(
-            model=os.environ.get("OPENAI_CHAT_MODEL", "gpt-4o-mini"),
+            model=LLM_MODEL,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": user_content},
@@ -4571,10 +4797,6 @@ def scan_game_folder():
         return jsonify({"error": "AI is not configured. Set OPENAI_API_KEY."}), 503
     user_email = session.get("user_email")
     tier = get_user_tier(user_email) if user_email else "free"
-    if not has_paid_access(tier):
-        return jsonify(
-            {"error": "Game folder scan is included with paid tiers (Pro/OpenClaw)."}
-        ), 403
     data = request.get_json() or {}
     game = (data.get("game") or DEFAULT_GAME).lower()
     tree = (data.get("tree") or "").strip()
@@ -4612,9 +4834,9 @@ Key config files:
         "Don't make up mod names. Suggest xEdit, LOOT, or Nexus when relevant."
     )
     try:
-        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        client = get_ai_client()
         r = client.chat.completions.create(
-            model=os.environ.get("OPENAI_CHAT_MODEL", "gpt-4o-mini"),
+            model=LLM_MODEL,
             messages=[{"role": "system", "content": system}, {"role": "user", "content": context}],
             max_tokens=1024,
             temperature=0.2,
@@ -4675,6 +4897,9 @@ def _fetch_github_repo(owner, repo, max_files=25, max_bytes=400000):
     plugin_paths = []
     total_bytes = 0
 
+    session = requests.Session()
+    session.headers.update(headers)
+
     def is_relevant(name):
         n = name.lower()
         if any(n.endswith(e) for e in _DEV_RELEVANT_EXT):
@@ -4692,7 +4917,7 @@ def _fetch_github_repo(owner, repo, max_files=25, max_bytes=400000):
             return
         url = f"{base}/contents/{path}" if path else f"{base}/contents/"
         try:
-            r = requests.get(url, headers=headers, timeout=10)
+            r = session.get(url, timeout=10)
             r.raise_for_status()
             items = r.json()
             if not isinstance(items, list):
@@ -4711,7 +4936,7 @@ def _fetch_github_repo(owner, repo, max_files=25, max_bytes=400000):
                         dl = item.get("download_url")
                         if dl:
                             try:
-                                rr = requests.get(dl, timeout=8)
+                                rr = session.get(dl, timeout=8)
                                 if rr.ok:
                                     content = rr.text[:15000]
                                     files[full_path] = content
@@ -4721,7 +4946,11 @@ def _fetch_github_repo(owner, repo, max_files=25, max_bytes=400000):
         except requests.RequestException:
             pass
 
-    fetch_dir("")
+    try:
+        fetch_dir("")
+    finally:
+        session.close()
+
     if plugin_paths:
         files["_plugins_list"] = "Plugin files (binary): " + ", ".join(plugin_paths[:30])
     return files
@@ -4735,8 +4964,6 @@ def api_dev_analyze():
         return jsonify({"error": "AI is not configured. Set OPENAI_API_KEY."}), 503
     user_email = session.get("user_email")
     tier = get_user_tier(user_email) if user_email else "free"
-    if not has_paid_access(tier):
-        return jsonify({"error": "Dev Tools are included with paid tiers (Pro/OpenClaw)."}), 403
 
     data = request.get_json() or {}
     repo_url = (data.get("repo_url") or data.get("repoUrl") or "").strip()
@@ -4776,13 +5003,14 @@ def api_dev_analyze():
         "You are the SkyModderAI dev assistant. The user has shared their mod project (Papyrus scripts, plugins, configs). "
         "Give an intimate dev report: Will it likely run? What could break? What to fix first? "
         "Cover: missing dependencies (SKSE, F4SE, etc.), common Papyrus pitfalls, plugin structure, version compatibility, "
-        "INI/config issues, missing properties, race conditions. Be specific and actionable. Use bullet points. "
+        "INI/config issues, missing properties, race conditions. Be specific and actionable. "
+        "Use Markdown headers (##, ###) for sections and bullet points for lists. "
         "If the project looks solid, say so and note any minor improvements. Don't make up errors."
     )
     try:
-        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        client = get_ai_client()
         r = client.chat.completions.create(
-            model=os.environ.get("OPENAI_CHAT_MODEL", "gpt-4o-mini"),
+            model=LLM_MODEL,
             messages=[{"role": "system", "content": system}, {"role": "user", "content": context}],
             max_tokens=1500,
             temperature=0.2,
@@ -4813,8 +5041,6 @@ def api_dev_loop_suggest():
     """
     user_email = session.get("user_email")
     tier = get_user_tier(user_email) if user_email else "free"
-    if not has_paid_access(tier):
-        return api_error("Dev companion loop is available on paid tiers.", 403)
 
     data = request.get_json() or {}
     game = (data.get("game") or DEFAULT_GAME).lower()
@@ -5190,8 +5416,6 @@ def openclaw_request_access():
     """Collect explicit acknowledgements before enabling OpenClaw workflows."""
     user_email = session.get("user_email")
     tier = get_user_tier(user_email) if user_email else "free"
-    if not is_openclaw_tier(tier):
-        return api_error("OpenClaw access requires the OpenClaw Lab tier.", 403)
     if not OPENCLAW_ENABLED:
         return api_error("OpenClaw is currently disabled on this deployment.", 403)
 
@@ -5402,8 +5626,6 @@ def _openclaw_require_lab_access(data):
     """Shared OpenClaw authz gate (tier + feature flag + grant token)."""
     user_email = session.get("user_email")
     tier = get_user_tier(user_email) if user_email else "free"
-    if not is_openclaw_tier(tier):
-        return None, None, api_error("OpenClaw Lab tier required.", 403)
     if not OPENCLAW_ENABLED:
         return None, None, api_error("OpenClaw is currently disabled on this deployment.", 403)
     token = (data or {}).get("grant_token") or ""
@@ -5482,8 +5704,6 @@ def openclaw_guard_check():
     """Dry-run policy checker for OpenClaw operations (no side effects)."""
     user_email = session.get("user_email")
     tier = get_user_tier(user_email) if user_email else "free"
-    if not is_openclaw_tier(tier):
-        return api_error("OpenClaw guard checks require OpenClaw Lab tier.", 403)
     if not OPENCLAW_ENABLED:
         return api_error("OpenClaw is currently disabled on this deployment.", 403)
     data = request.get_json() or {}
@@ -6336,9 +6556,9 @@ def ai_feed():
             "tagline": "Paste your load order. Get answers.",
             "site_url": request.host_url.rstrip("/"),
             "pricing": {
-                "free": {"monthly_usd": 0, "core_analysis": True},
-                "pro": {"monthly_usd": 5, "ai_chat": True, "dev_tools": True},
-                "openclaw_lab": {"monthly_usd": 25, "experimental": True, "sandbox_required": True},
+                "free": {"monthly_usd": 0, "core_analysis": True, "ai_chat": True, "dev_tools": True},
+                "pro": {"monthly_usd": 0, "ai_chat": True, "dev_tools": True},
+                "openclaw_lab": {"monthly_usd": 0, "experimental": True, "sandbox_required": True},
             },
             "api_hub": request.host_url.rstrip("/") + "/api",
             "information_map": request.host_url.rstrip("/") + "/api/information-map",

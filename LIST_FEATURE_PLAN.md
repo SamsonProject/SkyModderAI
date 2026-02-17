@@ -1,96 +1,46 @@
-# List Builder Feature — Roadmap
+# Bespoke List Builder Architecture
 
-SkyModderAI's list builder lets users define preferences and get AI-generated mod lists, with deep Nexus/MO2/Vortex integration.
-
----
-
-## Phase 1: Foundation (Current)
-
-### Standard preferences (all users)
-- **Environment**: Dark fantasy, vanilla+, high fantasy, survival, horror, sci-fi
-- **Hair/character**: KS Hairdos, Apachii, vanilla only, HDT-SMP, etc.
-- **Body**: CBBE, UNP, vanilla
-- **Combat**: Vanilla, Souls-like, action, immersive
-- **Graphics**: Performance, balanced, ultra, ENB preference
-- **Content**: Quest-heavy, new lands, vanilla+, minimal
-- **Stability**: Maximum stability, experimental OK
-
-### UI
-- New "Build a List" tab
-- Preference toggles/selects
-- Generate button → standard list (LOOT-based recommendations)
-
-### Backend
-- `list_preferences` schema
-- `GET/POST /api/list-preferences` — save/load (Pro: cloud, Free: localStorage)
-- `POST /api/build-list` — generate list from preferences + game
+SkyModderAI's list builder is not a random generator. It is a bespoke architect for your game. By combining user preferences with our intimate database of compatibility, we generate stable, tailored foundations for any playthrough.
 
 ---
 
-## Phase 2: AI List Builder (Pro)
+## Core Philosophy
 
-### Chat composition
-- Chat with AI: "I want dark fantasy, KS Hairdos, CBBE, performance focus"
-- AI composes list iteratively
-- Pretty report: HTML/PDF with mod cards, screenshots, install order
+1.  **Bespoke Generation**: Every list is unique to the user's specs and stylistic desires.
+2.  **Stability First**: We don't just pick popular mods; we pick mods that work *together*.
+3.  **Seamless Handoff**: The list isn't just text; it's a launchpad into the Analysis and Floating Portal workflows.
 
-### Pro: Multiple setups
-- AI generates N combinations (e.g. 3–5) based on preferences
-- "Setup A: Dark fantasy + performance" vs "Setup B: Dark fantasy + ultra"
-- Each setup = full mod list with rationale
+## The Engine
 
-### Cost controls
-- Per-user AI token budget (e.g. 50k tokens/month Pro)
-- List generation capped (e.g. max 5 setups per request)
-- User approval required for expensive operations (e.g. image generation)
+### 1. Preference Matrix
+We categorize mods not just by type, but by "vibe" and "weight":
+- **Environment**: Dark Fantasy, High Fantasy, Vanilla+, Horror.
+- **Gameplay**: Souls-like, SimonRim, EnaiRim, Requiem-based.
+- **Visuals**: Performance (low VRAM), Balanced, Screenarchery (4090+).
 
----
+### 2. AI Architect
+The AI doesn't just list mods; it composes a *setup*.
+- **Base Layer**: Essential fixes and tools (SKSE, Address Library, USSEP).
+- **Core Layer**: The big overhauls defined by the user's gameplay choice.
+- **Visual Layer**: Textures and lighting that match the user's VRAM constraints.
+- **Conflict Resolution**: The builder pre-emptively avoids known incompatible pairs from the `conflict_stats` bin.
 
-## Phase 3: Screenshots & Nexus Integration
-
-### Nexus API
-- GraphQL/REST: mod metadata, images, endorsements
-- Mod cards show real screenshots from Nexus
-- Fallback: mod-placeholder.svg when no image
-
-### One-click install
-- **Vortex**: `nxm://` or `vortex://` links — opens Vortex, starts download
-- **MO2**: NXM links work if MO2 is default handler
-- **Nexus**: Direct "Download with manager" links (requires Nexus login)
-
-### Wabbajack-style
-- Export list as `.txt` (plugins.txt format) — user imports to MO2/Vortex
-- Future: Generate Wabbajack-compatible manifest (complex — requires mod hashes, file IDs)
-
----
-
-## Phase 4: Future / Experimental
-
-### Rendered projections
-- **Idea**: AI generates text description → image model renders "what your game could look like"
-- **Cost**: High (DALL-E, Midjourney API, etc.)
-- **Controls**: Pro-only, opt-in, strict cap (e.g. 3 images/month), user confirms before each
-
-### Intimate mod manager linking
-- Detect MO2/Vortex install (browser can't; would need desktop companion)
-- Alternative: Browser extension that talks to local MO2/Vortex
-- Or: Export list → user pastes/imports manually (current approach)
-
----
+### 3. Integration
+- **Auto-Analyze**: Generated lists are immediately fed into the Analyzer to verify integrity.
+- **Smart Linking**: Every mod in the generated list is hyperlinked to our Floating Portal system for instant Nexus browsing.
 
 ## Data Model
 
-### List preferences (stored per user or localStorage)
+### User Preferences
 ```json
 {
   "game": "skyrimse",
-  "environment": "dark_fantasy",
-  "hair": "ks_hairdos",
-  "body": "cbbe",
-  "combat": "souls_like",
-  "graphics": "balanced",
-  "content": "quest_heavy",
-  "stability": "max"
+  "style": "dark_fantasy",
+  "combat": "modern_action",
+  "specs": {
+    "gpu": "RTX 3080",
+    "vram": "10GB"
+  }
 }
 ```
 

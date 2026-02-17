@@ -2,6 +2,22 @@
     var checkoutBtn = document.getElementById('go-to-checkout-btn');
     if (!checkoutBtn) return;
 
+    function showMessage(message, type) {
+        type = type || 'info';
+        if (window.showToast) {
+            window.showToast(message, type);
+            return;
+        }
+        // Fallback toast
+        var toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(function () { toast.classList.add('visible'); }, 10);
+        setTimeout(function () { toast.classList.remove('visible'); }, 4000);
+        setTimeout(function () { toast.remove(); }, 4300);
+    }
+
     async function beginCheckout(plan) {
         var body = { plan: plan || 'pro' };
         var res = await fetch('/api/create-checkout', {
@@ -14,7 +30,7 @@
             window.location.href = data.checkout_url;
             return true;
         }
-        alert(data.error || 'Something went wrong.');
+        showMessage(data.error || 'Something went wrong.', 'error');
         return false;
     }
 
@@ -24,7 +40,7 @@
         try {
             await beginCheckout('pro');
         } catch (err) {
-            alert('Network error. Try again.');
+            showMessage('Network error. Try again.', 'error');
         } finally {
             checkoutBtn.disabled = false;
             checkoutBtn.textContent = 'Go to Pro checkout — $5/month';
@@ -49,7 +65,7 @@
 
     openclawBtn.addEventListener('click', async function () {
         if (!ackRepo?.checked || !ackBackup?.checked || !ackRisk?.checked) {
-            alert('You must confirm all OpenClaw safety acknowledgements first.');
+            showMessage('You must confirm all OpenClaw safety acknowledgements first.', 'warning');
             return;
         }
         openclawBtn.disabled = true;
@@ -68,15 +84,15 @@
             });
             var ackData = await ackRes.json().catch(function () { return {}; });
             if (!ackRes.ok) {
-                alert(ackData.error || 'OpenClaw acknowledgements were not accepted.');
+                showMessage(ackData.error || 'OpenClaw acknowledgements were not accepted.', 'error');
                 return;
             }
             if (ackData.grant_token) {
-                try { localStorage.setItem('openclaw_grant_token', ackData.grant_token); } catch (_) {}
+                try { localStorage.setItem('openclaw_grant_token', ackData.grant_token); } catch (_) { }
             }
             await beginCheckout('openclaw');
         } catch (err) {
-            alert('Network error. Try again.');
+            showMessage('Network error. Try again.', 'error');
         } finally {
             openclawBtn.textContent = 'Go to OpenClaw Lab checkout';
             updateOpenclawButtonState();

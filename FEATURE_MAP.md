@@ -1,6 +1,6 @@
 # SkyModderAI Feature Map
 
-This document maps the key user flows, features, and technical components of SkyModderAI to help developers, assistants, and contributors understand the application structure and capabilities.
+This document outlines the architecture of the SkyModderAI powerhouse. It maps the sophisticated user flows, the predictive intelligence engines, and the technical components that drive our bespoke analysis.
 
 ## Core User Flows
 
@@ -13,7 +13,7 @@ This document maps the key user flows, features, and technical components of Sky
 2. Selects game, game version, and masterlist version
 3. Clicks "Analyze" button
 4. System processes list through LOOT data and ConflictDetector
-5. Results display with errors, warnings, and suggestions
+5. Results display with predictive errors, warnings, and deep-dive suggestions
 6. User can view suggested load order and fix guides
 7. Results include "What to do next" actions
 
@@ -62,7 +62,7 @@ This document maps the key user flows, features, and technical components of Sky
 5. One-click re-analysis of saved lists
 
 **Enhanced Features**:
-- Analysis snapshots preserved as research artifacts
+- Analysis snapshots preserved as research artifacts (The "Bins")
 - Health indicators for quick assessment
 - Rich metadata filtering and search
 - Cross-tab synchronization via userContext
@@ -74,7 +74,7 @@ This document maps the key user flows, features, and technical components of Sky
 **Flow Steps**:
 1. User selects preference options (gameplay style, mods types)
 2. System generates base mod list
-3. Pro users get AI-generated setup variations
+3. AI generates bespoke setup variations tailored to user specs
 4. List can be analyzed and saved to Library
 
 ### 5. Community Engagement Workflow
@@ -187,7 +187,7 @@ CREATE TABLE user_saved_lists (
 **State Management**: userContext.activeTab
 
 ### Search System
-**Components**: 
+**Components**:
 - Search input with debouncing
 - Results dropdown with action buttons
 - Recent searches persistence
@@ -198,6 +198,10 @@ CREATE TABLE user_saved_lists (
 - Web suggestions (Pro fallback)
 
 ### Library System
+**The "Bins"**:
+- Organized storage for user configurations
+- Data refinement cycle for learning new conflicts
+
 **Components**:
 - Filter controls (game, version, masterlist)
 - Card grid with health indicators
@@ -227,6 +231,7 @@ CREATE TABLE user_saved_lists (
 1. **`/api/info` Endpoint**: Complete API documentation
 2. **Structured Comments**: Code organized with clear sections
 3. **HAL+JSON Links**: Discoverable related resources
+4. **Agent Window**: Context-aware AI companion reading the page
 4. **Feature Map**: This documentation file
 
 ### Cross-Tab Features

@@ -1,6 +1,18 @@
 (function () {
-    function showMessage(message) {
-        alert(message);
+    function showMessage(message, type) {
+        type = type || 'info';
+        if (window.showToast) {
+            window.showToast(message, type);
+            return;
+        }
+        // Fallback toast if app.js isn't loaded
+        var toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(function () { toast.classList.add('visible'); }, 10);
+        setTimeout(function () { toast.classList.remove('visible'); }, 4000);
+        setTimeout(function () { toast.remove(); }, 4300);
     }
 
     async function revokeSession(btn) {
@@ -18,11 +30,11 @@
             if (res.ok && data.success) {
                 li.remove();
             } else {
-                showMessage(data.error || 'Failed to revoke session.');
+                showMessage(data.error || 'Failed to revoke session.', 'error');
                 btn.disabled = false;
             }
         } catch (err) {
-            showMessage('Network error.');
+            showMessage('Network error.', 'error');
             btn.disabled = false;
         }
     }
@@ -42,11 +54,11 @@
                 });
                 btn.remove();
             } else {
-                showMessage(data.error || 'Failed to revoke other sessions.');
+                showMessage(data.error || 'Failed to revoke other sessions.', 'error');
                 btn.disabled = false;
             }
         } catch (err) {
-            showMessage('Network error.');
+            showMessage('Network error.', 'error');
             btn.disabled = false;
         }
     }
@@ -61,11 +73,11 @@
                 var li = btn.closest('.profile-api-item');
                 if (li) li.remove();
             } else {
-                showMessage(data.error || 'Failed to revoke key.');
+                showMessage(data.error || 'Failed to revoke key.', 'error');
                 btn.disabled = false;
             }
         } catch (err) {
-            showMessage('Network error.');
+            showMessage('Network error.', 'error');
             btn.disabled = false;
         }
     }
@@ -94,7 +106,7 @@
             });
             var data = await res.json().catch(function () { return {}; });
             if (!res.ok || !data.key) {
-                showMessage(data.error || 'Failed to create API key.');
+                showMessage(data.error || 'Failed to create API key.', 'error');
                 return;
             }
 
@@ -118,7 +130,7 @@
                 attachRevokeButtons(li);
             }
         } catch (err) {
-            showMessage('Network error.');
+            showMessage('Network error.', 'error');
         } finally {
             btn.disabled = false;
         }
@@ -182,13 +194,13 @@
                 });
                 var data = await res.json().catch(function () { return {}; });
                 if (!res.ok) {
-                    showMessage(data.error || 'Failed to save linked accounts.');
+                    showMessage(data.error || 'Failed to save linked accounts.', 'error');
                     if (saveLinksStatus) saveLinksStatus.textContent = '';
                     return;
                 }
                 if (saveLinksStatus) saveLinksStatus.textContent = 'Saved.';
             } catch (err) {
-                showMessage('Network error.');
+                showMessage('Network error.', 'error');
                 if (saveLinksStatus) saveLinksStatus.textContent = '';
             } finally {
                 saveLinksBtn.disabled = false;

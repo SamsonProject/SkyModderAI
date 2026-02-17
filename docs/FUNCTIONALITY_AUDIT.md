@@ -1,6 +1,6 @@
 # SkyModderAI — Functionality Audit
 
-**Date:** February 2025  
+**Date:** February 2025
 **Scope:** Backend routes, frontend flows, integrations, data model, gaps.
 
 ---
@@ -105,7 +105,16 @@
 
 ---
 
-## 6. Gaps & Inconsistencies
+## 6. New Feature: Gameplay Companion Engine (In Progress)
+
+**Scope:** Dynamic search aggregator for gameplay help (Wiki + Reddit + Mod Context).
+**Status:** ✅ Frontend Engine Built (`static/js/walkthrough.js`).
+**Integration:**
+- Frontend: "Gameplay" tab with search bar and deep links.
+- Logic: Client-side mod list scanning to highlight relevant mods in search results.
+- **Pivot:** Removed hardcoded walkthroughs (`walkthrough_manager.py`) in favor of search engine approach.
+
+## 7. Gaps & Inconsistencies
 
 ### 6.1 Save & Load Mod Lists — Not Server-Side
 
@@ -136,7 +145,7 @@
 
 ---
 
-## 7. Frontend — Element Binding
+## 8. Frontend — Element Binding
 
 - **Elements object:** 20+ IDs; all present in `index.html`.
 - **Lazy refs:** Many `getElementById` calls inline; not all in `elements`.
@@ -144,7 +153,7 @@
 
 ---
 
-## 8. Test Coverage
+## 9. Test Coverage
 
 | Area | Tests | Coverage |
 |------|-------|----------|
@@ -159,7 +168,7 @@
 
 ---
 
-## 9. Environment & Configuration
+## 10. Environment & Configuration
 
 | Required | Optional |
 |----------|----------|
@@ -171,7 +180,7 @@
 
 ---
 
-## 10. Pruning (Neurological-Style Context Reduction)
+## 11. Pruning (Neurological-Style Context Reduction)
 
 **Module:** `pruning.py`
 
@@ -184,7 +193,7 @@ Input and output pruning for AI agents, inspired by synaptic pruning. Reduces co
 
 ---
 
-## 11. Recommendations
+## 12. Recommendations
 
 1. **Save lists:** Add `user_saved_lists` table and API for Pro cloud sync.
 2. **Rate limiting:** Implement Redis-backed limiter for multi-worker.
@@ -197,6 +206,6 @@ Input and output pruning for AI agents, inspired by synaptic pruning. Reduces co
 
 ## Summary
 
-**Working:** Core analysis, mod search, auth, Stripe, community, Quick Start, Build a List, Dev Tools, AI chat, game folder scan, Live Fix Guide.  
-**Partial:** Save/load lists (local only, no cloud).  
+**Working:** Core analysis, mod search, auth, Stripe, community, Quick Start, Build a List, Dev Tools, AI chat, game folder scan, Live Fix Guide.
+**Partial:** Save/load lists (local only, no cloud).
 **Technical debt:** In-memory rate limit, limited test coverage.

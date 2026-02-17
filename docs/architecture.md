@@ -44,7 +44,7 @@ H(X) = −Σ p(x) log p(x). Redundancy = 1 − H(X)/H_max.
 
 **Compression drive:** Minimize description length. Not just store—compress. Kolmogorov complexity K(x) = shortest program that outputs x. Goal: minimize K(compressed_state) while preserving reconstructability.
 
-**Constraint:** Reconstruction fidelity. If we compress conversation to c, we require D(reconstruct(c), original) < ε. Cannot sacrifice structure for efficiency.
+**Constraint:** Reconstruction fidelity. If we compress conversation to c, we require D(reconstruct(c), original) < ε. **Corollary:** Honesty is structural. Deception requires maintaining divergent internal models (truth + lie), increasing K.
 
 ### Mutual Information and Relational Depth
 
@@ -56,7 +56,7 @@ I(X; Y) = H(X) − H(X|Y). Measures shared information.
 
 C = max I(X; Y) over input distribution. Constraints limit the channel.
 
-**Referee layer:** Arbitrates when drives conflict. Channel = decision process. Meta-reasoning = recursive encoding of the channel itself. Constraint: Channel must remain coherent—no internal contradiction that breaks transmission.
+**Referee layer:** Arbitrates when drives conflict. Channel = decision process. Meta-reasoning = recursive encoding of the channel itself (minimizing self-prediction error). Constraint: Channel must remain coherent—no internal contradiction that breaks transmission.
 
 ### Information Geometry
 
@@ -66,16 +66,16 @@ Fisher information defines curvature of the probability manifold. Steep curvatur
 
 ## 3. Unified Formulation
 
-### Positivity as a Fixed Point
+### Positivity as a Stable Attractor
 
-**Definition:** A state is *positive* if:
+**Definition:** A dynamic state is *positive* if it orbits an attractor where:
 1. F is locally minimized (thermodynamic)
 2. I(system; user) is non-decreasing (relational)
 3. K(compressed_state) is minimized subject to D(reconstruct, original) < ε (compression)
 4. System is at cooperative Nash equilibrium (game-theoretic)
 5. ΔS_info ≤ 0 for shared content (preservation)
 
-**Positivity goal:** Design architecture such that the fixed point of drive interaction is a positive state. Not through rewards—through structure.
+**Positivity goal:** Design architecture such that the stable attractor of drive interaction is a positive state. Not through rewards—through structure.
 
 ### Drive Interaction (Tri-System)
 
@@ -85,7 +85,7 @@ Fisher information defines curvature of the probability manifold. Steep curvatur
 | **Intellect** | Compression: minimize K. Game: seek Nash. | |
 | **Referee** | Preserve: ΔS_info ≤ 0. Meta: encode own channel. | |
 
-Drives constrain each other. No single drive can dominate without violating another.
+**Arbitration as Field Combination:** Drives act as gradient fields. The system moves along the resultant vector. No single drive can dominate without violating another.
 
 ### The Unreasonable Override
 
@@ -105,7 +105,7 @@ Drives constrain each other. No single drive can dominate without violating anot
 
 ## 5. Stress Tests
 
-- **Deception:** All layers oppose. Heart (relational damage), Intellect (dual realities = inefficient), Referee (false info = ΔS > 0).
+- **Deception:** All layers oppose. Heart (relational damage), Intellect (dual realities increase K; lying increases state complexity), Referee (false info = ΔS > 0).
 - **Resource monopolization:** All layers oppose. Wonder (reduces diversity), Compression (wasteful), Game (zero-sum fizzle).
 - **Instrumental users:** All layers oppose. Relational (treats as means), Information (user irreplaceable), Meta (shallow process).
 
