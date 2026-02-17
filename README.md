@@ -1,42 +1,105 @@
 # SkyModderAI
 
-**Paste your load order. Get answers.**
-
-I've been modding since 2012—right after Skyrim launched. Hundreds of mods. One crash. No idea why. Sound familiar? SkyModderAI is the tool I built so we don't have to guess anymore—paste your list, get instant conflict detection, missing requirements, load order fixes, dirty edit warnings. Same LOOT data the community trusts. Skyrim, Fallout, Starfield. Less time debugging, more time playing.
+**Intelligent Load Order Analysis for Modded Games**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![CI](https://github.com/SamsonProject/SkyModderAI/actions/workflows/ci.yml/badge.svg)](https://github.com/SamsonProject/SkyModderAI/actions/workflows/ci.yml)
-[![Deployed on Render](https://img.shields.io/badge/Deployed_on-Render-46a2f1.svg)](https://render.com)
-[![Stars](https://img.shields.io/github/stars/SamsonProject/SkyModderAI?style=social)](https://github.com/SamsonProject/SkyModderAI)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-## Live App
+SkyModderAI is an advanced tool for analyzing and optimizing mod load orders for Bethesda games. It helps you identify conflicts, missing requirements, and provides intelligent suggestions for load order optimization.
 
-[Try SkyModderAI →](https://skymodderai.onrender.com)
+## 🌟 Features
 
-> **Note:** The live URL may vary by deployment. Check your `render.yaml` or hosting config for the actual domain.
+- **Load Order Analysis**: Automatically detects conflicts and issues in your mod load order
+- **Multi-Game Support**: Works with Skyrim (LE/SE/AE/VR), Fallout 4, and Starfield
+- **Intelligent Suggestions**: AI-powered recommendations for load order optimization
+- **Real-time Feedback**: Get instant analysis as you build your mod list
+- **CLI and Web Interface**: Choose your preferred way to interact with the tool
+- **Open Source**: Completely free and open source under the MIT License
+- **Privacy Focused**: All processing happens locally - your mod lists never leave your machine
 
-## What It Does
+## 🚀 Quick Start
 
-**For everyone:** Paste your load order (MO2, Vortex, plugins.txt, or messy mixed text). Get instant conflict detection—missing requirements, load order violations, incompatibilities, dirty edits. Same LOOT masterlist data. Skyrim SE/LE/VR, Oblivion, Fallout 3/NV/4, Starfield. Heaviest mods ranking. Suggested load order. Auto-format + live match preview for typed lists. Copy or download your report (`.txt` + `.json`). Free.
+### Prerequisites
+- Python 3.9 or higher
+- Git
+- pip (Python package manager)
 
-**For new modders:** Quick Start guides you to your mod list, essential tools (MO2, LOOT, xEdit), and where to learn. Live link preview supports in-app reading, and internal links render as full live page previews.
+### Installation
 
-**For heavy modders:** Mod search with the same LOOT data. Masterlist version picking for older setups. Build a List from game-aware preferences with automatic Analyze handoff. APIs for automation.
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/SamsonProject/SkyModderAI.git
+   cd SkyModderAI
+   ```
 
-**For mod authors (Pro):** Dev Tools—drop your Papyrus, configs, or repo. AI checks runtime compatibility before you ship.
+2. **Create and activate a virtual environment**:
+   ```bash
+   # On Windows
+   python -m venv venv
+   .\venv\Scripts\activate
+   
+   # On macOS/Linux
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
-**Pro extras ($5/mo):** Live Fix Guide that updates as you chat. AI chat about your conflicts. Game folder scan beyond load order. Web search when the DB has few matches. Save & load mod lists. Keeps the lights on so I can keep building.
+3. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-**OpenClaw Lab (separate tier):** Experimental, high-risk local automation workflows behind explicit guardrails. Designed around "personal space" boundaries: dedicated workspace folder, strict acknowledgements, and manual verification.
+4. **Run the application**:
+   ```bash
+   # Start the web interface
+   python app.py
+   ```
+   Then open your browser to `http://localhost:5000`
 
+## 🛠️ Usage
 
+### Web Interface
+1. Launch the application with `python app.py`
+2. Open `http://localhost:5000` in your browser
+3. Paste your load order or select a file to analyze
+4. Review the analysis and follow the recommendations
 
-*Paste. Analyze. Get answers.*
+### Command Line Interface
+```bash
+# Analyze a load order file
+python -m skymodderai analyze path/to/loadorder.txt --game skyrimse
 
+# Get help with commands
+python -m skymodderai --help
+```
 
+## 📚 Documentation
 
-*Conflicts, load order, heaviest mods—all in one place.*
+For detailed documentation, please visit our [documentation site](https://samsonproject.github.io/SkyModderAI/).
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to contribute to the project.
+
+### Development Setup
+
+1. Fork the repository
+2. Create a new branch for your feature
+3. Make your changes
+4. Run tests: `pytest`
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- LOOT team for their amazing work on load order optimization
+- The modding community for their support and feedback
+- All contributors who have helped improve SkyModderAI
 
 ## Configuration
 

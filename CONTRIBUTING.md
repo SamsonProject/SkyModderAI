@@ -1,52 +1,160 @@
 # Contributing to SkyModderAI
 
-Thanks for your interest! This guide gets you running on any platform.
+Thank you for your interest in contributing to SkyModderAI! We appreciate your time and effort in making this project better. This guide will help you get started with contributing to the project.
 
-## Prerequisites
+## Table of Contents
 
-- **Python 3.8+** (3.11 recommended; see `.python-version`)
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Setting Up the Development Environment](#setting-up-the-development-environment)
+- [Development Workflow](#development-workflow)
+  - [Creating a New Branch](#creating-a-new-branch)
+  - [Making Changes](#making-changes)
+  - [Testing](#testing)
+  - [Submitting a Pull Request](#submitting-a-pull-request)
+- [Code Style and Guidelines](#code-style-and-guidelines)
+- [Reporting Issues](#reporting-issues)
+- [Feature Requests](#feature-requests)
+- [License](#license)
+
+## Code of Conduct
+
+This project and everyone participating in it is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+
+## Getting Started
+
+### Prerequisites
+
+- **Python 3.9+** (3.11+ recommended)
 - Git
+- pip (Python package manager)
 
-## Quick Start by Platform
+### Setting Up the Development Environment
 
-### Linux / macOS / WSL
+#### Linux / macOS / WSL
 
 ```bash
-# Option 1: One-liner
-./run.sh
+# Clone the repository
+git clone https://github.com/SamsonProject/SkyModderAI.git
+cd SkyModderAI
 
-# Option 2: Make (if you have make)
-make install && make run
-
-# Option 3: Manual
+# Create and activate a virtual environment
 python3 -m venv venv
-./venv/bin/pip install -r requirements.txt
-./venv/bin/python loot_parser.py skyrimse
-./venv/bin/python app.py
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Install pre-commit hooks
+pre-commit install
 ```
 
-### Windows (CMD)
-
-```cmd
-run.bat
-```
-
-### Windows (PowerShell)
+#### Windows (PowerShell)
 
 ```powershell
-.\run.ps1
+# Clone the repository
+git clone https://github.com/SamsonProject/SkyModderAI.git
+cd SkyModderAI
+
+# Create and activate a virtual environment
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Install pre-commit hooks
+pre-commit install
 ```
 
-### Windows (Make)
+## Development Workflow
 
-If you have [Make for Windows](https://gnuwin32.sourceforge.net/packages/make.htm) or Chocolatey (`choco install make`):
+### Creating a New Branch
 
-```cmd
-make install
-make run
+1. Make sure your local `main` branch is up to date:
+   ```bash
+   git checkout main
+   git pull origin main
+   ```
+
+2. Create a new branch for your feature or bugfix:
+   ```bash
+   git checkout -b feature/your-feature-name
+   # or
+   git checkout -b bugfix/description-of-fix
+   ```
+
+### Making Changes
+
+1. Make your changes to the codebase.
+2. Run the tests to ensure everything works as expected:
+   ```bash
+   pytest
+   ```
+3. Run linters and formatters:
+   ```bash
+   black .
+   ruff check . --fix
+   ```
+
+### Testing
+
+We use `pytest` for testing. To run the test suite:
+
+```bash
+pytest
 ```
 
-## Common Tasks
+To run tests with coverage:
+
+```bash
+pytest --cov=.
+```
+
+### Submitting a Pull Request
+
+1. Commit your changes with a descriptive commit message:
+   ```bash
+   git commit -m "feat: add new feature"
+   ```
+
+2. Push your changes to your fork:
+   ```bash
+   git push origin your-branch-name
+   ```
+
+3. Open a pull request against the `main` branch.
+4. Fill out the pull request template with details about your changes.
+5. Wait for the CI to run and address any issues that arise.
+
+## Code Style and Guidelines
+
+- We use [Black](https://github.com/psf/black) for code formatting.
+- We use [Ruff](https://github.com/charliermarsh/ruff) for linting.
+- We use [Google-style docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings) for documentation.
+- Keep functions small and focused on a single responsibility.
+- Write tests for new features and bug fixes.
+- Update the documentation when adding new features or changing existing behavior.
+
+## Reporting Issues
+
+If you find a bug or have a suggestion, please open an issue on GitHub. Be sure to include:
+
+- A clear description of the issue
+- Steps to reproduce the issue
+- Expected behavior
+- Actual behavior
+- Screenshots (if applicable)
+- Your operating system and Python version
+
+## Feature Requests
+
+We welcome feature requests! Please open an issue and use the "Feature Request" template to describe your idea.
+
+## License
+
+By contributing to SkyModderAI, you agree that your contributions will be licensed under the [MIT License](LICENSE).
 
 | Task | Linux/macOS | Windows |
 |------|-------------|---------|
