@@ -42,16 +42,41 @@ class HeavyMod:
     impact: str  # low, medium, high
 
 
+# Game-specific VRAM multipliers (base multiplier for VRAM estimation)
+_GAME_VRAM_MULTIPLIERS = {
+    'skyrimse': 1.0,      # Base (Skyrim Special Edition)
+    'skyrimle': 0.8,      # Slightly lower VRAM usage than SSE
+    'skyrimvr': 1.5,      # VR requires more VRAM
+    'fallout4': 1.2,      # More complex assets than Skyrim
+    'fallout4vr': 1.7,    # VR + Fallout 4 = high VRAM needs
+    'fallout3': 0.7,      # Older game, lower VRAM requirements
+    'falloutnv': 0.7,     # Similar to Fallout 3
+    'oblivion': 0.6,      # Much older game
+    'starfield': 2.0,     # Newer game, much higher VRAM requirements
+    'enderal': 1.1,       # Enderal (Skyrim total conversion)
+    'enderal-se': 1.2,    # Enderal Special Edition
+}
+
 def get_system_impact(
     mod_names: List[str],
     enabled_count: int,
     specs: Optional[Dict] = None,
+    game: Optional[str] = None,
 ) -> Dict:
     """
     Analyze mod list for system/performance impact.
-    Returns dict with complexity, heavy_mods, estimated_vram_gb, recommendation.
+    
+    Args:
+        mod_names: List of mod names to analyze
+        enabled_count: Number of enabled mods/plugins
+        specs: Optional dict with system specs (vram_gb, cpu, gpu, etc.)
+        game: Game ID (e.g., 'skyrimse', 'fallout4') for game-specific adjustments
+        
+    Returns:
+        Dict with complexity, heavy_mods, estimated_vram_gb, recommendation
     """
     specs = specs or {}
+    game = (game or '').lower()
     heavy_mods: List[Dict] = []
 
     for name in mod_names:
@@ -73,7 +98,12 @@ def get_system_impact(
     base_vram = 2.0
     per_mod = 0.02
     heavy_bonus = sum(0.5 if m['impact'] == 'high' else 0.2 if m['impact'] == 'medium' else 0.05 for m in heavy_mods)
-    estimated_vram = base_vram + (enabled_count * per_mod) + heavy_bonus
+    
+    # Apply game-specific multiplier
+    game_multiplier = _GAME_VRAM_MULTIPLIERS.get(game, 1.0)
+    estimated_vram = (base_vram + (enabled_count * per_mod) + heavy_bonus) * game_multiplier
+    
+    # Cap at 24GB (realistic max for consumer GPUs)
     estimated_vram = min(24.0, round(estimated_vram, 1))
 
     # Complexity: low / medium / high

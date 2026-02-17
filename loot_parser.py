@@ -350,6 +350,7 @@ class LOOTParser:
                 existing.patches.extend(patches)  # patches are dicts, not easily deduped
                 existing.messages = list(set(_strs(existing.messages) + messages))
                 existing.tags = list(set(_strs(existing.tags) + tags))
+                # Update dirty_edits with the new value if it's True
                 existing.dirty_edits = existing.dirty_edits or dirty_edits
             else:
                 mod_info = ModInfo(
