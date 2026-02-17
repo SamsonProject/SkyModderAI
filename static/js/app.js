@@ -317,9 +317,6 @@ window.addEventListener('userContextChange', () => {
     updateContextTrail();
 });
 
-// Initialize context trail
-updateContextTrail();
-
 // DOM Elements
 const elements = {
     modListInput: document.getElementById('mod-list-input'),
@@ -358,6 +355,7 @@ const elements = {
     chatSection: document.getElementById('chat-section'),
     chatMessages: document.getElementById('chat-messages'),
     chatForm: document.getElementById('chat-form'),
+    contextTrailContent: document.getElementById('context-trail-content'),
     chatInput: document.getElementById('chat-input'),
     chatSendBtn: document.getElementById('chat-send-btn'),
     chatUpgradeCta: document.getElementById('chat-upgrade-cta'),
