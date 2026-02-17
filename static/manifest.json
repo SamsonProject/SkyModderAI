@@ -8,11 +8,6 @@
   "theme_color": "#00d4e8",
   "orientation": "portrait-primary",
   "icons": [
-    {
-      "src": "/static/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
+
   ]
 }

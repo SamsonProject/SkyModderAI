@@ -24,7 +24,7 @@ class Config:
     FLASK_ENV = os.getenv('FLASK_ENV', 'production')
     DEBUG = FLASK_ENV != 'production'
     SECRET_KEY = os.getenv('SECRET_KEY', os.urandom(32).hex())
-    BASE_URL = os.getenv('BASE_URL', 'http://localhost:5000').rstrip('/')
+    BASE_URL = os.getenv('BASE_URL', 'https://skymodderai.onrender.com').rstrip('/')
 
     # Database
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///instance/app.db')

@@ -315,7 +315,6 @@ modcheck/  # or skymodderai/
 │   ├── js/profile.js
 │   ├── js/verified.js
 │   ├── icons/                # Nexus, LOOT, xEdit, MO2, Vortex, Wabbajack SVGs + logo-icons.js
-│   └── favicon.svg
 └── data/
     └── *_mod_database.json   # Cached LOOT data (per game, gitignored)
 ```
