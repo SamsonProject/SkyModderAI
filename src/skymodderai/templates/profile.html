@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<!-- Profile: your space — modern, intimate, no ads ever -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile | SkyModderAI</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="profile-page">
+    <div class="profile-container">
+        <header class="profile-header">
+            <a href="/" class="profile-back">← Back to SkyModderAI</a>
+            <a href="{{ url_for('logout') }}" class="profile-logout">Log out</a>
+        </header>
+
+        <main class="profile-main">
+            <section class="profile-hero">
+                <div class="profile-hero-content">
+                    <h1 class="profile-welcome">Welcome back</h1>
+                    <p class="profile-email">{{ email }}</p>
+                    <div class="profile-tier-badge profile-tier-{{ tier }}">
+                        {{ tier_display or 'Free' }}
+                    </div>
+                </div>
+            </section>
+
+            <section class="profile-section profile-dashboard">
+                <h2>Your modding dashboard</h2>
+                <p class="profile-section-hint">Live snapshot of your activity, community footprint, and high-value next steps.</p>
+                <div class="profile-dashboard-grid">
+                    <div class="profile-kpi-card">
+                        <span class="spec-label">Posts</span>
+                        <span class="spec-value" id="profile-kpi-posts">—</span>
+                    </div>
+                    <div class="profile-kpi-card">
+                        <span class="spec-label">Replies</span>
+                        <span class="spec-value" id="profile-kpi-replies">—</span>
+                    </div>
+                    <div class="profile-kpi-card">
+                        <span class="spec-label">Votes cast</span>
+                        <span class="spec-value" id="profile-kpi-votes">—</span>
+                    </div>
+                    <div class="profile-kpi-card">
+                        <span class="spec-label">Helpfulness avg</span>
+                        <span class="spec-value" id="profile-kpi-helpfulness">—</span>
+                    </div>
+                </div>
+                <div class="profile-dashboard-columns">
+                    <div>
+                        <h3 class="profile-mini-title">Top tags</h3>
+                        <div id="profile-top-tags" class="profile-tag-list"><span class="hint">Loading…</span></div>
+                    </div>
+                    <div>
+                        <h3 class="profile-mini-title">Suggested next moves</h3>
+                        <ul id="profile-suggestions" class="profile-suggestions"><li class="hint">Loading…</li></ul>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="profile-mini-title">Recent activity</h3>
+                    <ul id="profile-recent-activity" class="profile-activity-list"><li class="hint">Loading…</li></ul>
+                </div>
+                <p class="profile-section-hint">
+                    <a href="/">Go to Analyze</a> ·
+                    <a href="/">Go to Build a List</a> ·
+                    <a href="/">Go to Community</a>
+                </p>
+            </section>
+
+            {% if specs and specs|length > 0 %}
+            <section class="profile-section profile-specs">
+                <h2>Your system</h2>
+                <p class="profile-section-hint">We use this to tailor mod recommendations and performance advice.</p>
+                <div class="profile-specs-grid">
+                    {% if specs.get('cpu') %}<div class="profile-spec"><span class="spec-label">CPU</span><span class="spec-value">{{ specs.cpu }}</span></div>{% endif %}
+                    {% if specs.get('gpu') %}<div class="profile-spec"><span class="spec-label">GPU</span><span class="spec-value">{{ specs.gpu }}</span></div>{% endif %}
+                    {% if specs.get('ram_gb') %}<div class="profile-spec"><span class="spec-label">RAM</span><span class="spec-value">{{ specs.ram_gb }} GB</span></div>{% endif %}
+                    {% if specs.get('vram_gb') %}<div class="profile-spec"><span class="spec-label">VRAM</span><span class="spec-value">{{ specs.vram_gb }} GB</span></div>{% endif %}
+                    {% if specs.get('resolution') %}<div class="profile-spec"><span class="spec-label">Resolution</span><span class="spec-value">{{ specs.resolution }}</span></div>{% endif %}
+                </div>
+                <p class="profile-section-hint"><a href="/">Update specs in Build a List</a> tab.</p>
+            </section>
+            {% else %}
+            <section class="profile-section profile-specs-empty">
+                <h2>Your system</h2>
+                <p class="profile-section-hint">Add your specs in the Build a List tab for personalized mod recommendations and performance advice.</p>
+                <a href="/" class="secondary-button">Add specs</a>
+            </section>
+            {% endif %}
+
+            {% if tier in ('pro', 'pro_plus', 'claw') and payments_enabled and customer_id %}
+            <section class="profile-section profile-billing">
+                <h2>Subscription</h2>
+                <p class="profile-section-hint">Paid tiers include AI chat, Live Fix Guide, and web search fallback. OpenClaw Lab users also get high-risk policy controls.</p>
+                <a href="{{ url_for('billing_portal') }}" class="profile-billing-link">Manage subscription & billing →</a>
+            </section>
+            {% elif tier not in ('pro', 'pro_plus', 'claw') %}
+            <section class="profile-section profile-upgrade">
+                <h2>Pro — $5/mo</h2>
+                <p class="profile-section-hint">AI chat, Live Fix Guide, web search fallback, save &amp; load mod lists. Or choose OpenClaw Lab for high-risk, sandboxed experiments.</p>
+                <a href="{{ url_for('signup_pro') }}" class="primary-button">Get Pro</a>
+                <a href="{{ url_for('signup_pro', plan='openclaw') }}" class="secondary-button" style="margin-left: 8px;">OpenClaw Lab</a>
+            </section>
+            {% endif %}
+
+            <section class="profile-section profile-links">
+                <h2>Linked accounts (modding identity)</h2>
+                <p class="profile-section-hint">Optional. Helps people recognize your handle across Nexus/GitHub/Discord.</p>
+                <div class="profile-specs-grid">
+                    <div class="profile-spec">
+                        <span class="spec-label">Nexus profile URL</span>
+                        <input type="url" id="links-nexus-url" value="{{ links.nexus_profile_url if links else '' }}" placeholder="https://www.nexusmods.com/users/...">
+                    </div>
+                    <div class="profile-spec">
+                        <span class="spec-label">GitHub username</span>
+                        <input type="text" id="links-github-username" value="{{ links.github_username if links else '' }}" placeholder="your-github">
+                    </div>
+                    <div class="profile-spec">
+                        <span class="spec-label">Discord handle</span>
+                        <input type="text" id="links-discord-handle" value="{{ links.discord_handle if links else '' }}" placeholder="name or name#1234">
+                    </div>
+                </div>
+                <p style="margin-top:.6rem;">
+                    <button type="button" id="save-links-btn" class="secondary-button">Save linked accounts</button>
+                    <span id="save-links-status" class="hint"></span>
+                </p>
+            </section>
+
+            <section class="profile-section profile-sessions">
+                <h2>Sessions</h2>
+                <p class="profile-section-hint">You're signed in on these devices. Revoke any you don't recognize.</p>
+                <ul class="profile-sessions-list">
+                    {% for s in sessions %}
+                    <li class="profile-session-item" data-display-id="{{ s.display_id }}" data-current="{{ 'true' if s.current else 'false' }}">
+                        <div class="session-info">
+                            <span class="session-device">{{ s.user_agent[:60] }}{% if s.user_agent|length > 60 %}…{% endif %}</span>
+                            <span class="session-meta">Last seen {{ s.last_seen }}{% if s.current %} · <strong>This device</strong>{% endif %}</span>
+                        </div>
+                        {% if not s.current %}
+                        <button type="button" class="session-revoke secondary-button">Revoke</button>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% if sessions|length > 1 %}
+                <button type="button" id="revoke-others-btn" class="secondary-button">Sign out all other sessions</button>
+                {% endif %}
+            </section>
+
+            <details class="profile-section profile-api">
+                <summary><h2>API keys (developer)</h2></summary>
+                <p class="profile-section-hint">Use the SkyModderAI engine in your own tools. <code>POST /api/v1/analyze</code> with <code>Authorization: Bearer &lt;key&gt;</code>.</p>
+                <ul class="profile-api-list">
+                    {% for k in api_keys %}
+                    <li class="profile-api-item" data-key-id="{{ k.id }}">
+                        <div>
+                            <code>{{ k.key_prefix }}</code>
+                            {% if k.label %}<span class="api-key-label">— {{ k.label }}</span>{% endif %}
+                            <span class="api-key-meta">Created {{ k.created_at }}</span>
+                        </div>
+                        <button type="button" class="api-key-revoke secondary-button">Revoke</button>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="profile-api-create">
+                    <button type="button" id="create-api-key-btn" class="primary-button">Create API key</button>
+                    <input type="text" id="api-key-label" placeholder="Label (optional)">
+                </div>
+                <div id="api-key-new-box" class="profile-api-new hidden">
+                    <p><strong>Copy your key now. We won't show it again.</strong></p>
+                    <code id="api-key-new-value"></code>
+                    <button type="button" id="api-key-copy-btn" class="secondary-button">Copy</button>
+                </div>
+            </details>
+
+            <p class="profile-footer"><a href="/" class="primary-button">Back to app</a></p>
+            <p class="auth-footer-hint"><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="mailto:support@skymodderai.com">Support</a></p>
+        </main>
+    </div>
+    <script src="/static/js/profile.js"></script>
+    <script src="/static/icons/logo-icons.js"></script>
+</body>
+</html>
