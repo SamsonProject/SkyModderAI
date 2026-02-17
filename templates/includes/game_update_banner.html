@@ -1,0 +1,207 @@
+<div id="game-update-banner" class="update-banner hidden" data-game="{{ game_id|default('') }}">
+  <div class="update-banner-content">
+    <span class="update-banner-icon">⚠️</span>
+    <div class="update-banner-message"></div>
+    <button class="update-banner-dismiss" aria-label="Dismiss">×</button>
+  </div>
+</div>
+
+<style>
+.update-banner {
+  background-color: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 12px 16px;
+  margin: 16px 0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.update-banner.warning {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+}
+
+.update-banner.critical {
+  background-color: #f8d7da;
+  border-color: #dc3545;
+}
+
+.update-banner.stable {
+  background-color: #d4edda;
+  border-color: #28a745;
+}
+
+.update-banner.hidden {
+  display: none;
+}
+
+.update-banner-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.update-banner-icon {
+  font-size: 1.5em;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.update-banner-message {
+  flex-grow: 1;
+  margin-right: 12px;
+}
+
+.update-banner-dismiss {
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  padding: 0 8px;
+  color: #666;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.update-banner-dismiss:hover {
+  color: #000;
+}
+
+.update-banner a {
+  color: #0056b3;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.update-banner a:hover {
+  text-decoration: underline;
+}
+
+.update-banner details {
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.update-banner summary {
+  font-weight: 500;
+  outline: none;
+}
+
+.update-banner ul {
+  margin: 8px 0 0 20px;
+  padding-left: 0;
+}
+
+.update-banner li {
+  margin-bottom: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .update-banner {
+    padding: 10px 12px;
+    margin: 12px 0;
+  }
+  
+  .update-banner-icon {
+    font-size: 1.25em;
+    margin-right: 8px;
+  }
+  
+  .update-banner-dismiss {
+    font-size: 1.25em;
+    padding: 0 6px;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const banner = document.getElementById('game-update-banner');
+  if (!banner) return;
+  
+  const game = banner.dataset.game;
+  if (!game) return;
+  
+  // Get dismissed banners from localStorage
+  const dismissedBanners = JSON.parse(localStorage.getItem('dismissedUpdateBanners') || '{}');
+  
+  // Only show if banner not dismissed for this game
+  if (!dismissedBanners[game]) {
+    fetch(`/api/game-versions?game=${game}`)
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        const gameData = data[game];
+        if (gameData) {
+          const message = document.createElement('div');
+          message.innerHTML = `
+            <strong>${game.toUpperCase()} ${gameData.latest_version} Update Notice</strong><br>
+            ${gameData.message}
+            ${gameData.known_issues && gameData.known_issues.length ? 
+              `<details>
+                <summary>Known Issues (${gameData.known_issues.length})</summary>
+                <ul>
+                  ${gameData.known_issues.map(issue => `<li>${issue}</li>`).join('')}
+                </ul>
+              </details>` : ''
+            }
+            ${gameData.skse_version ? 
+              `<div class="mt-2">Required SKSE: ${gameData.skse_version}</div>` : ''
+            }
+            ${gameData.f4se_version ? 
+              `<div class="mt-2">Required F4SE: ${gameData.f4se_version}</div>` : ''
+            }
+            ${gameData.sksevr_version ? 
+              `<div class="mt-2">Required SKSEVR: ${gameData.sksevr_version}</div>` : ''
+            }
+            ${gameData.f4sevr_version ? 
+              `<div class="mt-2">Required F4SEVR: ${gameData.f4sevr_version}</div>` : ''
+            }
+          `;
+          
+          banner.querySelector('.update-banner-message').appendChild(message);
+          banner.classList.add(gameData.status || 'warning');
+          banner.classList.remove('hidden');
+          
+          // Add animation
+          setTimeout(() => {
+            banner.style.opacity = '1';
+            banner.style.transform = 'translateY(0)';
+          }, 100);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching game version data:', error);
+      });
+  }
+
+  // Dismiss button
+  const dismissBtn = banner.querySelector('.update-banner-dismiss');
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', function() {
+      banner.style.opacity = '0';
+      banner.style.transform = 'translateY(-10px)';
+      
+      setTimeout(() => {
+        banner.style.display = 'none';
+        // Store dismissal in localStorage
+        dismissedBanners[game] = true;
+        try {
+          localStorage.setItem('dismissedUpdateBanners', JSON.stringify(dismissedBanners));
+        } catch (e) {
+          console.error('Error saving to localStorage:', e);
+        }
+      }, 300);
+    });
+  }
+});
+</script>

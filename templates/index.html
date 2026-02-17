@@ -823,14 +823,15 @@ Examples:
                     <h4 class="pricing-card-title">OpenClaw Lab</h4>
                     <p class="pricing-card-price">$15<span class="pricing-card-period">/mo</span></p>
                     <ul class="pricing-card-features">
-                        <li>Everything in Pro</li>
-                        <li>Tier reserved for high-risk local automation experiments</li>
-                        <li>Dedicated workspace model: "your computer has personal space"</li>
-                        <li>Hard requirement: explicit acknowledgements before access</li>
-                        <li>Policy API exposes sandbox path + limits + warnings</li>
-                        <li>Strong recommendation to review source first on GitHub</li>
+                        <li><strong>Currently in closed testing phase</strong></li>
+                        <li>Experimental third-party tool being evaluated for safe integration</li>
+                        <li>Undergoing internal safety benchmarking</li>
+                        <li>Dedicated workspace model with strict boundaries</li>
+                        <li>Explicit permissions required for all operations</li>
+                        <li>Join waitlist to be notified when available</li>
                     </ul>
-                    <a href="{{ url_for('signup_pro', plan='openclaw') }}" class="pricing-card-cta primary-button">Apply for OpenClaw Lab</a>
+                    <button class="pricing-card-cta secondary-button" disabled>Coming Soon — Waitlist</button>
+                    <p class="hint" style="font-size: 0.9em; margin-top: 0.5rem;">Currently in closed testing. Waitlist opens when internal safety benchmarks are met.</p>
                 </div>
             </div>
             {% endif %}

@@ -14,6 +14,8 @@ import smtplib
 import sqlite3
 import sys
 import time
+import uuid
+from datetime import datetime, timedelta
 from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
@@ -1550,6 +1552,234 @@ def server_error(e):
     if request.path.startswith('/api/'):
         return api_error('Internal server error', 500)
     return render_template('error.html', code=500, message='Something went wrong. We\'ve been notified.'), 500
+
+# -------------------------------------------------------------------
+# API Routes
+# -------------------------------------------------------------------
+@app.route('/api/game-versions')
+def get_game_versions():
+    """API endpoint to get game version information"""
+    game = request.args.get('game', '').lower()
+    game_versions_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/game_versions.json')
+    
+    try:
+        with open(game_versions_file, 'r') as f:
+            data = json.load(f)
+            
+        if game and game in data:
+            return jsonify({game: data[game]})
+        return jsonify(data)
+    except FileNotFoundError:
+        return jsonify({"error": "Game versions file not found"}), 404
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid game versions file"}), 500
+    except Exception as e:
+        app.logger.error(f"Error in get_game_versions: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+@app.route('/api/load-order/share', methods=['POST'])
+@login_required_api
+def share_load_order():
+    """
+    Create a shareable link for the current load order and analysis.
+    
+    Request JSON:
+    {
+        "game": "skyrimse",
+        "game_version": "1.6.1170",
+        "masterlist_version": "2025.01.15",
+        "mod_list": [
+            {"name": "Unofficial Patch", "version": "4.2.8"},
+            ...
+        ],
+        "analysis_results": { ... },
+        "title": "My Awesome Mod List",
+        "notes": "This is a test share",
+        "is_public": true
+    }
+    
+    Returns: {"share_id": "abc123..."}
+    """
+    data = request.get_json()
+    
+    # Validate required fields
+    required = ['game', 'mod_list', 'analysis_results']
+    if not all(field in data for field in required):
+        return api_error("Missing required fields", 400)
+    
+    # Ensure mod_list is a list of dicts with at least a 'name' key
+    if not isinstance(data['mod_list'], list) or not all(isinstance(m, dict) and 'name' in m for m in data['mod_list']):
+        return api_error("Invalid mod_list format", 400)
+    
+    # Generate a share ID and save to database
+    share_id = secrets.token_urlsafe(9)  # ~12 chars, URL-safe
+    expires_at = datetime.utcnow() + timedelta(days=30)
+    
+    try:
+        db = get_db()
+        db.execute(
+            """
+            INSERT INTO shared_load_orders (
+                id, created_at, expires_at, game, game_version, masterlist_version,
+                mod_list, analysis_results, user_email, title, notes, is_public
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                share_id, datetime.utcnow(), expires_at, data['game'],
+                data.get('game_version'), data.get('masterlist_version'),
+                json.dumps(data['mod_list']), json.dumps(data['analysis_results']),
+                session.get('user_email'), data.get('title'), data.get('notes'),
+                data.get('is_public', True)
+            )
+        )
+        db.commit()
+        
+        # Return the shareable link
+        share_url = f"{config.BASE_URL}/share/{share_id}"
+        return jsonify({
+            "share_id": share_id,
+            "share_url": share_url,
+            "expires_at": expires_at.isoformat() + 'Z'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error creating shared load order: {e}", exc_info=True)
+        return api_error("Failed to create share link", 500)
+
+@app.route('/api/load-order/share/<share_id>', methods=['GET'])
+def get_shared_load_order(share_id):
+    """
+    Retrieve a shared load order by ID.
+    
+    Returns: {
+        "id": "abc123...",
+        "created_at": "2025-02-17T03:30:00Z",
+        "expires_at": "2025-03-19T03:30:00Z",
+        "game": "skyrimse",
+        "game_version": "1.6.1170",
+        "masterlist_version": "2025.01.15",
+        "mod_list": [...],
+        "analysis_results": {...},
+        "title": "My Awesome Mod List",
+        "notes": "This is a test share",
+        "view_count": 42,
+        "is_public": true,
+        "user_display": "user@example.com"  # or None if anonymous
+    }
+    """
+    try:
+        db = get_db()
+        now = datetime.utcnow()
+        
+        # Get the shared load order
+        row = db.execute(
+            """
+            UPDATE shared_load_orders 
+            SET view_count = view_count + 1, 
+                last_viewed_at = ?
+            WHERE id = ? AND expires_at > ?
+            RETURNING *
+            """,
+            (now, share_id, now)
+        ).fetchone()
+        
+        if not row:
+            return api_error("Share not found or expired", 404)
+        
+        # Convert to dict and parse JSON fields
+        result = dict(row)
+        result['mod_list'] = json.loads(result['mod_list'])
+        result['analysis_results'] = json.loads(result['analysis_results'])
+        
+        # Redact user email for privacy, but show first part if public
+        if result.get('user_email'):
+            if result.get('is_public'):
+                user, domain = result['user_email'].split('@', 1)
+                result['user_display'] = f"{user[:2]}...@{domain}"
+            else:
+                result['user_display'] = None
+        
+        # Remove sensitive fields
+        for field in ['user_email']:
+            result.pop(field, None)
+            
+        return jsonify(result)
+        
+    except Exception as e:
+        app.logger.error(f"Error retrieving shared load order {share_id}: {e}", exc_info=True)
+        return api_error("Failed to retrieve shared load order", 500)
+
+@app.route('/api/load-order/shares', methods=['GET'])
+@login_required_api
+def list_shared_load_orders():
+    """
+    List all shared load orders for the current user.
+    
+    Returns: [
+        {
+            "id": "abc123...",
+            "created_at": "2025-02-17T03:30:00Z",
+            "expires_at": "2025-03-19T03:30:00Z",
+            "game": "skyrimse",
+            "title": "My Awesome Mod List",
+            "view_count": 42,
+            "is_public": true
+        },
+        ...
+    ]
+    """
+    try:
+        db = get_db()
+        now = datetime.utcnow()
+        
+        rows = db.execute(
+            """
+            SELECT id, created_at, expires_at, game, title, view_count, is_public
+            FROM shared_load_orders 
+            WHERE user_email = ? AND expires_at > ?
+            ORDER BY created_at DESC
+            """,
+            (session['user_email'], now)
+        ).fetchall()
+        
+        return jsonify([dict(row) for row in rows])
+        
+    except Exception as e:
+        app.logger.error(f"Error listing shared load orders: {e}", exc_info=True)
+        return api_error("Failed to list shared load orders", 500)
+
+@app.route('/api/load-order/share/<share_id>', methods=['DELETE'])
+@login_required_api
+def delete_shared_load_order(share_id):
+    """
+    Delete a shared load order. Only the owner can delete their shares.
+    
+    Returns: 204 No Content on success
+    """
+    try:
+        db = get_db()
+        
+        # Verify ownership
+        result = db.execute(
+            "DELETE FROM shared_load_orders WHERE id = ? AND user_email = ? RETURNING id",
+            (share_id, session['user_email'])
+        )
+        db.commit()
+        
+        if not result.fetchone():
+            return api_error("Share not found or not owned by user", 404)
+            
+        return '', 204
+        
+    except Exception as e:
+        app.logger.error(f"Error deleting shared load order {share_id}: {e}", exc_info=True)
+        return api_error("Failed to delete shared load order", 500)
+
+# Route to view a shared load order in the web UI
+@app.route('/share/<share_id>')
+def view_shared_load_order(share_id):
+    """Render the shared load order in a user-friendly web page."""
+    return render_template('shared_load_order.html', share_id=share_id)
 
 # -------------------------------------------------------------------
 # Routes

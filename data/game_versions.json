@@ -1,0 +1,41 @@
+{
+  "skyrimse": {
+    "latest_version": "1.6.1170",
+    "released": "2025-01-15",
+    "skse_version": "2.2.6",
+    "status": "warning",
+    "message": "Update 1.6.1170 requires SKSE 2.2.6+. Many mods not yet updated. Check before launching.",
+    "known_issues": [
+      "Address Library needs update",
+      ".NET Script Framework incompatible",
+      "DLL mods need recompilation"
+    ]
+  },
+  "fallout4": {
+    "latest_version": "1.10.980",
+    "released": "2024-11-10",
+    "f4se_version": "0.6.23",
+    "status": "stable",
+    "message": "Update 1.10.980 is stable with F4SE 0.6.23"
+  },
+  "skyrimvr": {
+    "latest_version": "1.4.15",
+    "released": "2024-08-22",
+    "sksevr_version": "2.0.12",
+    "status": "stable",
+    "message": "Current version is stable with SKSEVR 2.0.12"
+  },
+  "fallout4vr": {
+    "latest_version": "1.2.72",
+    "released": "2024-05-14",
+    "f4sevr_version": "0.6.22",
+    "status": "warning",
+    "message": "F4SEVR 0.6.22 is the latest version. Some mods may require updates."
+  },
+  "enderal": {
+    "latest_version": "2.0.12",
+    "released": "2024-09-30",
+    "status": "stable",
+    "message": "Current version is stable with most Skyrim SE mods"
+  }
+}
