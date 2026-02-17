@@ -32,12 +32,12 @@ from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
-PRUNING_ENABLED = os.environ.get('PRUNING_ENABLED', '1').strip() in ('1', 'true', 'yes')
-PRUNING_MAX_CONTEXT_CHARS = int(os.environ.get('PRUNING_MAX_CONTEXT_CHARS', '12000'))
+PRUNING_ENABLED = os.environ.get("PRUNING_ENABLED", "1").strip() in ("1", "true", "yes")
+PRUNING_MAX_CONTEXT_CHARS = int(os.environ.get("PRUNING_MAX_CONTEXT_CHARS", "12000"))
 
 
 # Conflict line pattern: [type] severity [mods]: message
-_CONFLICT_LINE = re.compile(r'^\[([^\]]+)\]\s+(error|warning|info)\s+', re.I)
+_CONFLICT_LINE = re.compile(r"^\[([^\]]+)\]\s+(error|warning|info)\s+", re.I)
 
 
 def _classify_conflict_line(line: str) -> Optional[str]:
@@ -61,11 +61,11 @@ def prune_input_context(
       (pruned_context, stats) — stats has keys: original_len, pruned_len, pruning_applied, info_capped
     """
     if not PRUNING_ENABLED or not context:
-        return (context, {'pruning_applied': False})
+        return (context, {"pruning_applied": False})
 
     max_chars = max_chars or PRUNING_MAX_CONTEXT_CHARS
     original_len = len(context)
-    stats = {'original_len': original_len, 'pruning_applied': False, 'info_capped': False}
+    stats = {"original_len": original_len, "pruning_applied": False, "info_capped": False}
 
     if original_len <= max_chars:
         return (context, stats)
@@ -83,37 +83,37 @@ def prune_input_context(
 
         severity = _classify_conflict_line(line)
         if severity:
-            if severity == 'error' or severity == 'warning':
+            if severity == "error" or severity == "warning":
                 result_lines.append(line)
-            elif severity == 'info':
+            elif severity == "info":
                 if info_count < info_cap:
                     result_lines.append(line)
                     info_count += 1
                 else:
                     if info_count == info_cap:
                         result_lines.append("  ... (additional info items omitted for context)")
-                        stats['info_capped'] = True
+                        stats["info_capped"] = True
                     info_count += 1
                     # Next line may be "  → action" for this omitted conflict
-                    if i + 1 < len(lines) and lines[i + 1].strip().startswith('→'):
+                    if i + 1 < len(lines) and lines[i + 1].strip().startswith("→"):
                         skip_next = True
         else:
             result_lines.append(line)
 
-    result = '\n'.join(result_lines)
+    result = "\n".join(result_lines)
 
     # If still over limit, trim from the end (knowledge/system impact are last)
     if len(result) > max_chars:
         # Find a safe break point: after last error/warning block
         result = result[:max_chars]
-        last_newline = result.rfind('\n')
+        last_newline = result.rfind("\n")
         if last_newline > max_chars * 0.7:  # Avoid cutting mid-line
-            result = result[:last_newline + 1]
+            result = result[: last_newline + 1]
         result += "\n\n[Context trimmed. All errors and warnings above are preserved.]"
-        stats['trimmed'] = True
+        stats["trimmed"] = True
 
-    stats['pruned_len'] = len(result)
-    stats['pruning_applied'] = True
+    stats["pruned_len"] = len(result)
+    stats["pruning_applied"] = True
     return (result, stats)
 
 
@@ -133,37 +133,43 @@ def prune_output_for_fix_guide(reply: str, max_bullets: int = 8) -> str:
         if not s:
             continue
         # Match "1. ", "- ", "• ", "* "
-        if re.match(r'^[\d]+[.)]\s', s) or re.match(r'^[-•*]\s', s):
+        if re.match(r"^[\d]+[.)]\s", s) or re.match(r"^[-•*]\s", s):
             bullets.append(s)
-        elif s.startswith('→') or s.startswith('→'):
+        elif s.startswith("→") or s.startswith("→"):
             bullets.append(s)
 
     if len(bullets) <= max_bullets:
         return reply
     # Keep first max_bullets and add ellipsis
     kept = bullets[:max_bullets]
-    return '\n'.join(kept) + '\n  (see full reply in chat)'
+    return "\n".join(kept) + "\n  (see full reply in chat)"
 
 
-def prune_game_folder_context(tree: str, key_files: dict, plugins: list, max_tree_chars: int = 4000, max_file_chars: int = 3000) -> Tuple[str, dict, dict]:
+def prune_game_folder_context(
+    tree: str,
+    key_files: dict,
+    plugins: list,
+    max_tree_chars: int = 4000,
+    max_file_chars: int = 3000,
+) -> Tuple[str, dict, dict]:
     """
     Prune game folder scan context. Keep: plugin list, folder structure (truncate depth),
     key file contents (truncate per file).
     """
     if not PRUNING_ENABLED:
-        return (tree, key_files, {'pruning_applied': False})
+        return (tree, key_files, {"pruning_applied": False})
 
-    stats = {'pruning_applied': True}
+    stats = {"pruning_applied": True}
     if len(tree) > max_tree_chars:
         tree = tree[:max_tree_chars] + "\n\n[Folder structure truncated. Key paths preserved.]"
-        stats['tree_truncated'] = True
+        stats["tree_truncated"] = True
 
     pruned_files = {}
     for path, content in key_files.items():
         if content and len(content) > max_file_chars:
             pruned_files[path] = content[:max_file_chars] + "\n\n[File truncated.]"
-            stats['files_truncated'] = stats.get('files_truncated', 0) + 1
+            stats["files_truncated"] = stats.get("files_truncated", 0) + 1
         else:
-            pruned_files[path] = content or ''
+            pruned_files[path] = content or ""
 
     return (tree, pruned_files, stats)

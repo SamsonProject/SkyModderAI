@@ -2,6 +2,7 @@
 OAuth state token management with database persistence.
 Prevents CSRF attacks and handles server restarts during OAuth flow.
 """
+
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
@@ -13,9 +14,11 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
+
 class OAuthStateToken(Base):
     """Database model for storing OAuth state tokens with expiration."""
-    __tablename__ = 'oauth_state_tokens'
+
+    __tablename__ = "oauth_state_tokens"
 
     token = Column(String(64), primary_key=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -26,6 +29,7 @@ class OAuthStateToken(Base):
     def is_expired(self) -> bool:
         """Check if the token has expired (10 minutes)."""
         return (datetime.utcnow() - self.created_at) > timedelta(minutes=10)
+
 
 def generate_state_token(provider: str, redirect_url: str = None) -> str:
     """
@@ -40,12 +44,8 @@ def generate_state_token(provider: str, redirect_url: str = None) -> str:
     """
     token = secrets.token_urlsafe(32)
     try:
-        db = current_app.extensions['sqlalchemy'].db
-        state_token = OAuthStateToken(
-            token=token,
-            provider=provider,
-            redirect_url=redirect_url
-        )
+        db = current_app.extensions["sqlalchemy"].db
+        state_token = OAuthStateToken(token=token, provider=provider, redirect_url=redirect_url)
         db.session.add(state_token)
         db.session.commit()
         return token
@@ -53,6 +53,7 @@ def generate_state_token(provider: str, redirect_url: str = None) -> str:
         current_app.logger.error(f"Failed to generate OAuth state token: {e}")
         db.session.rollback()
         raise
+
 
 def verify_state_token(token: str, provider: str) -> Tuple[bool, Optional[str]]:
     """
@@ -69,7 +70,7 @@ def verify_state_token(token: str, provider: str) -> Tuple[bool, Optional[str]]:
         return False, None
 
     try:
-        db = current_app.extensions['sqlalchemy'].db
+        db = current_app.extensions["sqlalchemy"].db
         state_token = db.session.query(OAuthStateToken).get(token)
 
         if not state_token:
@@ -96,6 +97,7 @@ def verify_state_token(token: str, provider: str) -> Tuple[bool, Optional[str]]:
         current_app.logger.error(f"Error verifying OAuth state token: {e}")
         return False, None
 
+
 def cleanup_expired_tokens() -> int:
     """Remove expired OAuth state tokens from the database.
 
@@ -103,11 +105,12 @@ def cleanup_expired_tokens() -> int:
         int: Number of tokens deleted
     """
     try:
-        db = current_app.extensions['sqlalchemy'].db
-        expired = db.session.query(OAuthStateToken).filter(
-            OAuthStateToken.created_at <
-            (datetime.utcnow() - timedelta(minutes=10))
-        ).delete()
+        db = current_app.extensions["sqlalchemy"].db
+        expired = (
+            db.session.query(OAuthStateToken)
+            .filter(OAuthStateToken.created_at < (datetime.utcnow() - timedelta(minutes=10)))
+            .delete()
+        )
         db.session.commit()
         if expired:
             current_app.logger.info(f"Cleaned up {expired} expired OAuth state tokens")
@@ -117,11 +120,12 @@ def cleanup_expired_tokens() -> int:
         db.session.rollback()
         return 0
 
+
 def init_oauth_state_db(app):
     """Initialize the OAuth state token database."""
     with app.app_context():
         try:
-            db = app.extensions['sqlalchemy'].db
+            db = app.extensions["sqlalchemy"].db
             # Create tables if they don't exist
             Base.metadata.create_all(db.engine)
             # Clean up any expired tokens on startup

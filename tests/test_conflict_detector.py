@@ -1,6 +1,7 @@
 """
 Tests for conflict_detector: parse_mod_list_text, ModListEntry, ConflictDetector.
 """
+
 from conflict_detector import ConflictDetector, ModListEntry, parse_mod_list_text
 from loot_parser import LOOTParser, ModInfo
 

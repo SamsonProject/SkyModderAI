@@ -29,4 +29,3 @@ def test_dev_loop_returns_idle_conclusion_when_healthy(monkeypatch):
     assert payload.get("success") is True
     assert payload.get("idle_recommended") is True
     assert "idle" in (payload.get("idle_conclusion") or "").lower()
-

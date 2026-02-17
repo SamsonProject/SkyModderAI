@@ -43,4 +43,3 @@ def test_openclaw_install_manifest_has_permission_contract():
     payload = res.get_json() or {}
     required = payload.get("companion", {}).get("required_permissions", [])
     assert any(p.get("scope") == "launch_game" for p in required)
-

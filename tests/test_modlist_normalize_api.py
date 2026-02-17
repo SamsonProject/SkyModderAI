@@ -25,4 +25,3 @@ def test_modlist_normalize_returns_summary_and_text():
     assert "entries" in payload
     assert "summary" in payload
     assert payload["summary"]["total"] == 2
-

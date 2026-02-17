@@ -6,10 +6,11 @@ Invariants we verify:
 - Info conflicts may be capped at 12 (with ellipsis)
 - Mod names and suggested actions are preserved
 """
+
 import os
 
 # Ensure pruning is enabled for tests
-os.environ['PRUNING_ENABLED'] = '1'
+os.environ["PRUNING_ENABLED"] = "1"
 
 from pruning import (
     prune_game_folder_context,
@@ -33,13 +34,13 @@ Nexus: https://www.nexusmods.com/games/skyrimspecialedition/mods
   → Move Patch.esp after Parent.esp in load order
 """
         pruned, stats = prune_input_context(context, max_chars=5000)
-        assert '[missing_requirement] error' in pruned
-        assert 'ModA.esp' in pruned
-        assert 'Install SKSE' in pruned
-        assert '[incompatible] warning' in pruned
-        assert '[load_order_violation] warning' in pruned
-        assert 'ModB.esp' in pruned
-        assert 'Patch.esp' in pruned
+        assert "[missing_requirement] error" in pruned
+        assert "ModA.esp" in pruned
+        assert "Install SKSE" in pruned
+        assert "[incompatible] warning" in pruned
+        assert "[load_order_violation] warning" in pruned
+        assert "ModB.esp" in pruned
+        assert "Patch.esp" in pruned
 
     def test_info_capped_at_12(self):
         lines = ["Game: Skyrim SE\n", "Nexus: https://nexusmods.com\n\n"]
@@ -48,17 +49,17 @@ Nexus: https://www.nexusmods.com/games/skyrimspecialedition/mods
         context = "".join(lines)
         # Use low max_chars so pruning is triggered (context is ~1200 chars)
         pruned, stats = prune_input_context(context, max_chars=800)
-        assert stats.get('info_capped') is True
-        assert 'additional info items omitted' in pruned
+        assert stats.get("info_capped") is True
+        assert "additional info items omitted" in pruned
         # First 12 should be present
-        assert 'CustomMod0.esp' in pruned
-        assert 'CustomMod11.esp' in pruned
+        assert "CustomMod0.esp" in pruned
+        assert "CustomMod11.esp" in pruned
 
     def test_short_context_unchanged(self):
         context = "Game: Skyrim SE\n[missing_requirement] error [X.esp]: Needs Y."
         pruned, stats = prune_input_context(context, max_chars=10000)
         assert pruned == context
-        assert stats.get('pruning_applied') is False
+        assert stats.get("pruning_applied") is False
 
     def test_preamble_preserved(self):
         context = """Game: Skyrim SE
@@ -68,9 +69,9 @@ User specs: GPU: RTX 3060, VRAM: 8GB
   → Install SKSE
 """
         pruned, _ = prune_input_context(context, max_chars=5000)
-        assert 'Game: Skyrim SE' in pruned
-        assert 'User specs' in pruned
-        assert 'RTX 3060' in pruned
+        assert "Game: Skyrim SE" in pruned
+        assert "User specs" in pruned
+        assert "RTX 3060" in pruned
 
 
 class TestPruneOutputForFixGuide:
@@ -82,7 +83,7 @@ class TestPruneOutputForFixGuide:
         assert result == reply
 
     def test_long_bullet_list_trimmed(self):
-        reply = "\n".join([f"{i+1}. Step {i+1} here." for i in range(12)])
+        reply = "\n".join([f"{i + 1}. Step {i + 1} here." for i in range(12)])
         result = prune_output_for_fix_guide(reply, max_bullets=8)
         assert "Step 1" in result
         assert "Step 8" in result
@@ -100,7 +101,7 @@ class TestPruneGameFolderContext:
         t, kf, stats = prune_game_folder_context(tree, key_files, plugins, max_tree_chars=1000)
         assert len(t) <= 1100  # 1000 + truncation message
         assert "Data/" in t
-        assert "truncated" in t or stats.get('tree_truncated')
+        assert "truncated" in t or stats.get("tree_truncated")
 
     def test_key_files_truncated_per_file(self):
         tree = "Data/"

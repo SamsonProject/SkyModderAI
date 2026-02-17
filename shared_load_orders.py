@@ -2,6 +2,7 @@
 Shared Load Orders functionality for SkyModderAI.
 Allows users to create and share links to their mod lists and analysis results.
 """
+
 import json
 import secrets
 import string
@@ -16,7 +17,8 @@ from db import get_db
 def generate_share_id() -> str:
     """Generate a random URL-safe ID for shared load orders."""
     alphabet = string.ascii_letters + string.digits
-    return ''.join(secrets.choice(alphabet) for _ in range(12))
+    return "".join(secrets.choice(alphabet) for _ in range(12))
+
 
 def create_shared_load_order(
     game: str,
@@ -26,7 +28,7 @@ def create_shared_load_order(
     title: Optional[str] = None,
     notes: Optional[str] = None,
     is_public: bool = True,
-    days_until_expiry: int = 30
+    days_until_expiry: int = 30,
 ) -> Optional[str]:
     """
     Create a new shared load order entry in the database.
@@ -57,17 +59,23 @@ def create_shared_load_order(
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                share_id, expires_at, game,
+                share_id,
+                expires_at,
+                game,
                 json.dumps(mod_list),
                 json.dumps(analysis_results),
-                user_email, title, notes, is_public
-            )
+                user_email,
+                title,
+                notes,
+                is_public,
+            ),
         )
         db.commit()
         return share_id
     except Exception as e:
         app.logger.error(f"Error creating shared load order: {e}")
         return None
+
 
 def get_shared_load_order(share_id: str, increment_view: bool = True) -> Optional[Dict[str, Any]]:
     """
@@ -90,7 +98,7 @@ def get_shared_load_order(share_id: str, increment_view: bool = True) -> Optiona
             SELECT * FROM shared_load_orders
             WHERE id = ? AND expires_at > ?
             """,
-            (share_id, now)
+            (share_id, now),
         ).fetchone()
 
         if not row:
@@ -104,19 +112,20 @@ def get_shared_load_order(share_id: str, increment_view: bool = True) -> Optiona
                 SET view_count = view_count + 1, last_viewed_at = ?
                 WHERE id = ?
                 """,
-                (now, share_id)
+                (now, share_id),
             )
             db.commit()
 
         # Convert row to dict and parse JSON fields
         result = dict(row)
-        result['mod_list'] = json.loads(result['mod_list'])
-        result['analysis_results'] = json.loads(result['analysis_results'])
+        result["mod_list"] = json.loads(result["mod_list"])
+        result["analysis_results"] = json.loads(result["analysis_results"])
         return result
 
     except Exception as e:
         app.logger.error(f"Error retrieving shared load order {share_id}: {e}")
         return None
+
 
 def get_user_shared_load_orders(user_email: str) -> List[Dict[str, Any]]:
     """
@@ -139,7 +148,7 @@ def get_user_shared_load_orders(user_email: str) -> List[Dict[str, Any]]:
             WHERE user_email = ? AND expires_at > ?
             ORDER BY created_at DESC
             """,
-            (user_email, now)
+            (user_email, now),
         ).fetchall()
 
         return [dict(row) for row in rows]
@@ -147,6 +156,7 @@ def get_user_shared_load_orders(user_email: str) -> List[Dict[str, Any]]:
     except Exception as e:
         app.logger.error(f"Error retrieving shared load orders for {user_email}: {e}")
         return []
+
 
 def delete_expired_shared_load_orders() -> int:
     """
@@ -158,8 +168,7 @@ def delete_expired_shared_load_orders() -> int:
     try:
         db = get_db()
         result = db.execute(
-            "DELETE FROM shared_load_orders WHERE expires_at <= ?",
-            (datetime.utcnow(),)
+            "DELETE FROM shared_load_orders WHERE expires_at <= ?", (datetime.utcnow(),)
         )
         db.commit()
         return result.rowcount

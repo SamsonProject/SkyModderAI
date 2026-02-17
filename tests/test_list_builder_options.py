@@ -42,4 +42,3 @@ def test_oblivion_and_fallout3_options_exist():
 def test_no_skyrim_fallback_terms_for_other_games():
     # Fallout 4 should not inherit Skyrim-only body/hair preferences.
     assert _get_terms_for_pref("fallout4", "hair", "ks_hairdos") == []
-

@@ -47,4 +47,3 @@ def test_feedback_suggestions_for_low_fps_and_crashes():
     joined = " ".join(tips).lower()
     assert "stability" in joined
     assert "performance" in joined or "fps" in joined
-

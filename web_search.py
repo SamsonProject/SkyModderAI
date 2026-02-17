@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 WEB_SEARCH_RETRY_DELAY = 1.5  # seconds between retries
 
 # Plugin extensions we care about (.esm, .esp, .esl)
-PLUGIN_EXT = re.compile(r'\.(esm|esp|esl)\b', re.I)
+PLUGIN_EXT = re.compile(r"\.(esm|esp|esl)\b", re.I)
 
 
 def _extract_plugin_names_from_text(text: str) -> List[str]:
@@ -26,10 +26,10 @@ def _extract_plugin_names_from_text(text: str) -> List[str]:
         start = m.start()
         # Walk back to find start of name (alphanumeric, spaces, underscores, hyphens)
         i = start - 1
-        while i >= 0 and (text[i].isalnum() or text[i] in ' _-'):
+        while i >= 0 and (text[i].isalnum() or text[i] in " _-"):
             i -= 1
         name = text[i + 1 : m.end()].strip()
-        if len(name) > 3 and name not in ('', 'esp', 'esm', 'esl', 'esl'):
+        if len(name) > 3 and name not in ("", "esp", "esm", "esl", "esl"):
             found.add(name)
     return list(found)
 
@@ -37,8 +37,8 @@ def _extract_plugin_names_from_text(text: str) -> List[str]:
 def _extract_from_result(result: dict) -> List[str]:
     """Extract plugin names from a DDG result (title, href, body)."""
     names = []
-    for key in ('title', 'href', 'body'):
-        val = result.get(key) or ''
+    for key in ("title", "href", "body"):
+        val = result.get(key) or ""
         names.extend(_extract_plugin_names_from_text(val))
     return names
 
@@ -68,7 +68,7 @@ def search_mods_web(
     out: List[dict] = []
 
     # 1) Nexus-specific: site:nexusmods.com {game} {query}
-    nexus_query = f'site:nexusmods.com {game_display_name} {query}'
+    nexus_query = f"site:nexusmods.com {game_display_name} {query}"
     for attempt in range(2):  # Retry once on failure
         try:
             with DDGS() as ddgs:
@@ -77,11 +77,13 @@ def search_mods_web(
                         name_norm = name.lower()
                         if name_norm not in seen:
                             seen.add(name_norm)
-                            out.append({
-                                'name': name,
-                                'url': r.get('href', ''),
-                                'source': 'nexus',
-                            })
+                            out.append(
+                                {
+                                    "name": name,
+                                    "url": r.get("href", ""),
+                                    "source": "nexus",
+                                }
+                            )
                             if len(out) >= max_results:
                                 return out[:max_results]
             break
@@ -101,11 +103,13 @@ def search_mods_web(
                             name_norm = name.lower()
                             if name_norm not in seen:
                                 seen.add(name_norm)
-                                out.append({
-                                    'name': name,
-                                    'url': r.get('href', ''),
-                                    'source': 'web',
-                                })
+                                out.append(
+                                    {
+                                        "name": name,
+                                        "url": r.get("href", ""),
+                                        "source": "web",
+                                    }
+                                )
                                 if len(out) >= max_results:
                                     return out[:max_results]
                 break
@@ -140,21 +144,23 @@ def search_solutions_web(
     seen_urls = set()
 
     # 1) Reddit: r/skyrimmods, r/fo4, etc.
-    reddit_query = f'site:reddit.com {game_display_name} mod {query}'
+    reddit_query = f"site:reddit.com {game_display_name} mod {query}"
     for attempt in range(2):
         try:
             with DDGS() as ddgs:
                 for r in ddgs.text(reddit_query, max_results=max_results):
-                    url = r.get('href', '')
+                    url = r.get("href", "")
                     if url in seen_urls:
                         continue
                     seen_urls.add(url)
-                    out.append({
-                        'title': r.get('title', ''),
-                        'url': url,
-                        'snippet': (r.get('body') or '')[:200],
-                        'source': 'reddit',
-                    })
+                    out.append(
+                        {
+                            "title": r.get("title", ""),
+                            "url": url,
+                            "snippet": (r.get("body") or "")[:200],
+                            "source": "reddit",
+                        }
+                    )
                     if len(out) >= max_results:
                         return out[:max_results]
             break
@@ -164,22 +170,24 @@ def search_solutions_web(
                 time.sleep(WEB_SEARCH_RETRY_DELAY)
 
     # 2) Broader: Nexus forums, general modding
-    broad_query = f'{game_display_name} mod {query} fix solution'
+    broad_query = f"{game_display_name} mod {query} fix solution"
     for attempt in range(2):
         try:
             with DDGS() as ddgs:
                 for r in ddgs.text(broad_query, max_results=max_results):
-                    url = r.get('href', '')
+                    url = r.get("href", "")
                     if url in seen_urls:
                         continue
                     seen_urls.add(url)
-                    source = 'nexus' if 'nexusmods' in url else 'web'
-                    out.append({
-                        'title': r.get('title', ''),
-                        'url': url,
-                        'snippet': (r.get('body') or '')[:200],
-                        'source': source,
-                    })
+                    source = "nexus" if "nexusmods" in url else "web"
+                    out.append(
+                        {
+                            "title": r.get("title", ""),
+                            "url": url,
+                            "snippet": (r.get("body") or "")[:200],
+                            "source": source,
+                        }
+                    )
                     if len(out) >= max_results:
                         return out[:max_results]
             break

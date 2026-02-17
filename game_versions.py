@@ -9,6 +9,8 @@ CRITICAL: LE and SE versions are distinct and must never be mixed.
 - Anniversary Edition = Special Edition 1.6+ (not a separate game)
 """
 
+from typing import Optional
+
 # Skyrim Legendary Edition (LE) - The OLD Skyrim (2011-2016)
 # Only ONE version that matters: 1.9.32
 # Uses old SKSE (not SKSE64), 32-bit engine, DirectX 9
@@ -180,7 +182,7 @@ def get_versions_for_game(game_id: str) -> dict:
     return GAME_VERSIONS.get((game_id or "").lower(), {})
 
 
-def get_version_info(game_id: str, version: str) -> dict | None:
+def get_version_info(game_id: str, version: str) -> Optional[dict]:
     """Return info for a specific game+version, or None.
     Supports fuzzy matching: e.g. user selects 1.5.97, stored as 1.5.97."""
     versions = get_versions_for_game(game_id)
@@ -213,7 +215,7 @@ def get_default_version(game_id: str) -> str:
     return next(iter(versions), "")
 
 
-def get_version_warning(game_id: str, version: str) -> dict | None:
+def get_version_warning(game_id: str, version: str) -> Optional[dict]:
     """Return warning dict for a game+version if one exists. { severity, message, link }."""
     info = get_version_info(game_id, version)
     if not info or not info.get("warning"):

@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ModConflict:
     """Represents a conflict between mods."""
+
     type: str  # 'overwrite', 'requirement', 'incompatible', 'patch_available', etc.
     severity: str  # 'error', 'warning', 'info'
     message: str
@@ -37,6 +38,7 @@ class ModConflict:
 @dataclass
 class ModInfo:
     """Information about a mod from LOOT masterlist."""
+
     name: str
     clean_name: str  # normalized for matching
     requirements: List[str]
@@ -48,7 +50,7 @@ class ModInfo:
     messages: List[str]
     tags: List[str]
     nexus_mod_id: Optional[int] = None  # Nexus Mods ID for direct linking
-    picture_url: Optional[str] = None   # URL to mod's primary image
+    picture_url: Optional[str] = None  # URL to mod's primary image
 
 
 class LOOTParser:
@@ -56,40 +58,40 @@ class LOOTParser:
 
     # GitHub repo name = game id for LOOT (loot/skyrimse, loot/oblivion, etc.)
     LATEST_VERSIONS = {
-        'skyrim': '0.26',
-        'skyrimse': '0.26',
-        'skyrimvr': '0.21',
-        'oblivion': '0.26',
-        'fallout3': '0.26',
-        'falloutnv': '0.26',
-        'fallout4': '0.26',
-        'starfield': '0.26',
+        "skyrim": "0.26",
+        "skyrimse": "0.26",
+        "skyrimvr": "0.21",
+        "oblivion": "0.26",
+        "fallout3": "0.26",
+        "falloutnv": "0.26",
+        "fallout4": "0.26",
+        "starfield": "0.26",
     }
 
     # Nexus Mods API settings
-    NEXUS_API_BASE = 'https://api.nexusmods.com/v1'
+    NEXUS_API_BASE = "https://api.nexusmods.com/v1"
     NEXUS_API_TIMEOUT = 5  # seconds
     NEXUS_RATE_LIMIT = 1.0  # seconds between requests
 
     # Game ID to Nexus Mods domain mapping
     NEXUS_GAME_DOMAINS = {
-        'skyrimse': 'skyrimspecialedition',
-        'skyrimle': 'skyrim',
-        'skyrimvr': 'skyrimvr',
-        'oblivion': 'oblivion',
-        'fallout3': 'fallout3',
-        'falloutnv': 'newvegas',
-        'fallout4': 'fallout4',
-        'starfield': 'starfield',
+        "skyrimse": "skyrimspecialedition",
+        "skyrimle": "skyrim",
+        "skyrimvr": "skyrimvr",
+        "oblivion": "oblivion",
+        "fallout3": "fallout3",
+        "falloutnv": "newvegas",
+        "fallout4": "fallout4",
+        "starfield": "starfield",
     }
 
     # Default to Skyrim SE if game not found
-    DEFAULT_NEXUS_DOMAIN = 'skyrimspecialedition'
+    DEFAULT_NEXUS_DOMAIN = "skyrimspecialedition"
 
     # Common file extensions to strip
-    EXTENSIONS = ('.esp', '.esm', '.esl')
+    EXTENSIONS = (".esp", ".esm", ".esl")
 
-    def __init__(self, game: str = 'skyrimse', version: str = 'latest', cache_dir: str = './data'):
+    def __init__(self, game: str = "skyrimse", version: str = "latest", cache_dir: str = "./data"):
         """
         Initialize parser for a specific game and masterlist.
 
@@ -99,8 +101,8 @@ class LOOTParser:
             cache_dir: Directory to store cached YAML and JSON files
         """
         self.game = game.lower()
-        if version == 'latest':
-            self.version = self.LATEST_VERSIONS.get(self.game, '0.26')
+        if version == "latest":
+            self.version = self.LATEST_VERSIONS.get(self.game, "0.26")
         else:
             self.version = version
 
@@ -116,17 +118,17 @@ class LOOTParser:
         # Setup requests session with retries
         self.session = requests.Session()
         retries = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
-        self.session.mount('https://', HTTPAdapter(max_retries=retries))
+        self.session.mount("https://", HTTPAdapter(max_retries=retries))
 
     def _to_str(self, val: Any) -> str:
         """Extract a string from LOOT structures (handles nested dicts, YAML refs). Ensures set() never receives unhashable types."""
         if val is None:
-            return ''
+            return ""
         if isinstance(val, str):
             return val
         if isinstance(val, dict):
-            return self._to_str(val.get('name', val.get('content', val.get('display', ''))))
-        return str(val) if val else ''
+            return self._to_str(val.get("name", val.get("content", val.get("display", ""))))
+        return str(val) if val else ""
 
     def _normalize_name(self, name: str) -> str:
         """
@@ -143,7 +145,7 @@ class LOOTParser:
         # Remove common file extensions
         for ext in self.EXTENSIONS:
             if clean.endswith(ext):
-                clean = clean[:-len(ext)]
+                clean = clean[: -len(ext)]
                 break
 
         self._normalize_cache[name] = clean
@@ -157,15 +159,15 @@ class LOOTParser:
             return content
         if isinstance(content, dict):
             # Handle link type
-            if content.get('type') == 'link':
-                link = content.get('link', '')
-                text = content.get('content', '')
-                return f'[{text}]({link})'
+            if content.get("type") == "link":
+                link = content.get("link", "")
+                text = content.get("content", "")
+                return f"[{text}]({link})"
             # Default: just return content string
-            return content.get('content', str(content))
+            return content.get("content", str(content))
         if isinstance(content, list):
             # Join list elements with spaces
-            return ' '.join(self._render_content(item) for item in content)
+            return " ".join(self._render_content(item) for item in content)
         return str(content)
 
     def download_masterlist(self, force_refresh: bool = False) -> bool:
@@ -178,21 +180,30 @@ class LOOTParser:
         Returns:
             True if masterlist data is available (either from cache or download).
         """
-        is_latest = self.version == self.LATEST_VERSIONS.get(self.game, '0.26')
-        cache_file = self.cache_dir / (f'{self.game}_masterlist.yaml' if is_latest else f'{self.game}_v{self.version}_masterlist.yaml')
-        legacy_cache = self.cache_dir / f'{self.game}_v{self.version}_masterlist.yaml' if is_latest else None
+        is_latest = self.version == self.LATEST_VERSIONS.get(self.game, "0.26")
+        cache_file = self.cache_dir / (
+            f"{self.game}_masterlist.yaml"
+            if is_latest
+            else f"{self.game}_v{self.version}_masterlist.yaml"
+        )
+        legacy_cache = (
+            self.cache_dir / f"{self.game}_v{self.version}_masterlist.yaml" if is_latest else None
+        )
 
         # Try loading from cache (versionless for latest; versioned for pinned)
         if not force_refresh:
             for path in (cache_file, legacy_cache) if legacy_cache else (cache_file,):
                 if path is None or not path.exists():
                     continue
-                logger.info(f"Loading cached masterlist for {self.game}" + (f" (v{self.version})" if not is_latest else ""))
+                logger.info(
+                    f"Loading cached masterlist for {self.game}"
+                    + (f" (v{self.version})" if not is_latest else "")
+                )
                 try:
-                    with open(path, 'r', encoding='utf-8') as f:
+                    with open(path, "r", encoding="utf-8") as f:
                         self.masterlist_data = yaml.safe_load(f)
                     if legacy_cache and path == legacy_cache:
-                        with open(cache_file, 'w', encoding='utf-8') as f:
+                        with open(cache_file, "w", encoding="utf-8") as f:
                             yaml.dump(self.masterlist_data, f, allow_unicode=True)
                     return True
                 except Exception as e:
@@ -200,18 +211,22 @@ class LOOTParser:
                     break
 
         # Download fresh (version = GitHub tag, e.g. v0.26)
-        url = f'https://raw.githubusercontent.com/loot/{self.game}/v{self.version}/masterlist.yaml'
-        logger.info(f"Downloading masterlist for {self.game}" + (f" v{self.version}" if not is_latest else "") + "...")
+        url = f"https://raw.githubusercontent.com/loot/{self.game}/v{self.version}/masterlist.yaml"
+        logger.info(
+            f"Downloading masterlist for {self.game}"
+            + (f" v{self.version}" if not is_latest else "")
+            + "..."
+        )
         try:
             response = self.session.get(url, timeout=30)
             response.raise_for_status()
             self.masterlist_data = yaml.safe_load(response.text)
 
             # Cache the raw YAML
-            with open(cache_file, 'w', encoding='utf-8') as f:
+            with open(cache_file, "w", encoding="utf-8") as f:
                 yaml.dump(self.masterlist_data, f, allow_unicode=True)
 
-            plugin_count = len(self.masterlist_data.get('plugins', []))
+            plugin_count = len(self.masterlist_data.get("plugins", []))
             logger.info(f"Downloaded masterlist ({plugin_count} mods)")
             return True
         except requests.exceptions.RequestException as e:
@@ -229,14 +244,14 @@ class LOOTParser:
             logger.error("No masterlist data loaded. Call download_masterlist() first.")
             return
 
-        plugins = self.masterlist_data.get('plugins', [])
+        plugins = self.masterlist_data.get("plugins", [])
         total = len(plugins)
         logger.info(f"Parsing {total} mods from masterlist...")
 
         for i, plugin in enumerate(plugins):
             if (i + 1) % 500 == 0:
                 logger.info(f"Parse progress: {i + 1}/{total} mods")
-            name = plugin.get('name', '')
+            name = plugin.get("name", "")
             if not name:
                 continue
 
@@ -247,47 +262,47 @@ class LOOTParser:
             load_before = []
             patches = []
             messages = []
-            raw_tags = plugin.get('tag', []) or []
+            raw_tags = plugin.get("tag", []) or []
             tags = [self._to_str(t) for t in raw_tags if self._to_str(t)]
 
             # Parse requirements (req)
-            for req in plugin.get('req', []):
+            for req in plugin.get("req", []):
                 s = self._to_str(req)
                 if s:
                     requirements.append(s)
 
             # Parse incompatibilities (inc)
-            for inc in plugin.get('inc', []):
+            for inc in plugin.get("inc", []):
                 s = self._to_str(inc)
                 if s:
                     incompatibilities.append(s)
 
             # Parse load after rules
-            for after in plugin.get('after', []):
+            for after in plugin.get("after", []):
                 s = self._to_str(after)
                 if s:
                     load_after.append(s)
 
             # Parse load before rules (if present)
-            for before in plugin.get('before', []):
+            for before in plugin.get("before", []):
                 s = self._to_str(before)
                 if s:
                     load_before.append(s)
 
             # Parse messages (msg) with substitutions
-            for msg in plugin.get('msg', []):
+            for msg in plugin.get("msg", []):
                 if not isinstance(msg, dict):
                     continue
 
                 # Handle LOOT merge convention '<<'
-                if '<<' in msg:
-                    base = msg['<<']
+                if "<<" in msg:
+                    base = msg["<<"]
                     if isinstance(base, dict):
                         # Merge base into msg, excluding the '<<' key
-                        msg = {**base, **{k: v for k, v in msg.items() if k != '<<'}}
+                        msg = {**base, **{k: v for k, v in msg.items() if k != "<<"}}
 
-                content = msg.get('content', '')
-                subs = msg.get('subs', [])
+                content = msg.get("content", "")
+                subs = msg.get("subs", [])
 
                 # Render substitutions first
                 rendered_subs = [self._render_content(s) for s in subs]
@@ -311,7 +326,7 @@ class LOOTParser:
                             except (IndexError, ValueError, KeyError):
                                 pass
                         parts.append(item_text)
-                    message_text = '\n'.join(parts)
+                    message_text = "\n".join(parts)
                 else:
                     message_text = self._render_content(content)
 
@@ -319,8 +334,11 @@ class LOOTParser:
                     messages.append(message_text)
 
             # Determine if mod has dirty edits (based on tags or messages)
-            dirty_edits = ('Delev' in tags or 'Relev' in tags or
-                           any('dirty' in msg.lower() for msg in messages))
+            dirty_edits = (
+                "Delev" in tags
+                or "Relev" in tags
+                or any("dirty" in msg.lower() for msg in messages)
+            )
 
             clean_name = self._normalize_name(name)
 
@@ -342,7 +360,9 @@ class LOOTParser:
                 existing = self.mod_database[clean_name]
                 # Merge lists with deduplication (only hashable/strings for set())
                 existing.requirements = list(set(_strs(existing.requirements) + requirements))
-                existing.incompatibilities = list(set(_strs(existing.incompatibilities) + incompatibilities))
+                existing.incompatibilities = list(
+                    set(_strs(existing.incompatibilities) + incompatibilities)
+                )
                 existing.load_after = list(set(_strs(existing.load_after) + load_after))
                 existing.load_before = list(set(_strs(existing.load_before) + load_before))
                 existing.patches.extend(patches)  # patches are dicts, not easily deduped
@@ -361,14 +381,14 @@ class LOOTParser:
                     patches=patches,
                     dirty_edits=dirty_edits,
                     messages=messages,
-                    tags=tags
+                    tags=tags,
                 )
                 self.mod_database[clean_name] = mod_info
 
             # Register base alias for regex plugin names (e.g. "Mod\.es[mp]" -> also "mod")
             # so user input "Mod.esp" matches
-            if '\\' in name or ('[' in name and ']' in name):
-                base = re.sub(r'\\..*$', '', name).strip()
+            if "\\" in name or ("[" in name and "]" in name):
+                base = re.sub(r"\\..*$", "", name).strip()
                 if base:
                     base_clean = self._normalize_name(base)
                     if base_clean and base_clean not in self.mod_database:
@@ -378,7 +398,7 @@ class LOOTParser:
 
     def _compact_for_match(self, s: str) -> str:
         """Collapse spaces, dashes, underscores for flexible matching (e.g. 'Shattered Space' -> 'shatteredspace')."""
-        return ''.join(c for c in s.lower() if c.isalnum())
+        return "".join(c for c in s.lower() if c.isalnum())
 
     def get_mod_info(self, mod_name: str) -> Optional[ModInfo]:
         """
@@ -435,7 +455,7 @@ class LOOTParser:
             name_lower = info.name.lower()
             if info.clean_name.startswith(q) or name_lower.startswith(q):
                 starts.append(info.name)
-            elif q in (info.clean_name or '') or q in name_lower:
+            elif q in (info.clean_name or "") or q in name_lower:
                 contains.append(info.name)
         result = list(dict.fromkeys(starts + contains))
         if len(result) < limit:
@@ -450,8 +470,12 @@ class LOOTParser:
 
     def _database_path(self) -> Path:
         """Per-game (and per-version when pinned) JSON path so games don't overwrite each other."""
-        is_latest = self.version == self.LATEST_VERSIONS.get(self.game, '0.26')
-        name = f'{self.game}_mod_database.json' if is_latest else f'{self.game}_v{self.version}_mod_database.json'
+        is_latest = self.version == self.LATEST_VERSIONS.get(self.game, "0.26")
+        name = (
+            f"{self.game}_mod_database.json"
+            if is_latest
+            else f"{self.game}_v{self.version}_mod_database.json"
+        )
         return self.cache_dir / name
 
     def save_database(self, filepath: Optional[Union[str, Path]] = None) -> None:
@@ -464,7 +488,7 @@ class LOOTParser:
 
         data = {clean_name: asdict(info) for clean_name, info in self.mod_database.items()}
         try:
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             logger.info(f"Saved mod database to {filepath}")
         except Exception as e:
@@ -480,14 +504,14 @@ class LOOTParser:
         else:
             default_path = self._database_path()
             paths_to_try = [default_path]
-            if default_path.name != f'{self.game}_mod_database.json':
-                paths_to_try.append(self.cache_dir / f'{self.game}_mod_database.json')
-            if self.game == 'skyrimse':
-                paths_to_try.append(self.cache_dir / 'mod_database.json')
+            if default_path.name != f"{self.game}_mod_database.json":
+                paths_to_try.append(self.cache_dir / f"{self.game}_mod_database.json")
+            if self.game == "skyrimse":
+                paths_to_try.append(self.cache_dir / "mod_database.json")
 
         for path in paths_to_try:
             try:
-                with open(path, 'r', encoding='utf-8') as f:
+                with open(path, "r", encoding="utf-8") as f:
                     data = json.load(f)
 
                 self.mod_database = {}
@@ -509,7 +533,7 @@ class LOOTParser:
     def _version_sort_key(cls, ver: str) -> tuple:
         """Convert version string to sortable tuple (newest first). e.g. '0.26' -> (0, 26)."""
         try:
-            parts = [int(x) for x in ver.split('.') if x.isdigit()]
+            parts = [int(x) for x in ver.split(".") if x.isdigit()]
             return tuple(parts) if parts else (0,)
         except (ValueError, AttributeError):
             return (0,)
@@ -526,18 +550,18 @@ class LOOTParser:
             return []
         try:
             r = requests.get(
-                f'https://api.github.com/repos/loot/{game}/branches',
-                params={'per_page': 100},
+                f"https://api.github.com/repos/loot/{game}/branches",
+                params={"per_page": 100},
                 timeout=timeout,
-                headers={'Accept': 'application/vnd.github.v3+json'},
+                headers={"Accept": "application/vnd.github.v3+json"},
             )
             r.raise_for_status()
             data = r.json()
             versions = []
             for b in data:
-                name = (b.get('name') or '').strip()
-                ver = name[1:] if name.startswith('v') else name
-                if ver and all(p.isdigit() for p in ver.split('.') if p):
+                name = (b.get("name") or "").strip()
+                ver = name[1:] if name.startswith("v") else name
+                if ver and all(p.isdigit() for p in ver.split(".") if p):
                     versions.append(ver)
             seen = set()
             unique = []
@@ -556,11 +580,12 @@ class LOOTParser:
 # -------------------------------------------------------------------
 # CLI: Pre-download LOOT data for build/deploy (avoids cold-start delay)
 # -------------------------------------------------------------------
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     args = sys.argv[1:]
-    export_fuel = '--export-samson-fuel' in args
-    games = [a for a in args if a != '--export-samson-fuel'] or ['skyrimse']
+    export_fuel = "--export-samson-fuel" in args
+    games = [a for a in args if a != "--export-samson-fuel"] or ["skyrimse"]
     failed = []
     for game in games:
         g = game.lower()
@@ -576,6 +601,7 @@ if __name__ == '__main__':
             if export_fuel:
                 try:
                     from samson_fuel import extract_fuel, write_fuel
+
                     fuel = extract_fuel(p)
                     path = write_fuel(fuel)
                     print(f"  Fuel: {path}")

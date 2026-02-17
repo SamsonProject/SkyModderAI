@@ -25,78 +25,83 @@ logger = logging.getLogger(__name__)
 # -------------------------------------------------------------------
 _QUERY_EXPANSIONS = {
     # Abbreviations → full terms (for matching)
-    'ussep': ['unofficial skyrim special edition patch', 'ussep'],
-    'usleep': ['unofficial skyrim legendary edition patch', 'usleep'],
-    'uskp': ['unofficial skyrim patch', 'uskp'],
-    'skse': ['skse', 'skyrim script extender'],
-    'fnis': ['fnis', 'fores new idles'],
-    'nemesis': ['nemesis', 'nemesis engine'],
-    'dar': ['dynamic animation replacer', 'dar'],
-    'oar': ['open animation replacer', 'oar'],
-    'sse': ['skyrim special edition', 'sse'],
-    'le': ['legendary edition', 'skyrim le'],
-    'vr': ['skyrim vr', 'vr'],
-    'enb': ['enb', 'enbseries'],
-    'smp': ['smp', 'hdt smp', 'physics'],
-    'cbbe': ['cbbe', 'caliente'],
-    'unp': ['unp', 'unpb'],
-    'smim': ['smim', 'static mesh improvement'],
-    'dyndolod': ['dyndolod', 'dynamic lod'],
-    'xedit': ['xedit', 'sseedit', 'tes5edit', 'fo4edit'],
-    'loot': ['loot', 'load order'],
-    'mo2': ['mod organizer', 'mo2'],
-    'vortex': ['vortex', 'nexus mod manager'],
-    'ctd': ['crash', 'ctd', 'crash to desktop'],
-    'ils': ['infinite loading', 'ils', 'loading screen'],
-    'papyrus': ['papyrus', 'script', 'scripts'],
-    'skeleton': ['skeleton', 'xp32', 'xpmse'],
-    'bodyslide': ['bodyslide', 'body slide'],
-    'wabbajack': ['wabbajack', 'wabbajack list'],
-    'requiem': ['requiem', 'requiem the roleplaying overhaul'],
-    'ordinator': ['ordinator', 'ordinator perks'],
-    'immersive': ['immersive', 'immersive citizens'],
-    'legacy': ['legacy', 'legacy of the dragonborn', 'lotd'],
-    'bruma': ['bruma', 'beyond skyrim', 'bs bruma'],
-    'parallax': ['parallax', 'parallax textures'],
-    'grass': ['grass', 'grass mod', 'landscape'],
-    'weather': ['weather', 'obsidian', 'cathedral', 'rustic'],
+    "ussep": ["unofficial skyrim special edition patch", "ussep"],
+    "usleep": ["unofficial skyrim legendary edition patch", "usleep"],
+    "uskp": ["unofficial skyrim patch", "uskp"],
+    "skse": ["skse", "skyrim script extender"],
+    "fnis": ["fnis", "fores new idles"],
+    "nemesis": ["nemesis", "nemesis engine"],
+    "dar": ["dynamic animation replacer", "dar"],
+    "oar": ["open animation replacer", "oar"],
+    "sse": ["skyrim special edition", "sse"],
+    "le": ["legendary edition", "skyrim le"],
+    "vr": ["skyrim vr", "vr"],
+    "enb": ["enb", "enbseries"],
+    "smp": ["smp", "hdt smp", "physics"],
+    "cbbe": ["cbbe", "caliente"],
+    "unp": ["unp", "unpb"],
+    "smim": ["smim", "static mesh improvement"],
+    "dyndolod": ["dyndolod", "dynamic lod"],
+    "xedit": ["xedit", "sseedit", "tes5edit", "fo4edit"],
+    "loot": ["loot", "load order"],
+    "mo2": ["mod organizer", "mo2"],
+    "vortex": ["vortex", "nexus mod manager"],
+    "ctd": ["crash", "ctd", "crash to desktop"],
+    "ils": ["infinite loading", "ils", "loading screen"],
+    "papyrus": ["papyrus", "script", "scripts"],
+    "skeleton": ["skeleton", "xp32", "xpmse"],
+    "bodyslide": ["bodyslide", "body slide"],
+    "wabbajack": ["wabbajack", "wabbajack list"],
+    "requiem": ["requiem", "requiem the roleplaying overhaul"],
+    "ordinator": ["ordinator", "ordinator perks"],
+    "immersive": ["immersive", "immersive citizens"],
+    "legacy": ["legacy", "legacy of the dragonborn", "lotd"],
+    "bruma": ["bruma", "beyond skyrim", "bs bruma"],
+    "parallax": ["parallax", "parallax textures"],
+    "grass": ["grass", "grass mod", "landscape"],
+    "weather": ["weather", "obsidian", "cathedral", "rustic"],
 }
 
 # Common typos / variants (query → corrections to try)
 _TYPO_MAP = {
-    'ordinator': ['ordinator', 'ordinatior', 'ordnator', 'ordintor'],
-    'immersive': ['immersive', 'imersive', 'immerssive', 'immersiev', 'imerssive'],
-    'unofficial': ['unofficial', 'unoffical', 'unofficail', 'unoficial'],
-    'alternate': ['alternate', 'alternative', 'alternet', 'altarnate'],
-    'relationship': ['relationship', 'relation', 'relationship dialogue', 'relatinship'],
-    'cutting': ['cutting', 'cutting room floor', 'crf', 'cuttting', 'cuting'],
-    'falskaar': ['falskaar', 'falskar', 'falskar', 'falskaarr'],
-    'dragonborn': ['dragonborn', 'dragon born', 'dragonborne', 'dragonbourn'],
-    'dawnguard': ['dawnguard', 'dawn guard', 'dawn gaurd', 'dawnquard'],
-    'hearthfire': ['hearthfire', 'hearth fire', 'hearthfires', 'hearthfyre'],
-    'skyui': ['skyui', 'sky ui', 'sky ui se', 'skyuise', 'skyu i'],
-    'sseedit': ['sseedit', 'xedit', 'tes5edit', 'sse edit', 'sse edt'],
-    'dyndolod': ['dyndolod', 'dyndolad', 'dynolod', 'dyndoload', 'dynadolod'],
-    'requiem': ['requiem', 'requeim', 'requim', 'requeam'],
-    'enbseries': ['enbseries', 'enb series', 'enbs', 'enb'],
-    'caliente': ['caliente', 'caliente body', 'cbbe', 'cbbec'],
-    'bodyslide': ['bodyslide', 'body slide', 'bodyslyde', 'bodyslid'],
-    'nemesis': ['nemesis', 'nemisis', 'nemesys', 'nemesys engine'],
-    'skse': ['skse', 'skyrim script extender', 'skskyrim', 'skscriptextender'],
-    'smim': ['smim', 'static mesh improvement', 'staticmeshimprovement', 'smimse'],
-    'ussep': ['ussep', 'unofficial patch', 'unofficial sse patch'],
-    'wabbajack': ['wabbajack', 'wabajack', 'wabbajak', 'wabajak'],
-    'parallax': ['parallax', 'paralax', 'parallux', 'paralax'],
-    'enbhelper': ['enbhelper', 'enb helper', 'enbhelpers', 'enbhelpeer'],
-    'skeleton': ['skeleton', 'xp32', 'xpmse', 'skeletal'],
-    'animation': ['animation', 'animations', 'anims', 'animmations'],
-    'texture': ['texture', 'textures', 'texure', 'textur'],
-    'modlist': ['modlist', 'mod list', 'loadorder', 'load order'],
-    'modorganizer': ['modorganizer', 'mod organizer', 'mo2', 'modorg'],
-    'nexusmods': ['nexusmods', 'nexus mods', 'nexus', 'nexusmod'],
-    'scriptextender': ['scriptextender', 'script extender', 'skse', 'f4se', 'fose'],
-    'unofficialskyrimspecialeditionpatch': ['unofficialskyrimspecialeditionpatch', 'ussep', 'unofficial sse patch', 'unofficial skyrim patch'],
-    'skyrimscriptextender': ['skyrimscriptextender', 'skse', 'skyrim se script extender', 'skse64']
+    "ordinator": ["ordinator", "ordinatior", "ordnator", "ordintor"],
+    "immersive": ["immersive", "imersive", "immerssive", "immersiev", "imerssive"],
+    "unofficial": ["unofficial", "unoffical", "unofficail", "unoficial"],
+    "alternate": ["alternate", "alternative", "alternet", "altarnate"],
+    "relationship": ["relationship", "relation", "relationship dialogue", "relatinship"],
+    "cutting": ["cutting", "cutting room floor", "crf", "cuttting", "cuting"],
+    "falskaar": ["falskaar", "falskar", "falskar", "falskaarr"],
+    "dragonborn": ["dragonborn", "dragon born", "dragonborne", "dragonbourn"],
+    "dawnguard": ["dawnguard", "dawn guard", "dawn gaurd", "dawnquard"],
+    "hearthfire": ["hearthfire", "hearth fire", "hearthfires", "hearthfyre"],
+    "skyui": ["skyui", "sky ui", "sky ui se", "skyuise", "skyu i"],
+    "sseedit": ["sseedit", "xedit", "tes5edit", "sse edit", "sse edt"],
+    "dyndolod": ["dyndolod", "dyndolad", "dynolod", "dyndoload", "dynadolod"],
+    "requiem": ["requiem", "requeim", "requim", "requeam"],
+    "enbseries": ["enbseries", "enb series", "enbs", "enb"],
+    "caliente": ["caliente", "caliente body", "cbbe", "cbbec"],
+    "bodyslide": ["bodyslide", "body slide", "bodyslyde", "bodyslid"],
+    "nemesis": ["nemesis", "nemisis", "nemesys", "nemesys engine"],
+    "skse": ["skse", "skyrim script extender", "skskyrim", "skscriptextender"],
+    "smim": ["smim", "static mesh improvement", "staticmeshimprovement", "smimse"],
+    "ussep": ["ussep", "unofficial patch", "unofficial sse patch"],
+    "wabbajack": ["wabbajack", "wabajack", "wabbajak", "wabajak"],
+    "parallax": ["parallax", "paralax", "parallux", "paralax"],
+    "enbhelper": ["enbhelper", "enb helper", "enbhelpers", "enbhelpeer"],
+    "skeleton": ["skeleton", "xp32", "xpmse", "skeletal"],
+    "animation": ["animation", "animations", "anims", "animmations"],
+    "texture": ["texture", "textures", "texure", "textur"],
+    "modlist": ["modlist", "mod list", "loadorder", "load order"],
+    "modorganizer": ["modorganizer", "mod organizer", "mo2", "modorg"],
+    "nexusmods": ["nexusmods", "nexus mods", "nexus", "nexusmod"],
+    "scriptextender": ["scriptextender", "script extender", "skse", "f4se", "fose"],
+    "unofficialskyrimspecialeditionpatch": [
+        "unofficialskyrimspecialeditionpatch",
+        "ussep",
+        "unofficial sse patch",
+        "unofficial skyrim patch",
+    ],
+    "skyrimscriptextender": ["skyrimscriptextender", "skse", "skyrim se script extender", "skse64"],
 }
 
 
@@ -105,7 +110,7 @@ def _tokenize(text: str) -> List[str]:
     if not text:
         return []
     text = text.lower().strip()
-    tokens = re.findall(r'[a-z0-9]+', text)
+    tokens = re.findall(r"[a-z0-9]+", text)
     return [t for t in tokens if len(t) >= 2]
 
 
@@ -123,6 +128,7 @@ def _expand_query(tokens: List[str]) -> List[str]:
 @dataclass
 class SearchResult:
     """A single search result with score breakdown for transparency."""
+
     mod_name: str
     clean_name: str
     score: float
@@ -131,7 +137,7 @@ class SearchResult:
     snippet: Optional[str] = None
     mod_info: Optional[Dict] = None  # requirements, tags, etc. for AI context
     nexus_mod_id: Optional[int] = None  # Nexus Mods ID for direct linking
-    picture_url: Optional[str] = None   # URL to mod's primary image
+    picture_url: Optional[str] = None  # URL to mod's primary image
 
 
 class ModSearchEngine:
@@ -150,12 +156,16 @@ class ModSearchEngine:
         self.b = b
         self._documents: List[Dict] = []
         self._doc_id_to_mod: Dict[int, str] = {}
-        self._inverted_index: Dict[str, List[Tuple[int, int]]] = defaultdict(list)  # term -> [(doc_id, tf)]
+        self._inverted_index: Dict[str, List[Tuple[int, int]]] = defaultdict(
+            list
+        )  # term -> [(doc_id, tf)]
         self._doc_lengths: List[int] = []
         self._avg_doc_length: float = 0.0
         self._n_docs: int = 0
         self._df: Dict[str, int] = {}  # document frequency per term
-        self._authority: Dict[str, int] = {}  # mod -> how many other mods reference it (load_after, req, etc.)
+        self._authority: Dict[
+            str, int
+        ] = {}  # mod -> how many other mods reference it (load_after, req, etc.)
 
     def index_parser(self, parser) -> None:
         """
@@ -172,31 +182,33 @@ class ModSearchEngine:
             # Build document text from all searchable fields
             parts = [
                 info.name,
-                ' '.join(info.requirements or []),
-                ' '.join(info.incompatibilities or []),
-                ' '.join(info.load_after or []),
-                ' '.join(info.load_before or []),
-                ' '.join(info.tags or []),
-                ' '.join(info.messages or []),
+                " ".join(info.requirements or []),
+                " ".join(info.incompatibilities or []),
+                " ".join(info.load_after or []),
+                " ".join(info.load_before or []),
+                " ".join(info.tags or []),
+                " ".join(info.messages or []),
             ]
-            for p in (info.patches or []):
+            for p in info.patches or []:
                 if isinstance(p, dict):
-                    parts.append(' '.join(str(v) for v in p.values()))
+                    parts.append(" ".join(str(v) for v in p.values()))
                 else:
                     parts.append(str(p))
 
-            doc_text = ' '.join(p for p in parts if p)
+            doc_text = " ".join(p for p in parts if p)
             tokens = _tokenize(doc_text)
             if not tokens:
                 continue
 
             doc_id = len(self._documents)
-            self._documents.append({
-                'mod_name': info.name,
-                'clean_name': clean_name,
-                'tokens': tokens,
-                'info': info,
-            })
+            self._documents.append(
+                {
+                    "mod_name": info.name,
+                    "clean_name": clean_name,
+                    "tokens": tokens,
+                    "info": info,
+                }
+            )
             self._doc_id_to_mod[doc_id] = info.name
 
             # TF per term in this doc
@@ -209,9 +221,9 @@ class ModSearchEngine:
             self._doc_lengths.append(len(tokens))
 
             # Authority: mods that are required/load_after'd by others get boosted
-            for _ in (info.requirements or []):
+            for _ in info.requirements or []:
                 self._authority[clean_name] += 1
-            for _ in (info.load_after or []):
+            for _ in info.load_after or []:
                 self._authority[clean_name] += 1
 
         self._n_docs = len(self._documents)
@@ -222,7 +234,9 @@ class ModSearchEngine:
         for term, postings in self._inverted_index.items():
             self._df[term] = len(postings)
 
-        logger.info(f"Search engine indexed {self._n_docs} mods, {len(self._inverted_index)} unique terms")
+        logger.info(
+            f"Search engine indexed {self._n_docs} mods, {len(self._inverted_index)} unique terms"
+        )
 
     def _idf(self, term: str) -> float:
         """BM25 IDF component."""
@@ -231,12 +245,14 @@ class ModSearchEngine:
             return 0.0
         return math.log((self._n_docs - n + 0.5) / (n + 0.5) + 1.0)
 
-    def _bm25_score(self, doc_id: int, query_tokens: List[str]) -> Tuple[float, Dict[str, float], List[str]]:
+    def _bm25_score(
+        self, doc_id: int, query_tokens: List[str]
+    ) -> Tuple[float, Dict[str, float], List[str]]:
         """
         Compute BM25 score for doc_id given query tokens.
         Returns (total_score, breakdown, matched_fields).
         """
-        doc_tokens = self._documents[doc_id]['tokens']
+        doc_tokens = self._documents[doc_id]["tokens"]
         doc_len = len(doc_tokens)
         doc_tf = defaultdict(int)
         for t in doc_tokens:
@@ -252,7 +268,11 @@ class ModSearchEngine:
             tf = doc_tf[term]
             idf = self._idf(term)
             # BM25 formula
-            norm = 1 - self.b + self.b * (doc_len / self._avg_doc_length) if self._avg_doc_length else 1
+            norm = (
+                1 - self.b + self.b * (doc_len / self._avg_doc_length)
+                if self._avg_doc_length
+                else 1
+            )
             term_score = idf * (tf * (self.k1 + 1)) / (tf + self.k1 * norm)
             score += term_score
             breakdown[term] = round(term_score, 4)
@@ -302,14 +322,14 @@ class ModSearchEngine:
                 continue
 
             doc = self._documents[doc_id]
-            clean_name = doc['clean_name']
+            clean_name = doc["clean_name"]
 
             # Authority boost: mods referenced by many others rank higher (like PageRank-lite)
             auth = self._authority.get(clean_name, 0)
             auth_boost = 1.0 + 0.15 * min(auth, 10)  # cap at ~2.5x
 
             # Name match boost: exact/prefix match in mod name is strongest signal
-            name_lower = doc['mod_name'].lower()
+            name_lower = doc["mod_name"].lower()
             name_boost = 1.0
             if tokens:
                 first_token = tokens[0]
@@ -320,11 +340,11 @@ class ModSearchEngine:
 
             # Snippet: first message or requirement that matches
             snippet = None
-            info = doc.get('info')
+            info = doc.get("info")
             if info and matched:
                 for msg in (info.messages or [])[:1]:
                     if any(m in msg.lower() for m in matched):
-                        snippet = msg[:120] + ('...' if len(msg) > 120 else '')
+                        snippet = msg[:120] + ("..." if len(msg) > 120 else "")
                         break
                 if not snippet and info.requirements:
                     snippet = f"Requires: {', '.join(info.requirements[:3])}"
@@ -332,35 +352,37 @@ class ModSearchEngine:
             mod_info_dict = None
             if info:
                 mod_info_dict = {
-                    'requirements': info.requirements,
-                    'incompatibilities': info.incompatibilities,
-                    'load_after': info.load_after[:5] if info.load_after else [],
-                    'tags': info.tags[:5] if info.tags else [],
-                    'dirty_edits': info.dirty_edits,
+                    "requirements": info.requirements,
+                    "incompatibilities": info.incompatibilities,
+                    "load_after": info.load_after[:5] if info.load_after else [],
+                    "tags": info.tags[:5] if info.tags else [],
+                    "dirty_edits": info.dirty_edits,
                 }
 
-            score_breakdown = {'bm25': round(bm25, 4), 'authority_boost': round(auth_boost, 2)}
+            score_breakdown = {"bm25": round(bm25, 4), "authority_boost": round(auth_boost, 2)}
             if include_breakdown and breakdown:
-                score_breakdown['terms'] = breakdown
+                score_breakdown["terms"] = breakdown
 
             # Get Nexus Mods ID and picture URL if available
             nexus_mod_id = None
             picture_url = None
-            if info and hasattr(info, 'nexus_mod_id') and info.nexus_mod_id:
+            if info and hasattr(info, "nexus_mod_id") and info.nexus_mod_id:
                 nexus_mod_id = info.nexus_mod_id
-                picture_url = getattr(info, 'picture_url', None)
+                picture_url = getattr(info, "picture_url", None)
 
-            results.append(SearchResult(
-                mod_name=doc['mod_name'],
-                clean_name=clean_name,
-                score=round(final_score, 4),
-                score_breakdown=score_breakdown,
-                matched_fields=matched,
-                snippet=snippet,
-                mod_info=mod_info_dict,
-                nexus_mod_id=nexus_mod_id,
-                picture_url=picture_url,
-            ))
+            results.append(
+                SearchResult(
+                    mod_name=doc["mod_name"],
+                    clean_name=clean_name,
+                    score=round(final_score, 4),
+                    score_breakdown=score_breakdown,
+                    matched_fields=matched,
+                    snippet=snippet,
+                    mod_info=mod_info_dict,
+                    nexus_mod_id=nexus_mod_id,
+                    picture_url=picture_url,
+                )
+            )
 
         results.sort(key=lambda r: (-r.score, r.mod_name.lower()))
         return results[:limit]
@@ -379,14 +401,14 @@ class ModSearchEngine:
         out = []
         for r in raw:
             entry = {
-                'mod_name': r.mod_name,
-                'score': r.score,
-                'snippet': r.snippet,
-                'nexus_mod_id': r.nexus_mod_id,
-                'picture_url': r.picture_url,
+                "mod_name": r.mod_name,
+                "score": r.score,
+                "snippet": r.snippet,
+                "nexus_mod_id": r.nexus_mod_id,
+                "picture_url": r.picture_url,
             }
             if include_mod_info and r.mod_info:
-                entry['mod_info'] = r.mod_info
+                entry["mod_info"] = r.mod_info
             out.append(entry)
         return out
 

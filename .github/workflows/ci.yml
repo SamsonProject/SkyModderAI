@@ -189,7 +189,7 @@ jobs:
 
       - name: Test Docker image
         run: |
-          docker run --rm skymodderai:latest python -c "
+          docker run --rm -e FLASK_ENV=development -e SECRET_KEY=test_secret_key_for_ci_testing_12345 skymodderai:latest python -c "
           from app import app
           print('✓ Flask app imports successfully in Docker')
           from loot_parser import LOOTParser

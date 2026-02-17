@@ -173,15 +173,23 @@ def suggest_loop_adjustments(feedback: Dict[str, Any]) -> List[str]:
     enjoyment = _to_int(feedback.get("enjoyment_score"))
 
     if crashes > 0:
-        tips.append("Prioritize stability profile: trim script-heavy mods and resolve high-severity conflicts first.")
+        tips.append(
+            "Prioritize stability profile: trim script-heavy mods and resolve high-severity conflicts first."
+        )
     if fps_avg is not None and fps_avg < 50:
-        tips.append("Shift graphics profile toward balanced/performance and reduce VRAM-heavy texture packs.")
+        tips.append(
+            "Shift graphics profile toward balanced/performance and reduce VRAM-heavy texture packs."
+        )
     if stutter > 8:
         tips.append("Enable frametime-focused profile and review script latency hotspots.")
     if enjoyment >= 8 and crashes == 0:
-        tips.append("Current profile is healthy; iterate visuals incrementally with one change per run.")
+        tips.append(
+            "Current profile is healthy; iterate visuals incrementally with one change per run."
+        )
     if not tips:
-        tips.append("Collect another run with FPS + crash notes to improve confidence in next recommendations.")
+        tips.append(
+            "Collect another run with FPS + crash notes to improve confidence in next recommendations."
+        )
     return tips[:5]
 
 
@@ -197,4 +205,3 @@ def _to_float(v: Any):
         return float(v)
     except Exception:
         return None
-

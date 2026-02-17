@@ -14,7 +14,9 @@ def test_profile_dashboard_requires_auth():
 def test_profile_dashboard_returns_payload_when_logged_in():
     client = app.test_client()
     with app.app_context():
-        token, _ = session_create("profile_test@example.com", remember_me=False, user_agent="pytest")
+        token, _ = session_create(
+            "profile_test@example.com", remember_me=False, user_agent="pytest"
+        )
     assert token
     client.set_cookie(SESSION_COOKIE_NAME, token)
     res = client.get("/api/profile/dashboard")
@@ -24,4 +26,3 @@ def test_profile_dashboard_returns_payload_when_logged_in():
     assert "stats" in payload
     assert "recent_activity" in payload
     assert "suggestions" in payload
-
