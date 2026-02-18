@@ -172,8 +172,24 @@
         </header>
         
         <div class="auth-split-grid">
+            <!-- Tab Navigation -->
+            <div class="auth-tabs" style="display: flex; gap: 1rem; margin-bottom: 2rem; justify-content: center;">
+                <button type="button" id="login-tab" class="auth-tab {% if active == 'login' %}active{% endif %}" 
+                        role="tab" aria-selected="{% if active == 'login' %}true{% else %}false{% endif %}" 
+                        aria-controls="login-panel" 
+                        style="padding: 0.75rem 2rem; border: none; border-radius: 8px; background: {% if active == 'login' %}var(--primary-color){% else %}var(--bg-color-light){% endif %}; color: {% if active == 'login' %}white{% else %}var(--text-color){% endif %}; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+                    Sign In
+                </button>
+                <button type="button" id="signup-tab" class="auth-tab {% if active == 'signup' %}active{% endif %}" 
+                        role="tab" aria-selected="{% if active == 'signup' %}true{% else %}false{% endif %}" 
+                        aria-controls="signup-panel"
+                        style="padding: 0.75rem 2rem; border: none; border-radius: 8px; background: {% if active == 'signup' %}var(--primary-color){% else %}var(--bg-color-light){% endif %}; color: {% if active == 'signup' %}white{% else %}var(--text-color){% endif %}; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+                    Sign Up
+                </button>
+            </div>
+            
             <!-- Login Card -->
-            <div class="auth-card auth-split-card {% if active == 'login' %}active{% endif %}" id="login-panel" role="tabpanel" aria-labelledby="login-tab">
+            <div class="auth-card auth-split-card {% if active == 'login' %}active{% endif %}" id="login-panel" role="tabpanel" aria-labelledby="login-tab" style="display: {% if active == 'login' %}block{% else %}none{% endif %};">
                 <div class="auth-logo">
                     <h1><span class="logo-icon-rotate" style="vertical-align: middle; margin-right: 8px; display: inline-block;"></span> SkyModderAI</h1>
                     <p class="auth-tagline-top">Welcome back</p>
@@ -261,19 +277,12 @@
                         <button type="submit" id="login-submit-btn" class="primary-button" style="width: 100%; padding: 0.75rem; font-size: 1rem;">
                             Sign in
                         </button>
-                        
-                        <p style="text-align: center; margin: 1rem 0 0; color: #666; font-size: 0.9rem;">
-                            Don't have an account? 
-                            <a href="#" id="switch-to-signup" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
-                                Sign up
-                            </a>
-                        </p>
                     </div>
                 </form>
             </div>
             
             <!-- Signup Card -->
-            <div class="auth-card auth-split-card {% if active == 'signup' %}active{% endif %}" id="signup-panel" role="tabpanel" aria-labelledby="signup-tab" style="display: none;">
+            <div class="auth-card auth-split-card {% if active == 'signup' %}active{% endif %}" id="signup-panel" role="tabpanel" aria-labelledby="signup-tab" style="display: {% if active == 'signup' %}block{% else %}none{% endif %};">
                 <div class="auth-logo">
                     <h1><span class="logo-icon-rotate" style="vertical-align: middle; margin-right: 8px; display: inline-block;"></span> SkyModderAI</h1>
                     <p class="auth-tagline-top">Create account</p>
@@ -355,13 +364,6 @@
                         <button type="submit" id="signup-submit-btn" class="primary-button" style="width: 100%; padding: 0.75rem; font-size: 1rem;">
                             Create account
                         </button>
-                        
-                        <p style="text-align: center; margin: 1rem 0 0; color: #666; font-size: 0.9rem;">
-                            Already have an account? 
-                            <a href="#" id="switch-to-login" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
-                                Sign in
-                            </a>
-                        </p>
                     </div>
                 </form>
                 

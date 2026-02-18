@@ -162,18 +162,58 @@
                 input.focus();
             }
         });
-
-        // Tab switching
-        const tabs = document.querySelectorAll('[role="tab"]');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const target = e.target.getAttribute('aria-controls');
-                document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
-                    panel.classList.toggle('active', panel.id === target);
+    }
+    
+    // Initialize tab switching
+    function initTabs() {
+        const loginTab = document.getElementById('login-tab');
+        const signupTab = document.getElementById('signup-tab');
+        const loginPanel = document.getElementById('login-panel');
+        const signupPanel = document.getElementById('signup-panel');
+        
+        if (loginTab && loginPanel) {
+            loginTab.addEventListener('click', () => {
+                // Update tab styles
+                document.querySelectorAll('.auth-tab').forEach(tab => {
+                    tab.style.background = 'var(--bg-color-light)';
+                    tab.style.color = 'var(--text-color)';
+                    tab.setAttribute('aria-selected', 'false');
                 });
-                tabs.forEach(t => t.classList.toggle('active', t === e.target));
+                loginTab.style.background = 'var(--primary-color)';
+                loginTab.style.color = 'white';
+                loginTab.setAttribute('aria-selected', 'true');
+                
+                // Update panel visibility
+                loginPanel.style.display = 'block';
+                if (signupPanel) signupPanel.style.display = 'none';
+                
+                // Focus email field
+                const emailField = document.getElementById('login-email');
+                if (emailField) setTimeout(() => emailField.focus(), 100);
             });
-        });
+        }
+        
+        if (signupTab && signupPanel) {
+            signupTab.addEventListener('click', () => {
+                // Update tab styles
+                document.querySelectorAll('.auth-tab').forEach(tab => {
+                    tab.style.background = 'var(--bg-color-light)';
+                    tab.style.color = 'var(--text-color)';
+                    tab.setAttribute('aria-selected', 'false');
+                });
+                signupTab.style.background = 'var(--primary-color)';
+                signupTab.style.color = 'white';
+                signupTab.setAttribute('aria-selected', 'true');
+                
+                // Update panel visibility
+                signupPanel.style.display = 'block';
+                if (loginPanel) loginPanel.style.display = 'none';
+                
+                // Focus email field
+                const emailField = document.getElementById('signup-email');
+                if (emailField) setTimeout(() => emailField.focus(), 100);
+            });
+        }
     }
 
     // Initialize everything
@@ -187,6 +227,7 @@
         if (signupForm) signupForm.addEventListener('submit', onSignupSubmit);
 
         initEmailAutofill();
+        initTabs();
 
         // Check URL for email parameter
         const urlParams = new URLSearchParams(window.location.search);
