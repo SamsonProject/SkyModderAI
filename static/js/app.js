@@ -1700,7 +1700,97 @@ function createConflictsSection(title, type, conflicts, nexusGameSlug) {
     header.textContent = title;
     section.appendChild(header);
 
+    // Grouping Logic: Combine identical solutions into single "Smart Cards"
+    const groups = {};
+    const singles = [];
+
     conflicts.forEach(conflict => {
+        const action = conflict.suggested_action;
+        // Group errors/warnings if they share a specific solution string
+        if (action && (type === 'error' || type === 'warning')) {
+            if (!groups[action]) {
+                groups[action] = [];
+            }
+            groups[action].push(conflict);
+        } else {
+            singles.push(conflict);
+        }
+    });
+
+    // Process groups: if a group has only 1 item, treat it as a single
+    Object.keys(groups).forEach(key => {
+        if (groups[key].length === 1) {
+            singles.push(groups[key][0]);
+            delete groups[key];
+        }
+    });
+
+    // Render Groups (Smart Cards)
+    Object.keys(groups).forEach(actionKey => {
+        const groupItems = groups[actionKey];
+        const first = groupItems[0];
+
+        const item = document.createElement('div');
+        item.className = `conflict-item ${type} conflict-group-item`;
+
+        // Badges
+        const badgeWrap = document.createElement('div');
+        badgeWrap.className = 'conflict-badges';
+        const badge = document.createElement('span');
+        badge.className = 'conflict-type-badge';
+        badge.textContent = 'Shared Solution';
+        badgeWrap.appendChild(badge);
+
+        // Check if all have same type
+        const allSameType = groupItems.every(c => c.type === first.type);
+        if (allSameType && first.type) {
+            const typeLabel = CONFLICT_TYPE_LABELS[first.type] || first.type;
+            const typeBadge = document.createElement('span');
+            typeBadge.className = 'conflict-type-badge';
+            typeBadge.style.marginLeft = '4px';
+            typeBadge.textContent = typeLabel;
+            badgeWrap.appendChild(typeBadge);
+        }
+        item.appendChild(badgeWrap);
+
+        // Action (The Solution) - Prominent
+        const actionDiv = document.createElement('div');
+        actionDiv.className = 'conflict-action-group';
+
+        const parseMd = (window.marked && typeof marked.parse === 'function') ? (s) => marked.parse(s) : (window.marked && typeof marked === 'function') ? (s) => marked(s) : null;
+        let actionHtml = actionKey;
+        if (parseMd) {
+            try { actionHtml = linkify(parseMd(actionKey)); } catch (_) { actionHtml = linkify(actionKey); }
+        } else {
+            actionHtml = linkify(actionKey);
+        }
+        // Remove wrapping <p> from marked if present
+        actionHtml = actionHtml.replace(/^<p>|<\/p>$/g, '');
+
+        actionDiv.innerHTML = `<span style="color:var(--accent-primary)">Solution:</span> ${actionHtml}`;
+        item.appendChild(actionDiv);
+
+        // Affected Mods List
+        const modList = document.createElement('div');
+        modList.className = 'conflict-group-mods';
+
+        const modNames = groupItems.map(c => c.affected_mod).filter(Boolean);
+        const uniqueMods = [...new Set(modNames)];
+
+        modList.innerHTML = `<strong>Applies to ${uniqueMods.length} mods:</strong><br>${uniqueMods.join(', ')}`;
+        item.appendChild(modList);
+
+        // Resolved Checkbox (Group level)
+        const checkWrap = document.createElement('label');
+        checkWrap.className = 'conflict-resolved-check';
+        checkWrap.innerHTML = '<input type="checkbox" class="conflict-resolved-cb"> Mark all resolved';
+        item.appendChild(checkWrap);
+
+        section.appendChild(item);
+    });
+
+    // Render Singles (Standard Cards)
+    singles.forEach(conflict => {
         const item = document.createElement('div');
         item.className = `conflict-item ${type}`;
 
@@ -1720,6 +1810,13 @@ function createConflictsSection(title, type, conflicts, nexusGameSlug) {
             related.textContent = '↔ ' + conflict.related_mod;
             related.title = 'Related mod';
             badgeWrap.appendChild(related);
+        }
+        if (conflict.occurrence_count && conflict.occurrence_count > 1) {
+            const freq = document.createElement('span');
+            freq.className = 'conflict-frequency-badge';
+            freq.textContent = `Seen ${conflict.occurrence_count} times`;
+            freq.title = 'Community reported frequency';
+            badgeWrap.appendChild(freq);
         }
         if (badgeWrap.children.length) item.appendChild(badgeWrap);
 
@@ -4631,6 +4728,11 @@ function initModernTheme() {
             background: rgba(56, 189, 248, 0.1); color: var(--accent);
             padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;
         }
+        .conflict-frequency-badge {
+            background: rgba(139, 92, 246, 0.15); color: var(--accent);
+            padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;
+            border: 1px solid rgba(139, 92, 246, 0.3); font-weight: 600;
+        }
         .success-state {
             text-align: center; padding: 3rem 2rem; background: var(--bg-panel);
             border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 2rem;
@@ -4905,8 +5007,9 @@ function initDonationUI() {
 function initAgentWindow() {
     const style = document.createElement('style');
     style.textContent = `
-        #agent-toggle { position: fixed; bottom: 24px; left: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: var(--accent-text); border: none; cursor: pointer; box-shadow: var(--shadow-md); z-index: 10001; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        #agent-toggle { position: fixed; bottom: 24px; left: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: var(--accent-text); border: none; cursor: pointer; box-shadow: var(--shadow-md); z-index: 10001; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; padding: 0; overflow: hidden; }
         #agent-toggle:hover { transform: scale(1.05); }
+        #agent-toggle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; pointer-events: none; }
         #agent-window { position: fixed; bottom: 96px; left: 24px; width: 380px; height: 600px; max-height: 80vh; background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); z-index: 10000; display: flex; flex-direction: column; transform: translateY(20px); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden; }
         #agent-window.active { transform: translateY(0); opacity: 1; pointer-events: all; }
         .agent-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-panel); }
@@ -4920,13 +5023,17 @@ function initAgentWindow() {
         .chat-msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 0.95rem; line-height: 1.5; }
         .chat-msg-user { align-self: flex-end; background: var(--accent); color: var(--accent-text); border-bottom-right-radius: 2px; }
         .chat-msg-assistant { align-self: flex-start; background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); border-bottom-left-radius: 2px; }
-        @media (max-width: 480px) { #agent-window { width: 92%; left: 4%; right: 4%; bottom: 80px; height: 60vh; } }
+        @media (max-width: 768px) {
+            #agent-toggle { bottom: 90px; }
+            #agent-window { bottom: 156px; }
+        }
+        @media (max-width: 480px) { #agent-window { width: 92%; left: 4%; right: 4%; bottom: 156px; height: 60vh; } }
     `;
     document.head.appendChild(style);
 
     const toggle = document.createElement('button');
     toggle.id = 'agent-toggle';
-    toggle.innerHTML = '<img src="/static/icons/samson_dog.svg" alt="Samson" style="width:36px;height:36px;pointer-events:none;">';
+    toggle.innerHTML = '<img src="/static/icons/samson_dog.svg" alt="Samson">';
     toggle.title = 'Open Agent';
     document.body.appendChild(toggle);
 
@@ -6216,6 +6323,134 @@ function closeVaultModal() {
     document.getElementById('vault-modal').classList.remove('active');
     if (vaultResolve) { vaultResolve(null); vaultResolve = null; }
 }
+
+// -------------------------------------------------------------------
+// Gameplay Engine UI (Walkthroughs)
+// -------------------------------------------------------------------
+const GameplayUI = {
+    container: null,
+    currentGame: '',
+
+    init(containerId) {
+        this.container = document.getElementById(containerId);
+        if (!this.container) return;
+
+        const gameSelect = document.getElementById('game-select');
+        this.currentGame = gameSelect ? gameSelect.value : 'skyrimse';
+
+        // Re-load if game changed
+        if (this.container.dataset.loadedGame !== this.currentGame) {
+            this.loadIndex();
+        }
+    },
+
+    async loadIndex() {
+        this.container.innerHTML = '<p class="hint">Loading guides...</p>';
+        try {
+            const res = await fetch(`/api/walkthroughs?game=${encodeURIComponent(this.currentGame)}`);
+            const data = await res.json();
+            this.container.dataset.loadedGame = this.currentGame;
+            this.renderIndex(data.guides || []);
+        } catch (e) {
+            this.container.innerHTML = '<p class="hint">Could not load guides. Try again later.</p>';
+        }
+    },
+
+    renderIndex(guides) {
+        if (guides.length === 0) {
+            this.container.innerHTML = '<p class="hint">No guides available for this game yet.</p>';
+            return;
+        }
+
+        let html = '<div class="walkthrough-layout"><div class="walkthrough-sidebar">';
+
+        // Group by category
+        const categories = {};
+        guides.forEach(g => {
+            const cat = g.category || 'General';
+            if (!categories[cat]) categories[cat] = [];
+            categories[cat].push(g);
+        });
+
+        for (const [cat, items] of Object.entries(categories)) {
+            html += `<div class="wt-category"><div class="wt-category-title">${escapeHtml(cat)}</div>`;
+            items.forEach(g => {
+                html += `<div class="wt-item" data-id="${escapeHtml(g.id)}">${escapeHtml(g.title)}</div>`;
+            });
+            html += '</div>';
+        }
+
+        html += '</div><div class="walkthrough-content" id="wt-content"><div class="wt-placeholder">Select a guide to view details.</div></div></div>';
+
+        this.container.innerHTML = html;
+
+        this.container.querySelectorAll('.wt-item').forEach(item => {
+            item.addEventListener('click', () => {
+                this.container.querySelectorAll('.wt-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                this.loadGuide(item.dataset.id);
+            });
+        });
+    },
+
+    async loadGuide(id) {
+        const contentEl = document.getElementById('wt-content');
+        if (!contentEl) return;
+        contentEl.innerHTML = '<p class="hint">Loading guide...</p>';
+
+        try {
+            const res = await fetch(`/api/walkthroughs/${encodeURIComponent(id)}?game=${encodeURIComponent(this.currentGame)}`);
+            const data = await res.json();
+            this.renderGuide(data, contentEl);
+        } catch (e) {
+            contentEl.innerHTML = '<p class="hint">Failed to load guide.</p>';
+        }
+    },
+
+    renderGuide(data, container) {
+        let html = `<div class="wt-header"><h2>${escapeHtml(data.title)}</h2></div>`;
+
+        if (data.steps && data.steps.length > 0) {
+            data.steps.forEach((step, idx) => {
+                html += `
+                    <div class="wt-step">
+                        <div class="wt-step-header"><h3>${idx + 1}. ${escapeHtml(step.title)}</h3></div>
+                        <div class="wt-step-body">
+                            <p>${escapeHtml(step.description || '')}</p>
+                            ${step.vanilla_solution ? `
+                                <div class="wt-spoiler closed">
+                                    <div class="wt-spoiler-btn">Show Solution</div>
+                                    <div class="wt-spoiler-content">${escapeHtml(step.vanilla_solution)}</div>
+                                </div>
+                            ` : ''}
+                            ${step.mod_notes ? step.mod_notes.map(n => `
+                                <div class="wt-mod-context">
+                                    <div class="wt-mod-header">Mod: ${escapeHtml(n.mod_id)}</div>
+                                    <div>${escapeHtml(n.note)}</div>
+                                </div>
+                            `).join('') : ''}
+                            ${step.bugs ? `
+                                <div class="wt-bugs" style="margin-top:1rem;font-size:0.9rem;color:var(--warning)">
+                                    <strong>Known Bugs:</strong>
+                                    <ul style="margin-top:0.5rem;padding-left:1.5rem">
+                                        ${step.bugs.map(b => `<li>${escapeHtml(b.symptom)}: ${escapeHtml(b.fix)}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('.wt-spoiler').forEach(el => {
+            el.addEventListener('click', () => el.classList.toggle('closed'));
+        });
+    }
+};
+window.GameplayUI = GameplayUI;
 
 // Wait for the DOM to be fully loaded before initializing
 document.addEventListener('DOMContentLoaded', function () {

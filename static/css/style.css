@@ -125,6 +125,8 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 /* --------------------------------------------------------------------------
@@ -1693,6 +1695,27 @@ body {
 
 .conflict-item.info {
     border-left-color: var(--accent-primary);
+}
+
+/* Grouped Conflict Styling (Smart Cards) */
+.conflict-group-item {
+    border-left-width: 6px;
+}
+
+.conflict-action-group {
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 1.05rem;
+}
+
+.conflict-group-mods {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    background: rgba(0, 0, 0, 0.15);
+    padding: 8px 12px;
+    border-radius: 6px;
+    line-height: 1.5;
 }
 
 .conflict-message {
@@ -5154,7 +5177,7 @@ footer {
 
     .library-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: var(--space-lg);
     }
 

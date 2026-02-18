@@ -80,6 +80,7 @@ from system_impact import (
     format_system_impact_report,
     get_system_impact,
 )
+from walkthrough_manager import WalkthroughManager
 
 
 # -------------------------------------------------------------------
@@ -675,6 +676,9 @@ def init_db():
 
 # Initialize on startup
 init_db()
+
+# Initialize Walkthrough Manager
+walkthrough_manager = WalkthroughManager()
 
 # Session cookie name and lifetimes (seconds)
 SESSION_COOKIE_NAME = "session_token"
@@ -2274,6 +2278,36 @@ def signup_submit():
     return jsonify(
         {
             "success": True,
+            "game": game,
+            "feedback": feedback,
+            "suggestions": suggestions,
+            "loop_state_written": True,
+        }
+    )
+
+
+@app.route("/api/walkthroughs", methods=["GET"])
+def list_walkthroughs():
+    """List available walkthroughs/guides for a game."""
+    game = (request.args.get("game") or DEFAULT_GAME).lower()
+    index = walkthrough_manager.get_stuck_index(game)
+    return jsonify({"game": game, "guides": index})
+
+
+@app.route("/api/walkthroughs/<guide_id>", methods=["GET"])
+def get_walkthrough(guide_id):
+    """Get specific walkthrough content."""
+    game = (request.args.get("game") or DEFAULT_GAME).lower()
+    data = walkthrough_manager.get_walkthrough(game, guide_id)
+    if not data:
+        return api_error("Walkthrough not found", 404)
+    return jsonify(data)
+
+
+def _openclaw_safety_status():
+    """Compute OpenClaw hardening status as a simple score/checklist."""
+    checks = [
+        ("feature_toggle", OPENCLAW_ENABLED, "Feature toggle present and explicit"),
             "message": "Check your email for a verification link. Click it to finish setting up your account—then you can choose to go to Pro checkout.",
         }
     )
@@ -4182,6 +4216,8 @@ def analyze_mods():
             if d.get("suggested_action"):
                 d["suggested_action"] = html.escape(str(d["suggested_action"]))
             d["links"] = _build_conflict_links(c, nexus_slug)
+            if id(c) in conflict_counts:
+                d["occurrence_count"] = conflict_counts[id(c)]
             return d
 
         all_visible = err_list + warn_list + info_list
@@ -4190,6 +4226,24 @@ def analyze_mods():
 
         # Refinement Cycle: Log conflicts to learn from them
         _log_conflict_stats(game, all_visible)
+
+        # Enrich conflicts with community frequency (The "Intimate Database")
+        conflict_counts = {}
+        try:
+            db = get_db()
+            for c in all_visible:
+                mod_a = getattr(c, "affected_mod", None)
+                mod_b = getattr(c, "related_mod", None) or ""
+                c_type = getattr(c, "type", "unknown")
+                if mod_a:
+                    row = db.execute(
+                        "SELECT occurrence_count FROM conflict_stats WHERE game = ? AND mod_a = ? AND mod_b = ? AND conflict_type = ?",
+                        (game, mod_a, mod_b, c_type),
+                    ).fetchone()
+                    if row:
+                        conflict_counts[id(c)] = row["occurrence_count"]
+        except Exception as e:
+            logger.debug(f"Failed to fetch conflict stats: {e}")
 
         masterlist_ver = getattr(active_parser, "version", "latest")
 
