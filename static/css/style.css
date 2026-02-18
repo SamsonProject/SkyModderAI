@@ -3242,33 +3242,35 @@ footer {
         gap: 0;
     }
 
-    .main-tab {
-        flex: 1;
-        min-width: 0;
-        padding: var(--space-sm) var(--space-md);
-        font-size: 0.9rem;
-    }
-
     .quickstart-panel .quickstart-content,
     .community-panel .community-content {
         padding: var(--space-lg);
     }
 
     .site-header {
-        flex-wrap: wrap;
-        gap: var(--space-md);
-        padding: var(--space-md) 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .logo-link {
+        justify-content: center;
+        margin-bottom: 0.5rem;
     }
 
     .header-search {
-        order: 3;
+        order: 2;
         max-width: none;
         width: 100%;
+        margin-bottom: 0.5rem;
     }
 
     .header-nav {
+        order: 3;
+        justify-content: center;
         flex-wrap: wrap;
-        gap: var(--space-sm);
+        gap: 1rem;
     }
 
     .logo-title {
@@ -3280,7 +3282,7 @@ footer {
     }
 
     .hero h2 {
-        font-size: 2rem;
+        font-size: 2.25rem;
     }
 
     .hero p {
@@ -3289,7 +3291,7 @@ footer {
 
     .input-panel,
     .results-panel {
-        padding: var(--space-lg);
+        padding: 1.25rem;
     }
 
     .input-actions {
@@ -3315,7 +3317,8 @@ footer {
     }
 
     .features-grid,
-    .pricing-grid {
+    .pricing-grid,
+    .tool-section {
         grid-template-columns: 1fr;
     }
 

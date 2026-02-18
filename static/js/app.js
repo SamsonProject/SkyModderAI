@@ -4732,6 +4732,34 @@ function initModernTheme() {
             color: var(--accent);
             border-bottom-color: var(--accent);
         }
+
+        /* Responsive / Mobile Polish */
+        @media (max-width: 768px) {
+            main { padding: 1rem; }
+            .card, .tab-panel, .modal-content, .library-card, .gp-layout {
+                padding: 1.25rem;
+                border-radius: var(--radius-md);
+                margin-bottom: 1.5rem;
+            }
+            h1 { font-size: 1.75rem; }
+            h2 { font-size: 1.4rem; }
+            h3 { font-size: 1.2rem; }
+
+            .dev-tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 4px;
+                margin-bottom: 1rem;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .dev-tabs::-webkit-scrollbar { display: none; }
+
+            /* Better touch targets & input sizing */
+            button, .primary-button, .secondary-button, .danger-button { min-height: 44px; }
+            input, select, textarea { font-size: 16px !important; } /* Prevent iOS zoom */
+            .dev-results-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+        }
     `;
     document.head.appendChild(style);
 
