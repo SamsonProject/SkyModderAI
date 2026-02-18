@@ -4,7 +4,7 @@ Prevents CSRF attacks and handles server restarts during OAuth flow.
 """
 
 import secrets
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 
 from flask import current_app

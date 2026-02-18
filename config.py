@@ -55,21 +55,21 @@ class Config:
     # Stripe
     # Support both production and test mode keys
     STRIPE_TEST_MODE = os.getenv("STRIPE_TEST_MODE", "false").lower() == "true"
-    
+
     if STRIPE_TEST_MODE:
         STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY_TEST_MODE")
         STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY_TEST_MODE")
     else:
         STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
         STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-    
+
     STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
     STRIPE_PRO_PRICE_ID = os.getenv("STRIPE_PRO_PRICE_ID")
     STRIPE_OPENCLAW_PRICE_ID = os.getenv("STRIPE_OPENCLAW_PRICE_ID")
-    
+
     # Payments enabled if we have a valid secret key (live or test)
     PAYMENTS_ENABLED = bool(
-        STRIPE_SECRET_KEY and 
+        STRIPE_SECRET_KEY and
         (STRIPE_SECRET_KEY.startswith("sk_live_") or STRIPE_SECRET_KEY.startswith("sk_test_"))
     )
 

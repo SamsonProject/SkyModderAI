@@ -42,17 +42,6 @@ from config import config
 
 # Local modules
 from conflict_detector import ConflictDetector, parse_mod_list_text
-from bethesda_research import (
-    get_game_info,
-    get_common_issues,
-    get_essential_mods,
-    get_hardware_recommendations,
-    get_acronym_definition,
-    get_compatibility_info,
-    get_ini_recommendations,
-    get_community_resources,
-    MOD_ACRONYMS,
-)
 
 # Shared constants - imported from constants.py
 from constants import (
@@ -66,6 +55,8 @@ from constants import (
 )
 from knowledge_index import (
     build_ai_context as build_knowledge_context,
+)
+from knowledge_index import (
     format_knowledge_for_ai,
     get_game_resources,
     get_resolution_for_conflict,
@@ -3673,25 +3664,25 @@ def api_get_saved_lists():
     """
     if "user_email" not in session:
         return api_error("Authentication required", 401)
-    
+
     try:
         from saved_lists import get_saved_lists
-        
+
         user_email = session["user_email"]
         game = request.args.get("game")
         search = request.args.get("search")
-        
+
         try:
             limit = int(request.args.get("limit", 50))
             offset = int(request.args.get("offset", 0))
         except (TypeError, ValueError):
             limit = 50
             offset = 0
-        
+
         lists = get_saved_lists(user_email, game=game, search=search, limit=limit, offset=offset)
-        
+
         return api_success({"lists": lists, "total": len(lists)})
-        
+
     except Exception as e:
         logger.exception(f"Get saved lists failed: {e}")
         return api_error(str(e), 500)
@@ -3704,25 +3695,25 @@ def api_save_list():
     """
     if "user_email" not in session:
         return api_error("Authentication required", 401)
-    
+
     try:
         from saved_lists import save_list
-        
+
         data = request.get_json() or {}
-        
+
         # Required fields
         name = data.get("name", "").strip()
         list_text = data.get("list_text", "").strip()
         game = data.get("game", DEFAULT_GAME).lower()
-        
+
         if not name or not list_text:
             return api_error("Name and list_text are required", 400)
-        
+
         if game not in {g["id"] for g in SUPPORTED_GAMES}:
             return api_error(f"Invalid game: {game}", 400)
-        
+
         user_email = session["user_email"]
-        
+
         # Optional fields
         result = save_list(
             user_email=user_email,
@@ -3736,12 +3727,12 @@ def api_save_list():
             analysis_snapshot=data.get("analysis"),
             source=data.get("source"),
         )
-        
+
         if result["success"]:
             return api_success(result, f"List {result['action']}")
         else:
             return api_error(result.get("error", "Save failed"), 500)
-        
+
     except Exception as e:
         logger.exception(f"Save list failed: {e}")
         return api_error(str(e), 500)
@@ -3752,18 +3743,18 @@ def api_get_saved_list(list_id):
     """Get a specific saved list by ID. Requires login."""
     if "user_email" not in session:
         return api_error("Authentication required", 401)
-    
+
     try:
         from saved_lists import get_list_by_id
-        
+
         user_email = session["user_email"]
         list_data = get_list_by_id(user_email, list_id)
-        
+
         if list_data:
             return api_success({"list": list_data})
         else:
             return api_error("List not found", 404)
-        
+
     except Exception as e:
         logger.exception(f"Get list failed: {e}")
         return api_error(str(e), 500)
@@ -3774,18 +3765,18 @@ def api_delete_list(list_id):
     """Delete a saved list. Requires login."""
     if "user_email" not in session:
         return api_error("Authentication required", 401)
-    
+
     try:
         from saved_lists import delete_list
-        
+
         user_email = session["user_email"]
         result = delete_list(user_email, list_id)
-        
+
         if result["success"]:
             return api_success({"deleted": True}, "List deleted")
         else:
             return api_error("List not found", 404)
-        
+
     except Exception as e:
         logger.exception(f"Delete list failed: {e}")
         return api_error(str(e), 500)
@@ -3796,13 +3787,13 @@ def api_update_list(list_id):
     """Update list metadata (name, tags, notes). Requires login."""
     if "user_email" not in session:
         return api_error("Authentication required", 401)
-    
+
     try:
         from saved_lists import update_list_metadata
-        
+
         user_email = session["user_email"]
         data = request.get_json() or {}
-        
+
         result = update_list_metadata(
             user_email=user_email,
             list_id=list_id,
@@ -3810,12 +3801,12 @@ def api_update_list(list_id):
             tags=data.get("tags"),
             notes=data.get("notes"),
         )
-        
+
         if result["success"]:
             return api_success({"updated": True}, "List updated")
         else:
             return api_error(result.get("error", "Update failed"), 500)
-        
+
     except Exception as e:
         logger.exception(f"Update list failed: {e}")
         return api_error(str(e), 500)
@@ -3826,15 +3817,15 @@ def api_saved_lists_stats():
     """Get statistics about user's saved lists. Requires login."""
     if "user_email" not in session:
         return api_error("Authentication required", 401)
-    
+
     try:
         from saved_lists import get_list_stats
-        
+
         user_email = session["user_email"]
         stats = get_list_stats(user_email)
-        
+
         return api_success({"stats": stats})
-        
+
     except Exception as e:
         logger.exception(f"Get stats failed: {e}")
         return api_error(str(e), 500)
@@ -6779,18 +6770,18 @@ def information_map():
 def api_link_preview_nexus(game, mod_id):
     """Get Nexus mod preview data for hover popover."""
     try:
-        from mod_images import get_mod_image, search_mod_image_by_name
-        
+        from mod_images import get_mod_image
+
         # Get parser for game data
         parser = get_parser(game)
-        
+
         # Try to find mod in database
         mod_info = None
         for mod_name, info in parser.mod_database.items():
             if hasattr(info, 'nexus_id') and str(info.nexus_id) == mod_id:
                 mod_info = info
                 break
-        
+
         if mod_info:
             image_url = get_mod_image(game, mod_id, mod_info.name)
             return jsonify({
@@ -6815,7 +6806,7 @@ def api_link_preview_nexus(game, mod_id):
                 "url": f"https://www.nexusmods.com/{game}/mods/{mod_id}",
                 "loading": False,
             })
-            
+
     except Exception as e:
         logger.exception(f"Link preview failed for nexus {game}/{mod_id}: {e}")
         return jsonify({
@@ -6862,9 +6853,9 @@ def api_link_preview_internal(page):
         "gameplay": {"title": "Gameplay", "description": "Gameplay engine and walkthroughs"},
         "dev": {"title": "Dev Tools", "description": "Developer tools and API"},
     }
-    
+
     section = section_map.get(page.lower(), {"title": page, "description": ""})
-    
+
     return jsonify({
         "type": "internal",
         "page": page,

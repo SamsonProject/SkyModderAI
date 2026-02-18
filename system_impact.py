@@ -163,7 +163,7 @@ def _calculate_bottleneck(gpu_score: int, cpu_score: int, game: str) -> Dict:
     """Determine primary bottleneck."""
     if not gpu_score or not cpu_score:
         return {"type": "unknown", "severity": "unknown", "explanation": "Insufficient hardware data"}
-    
+
     ratio = gpu_score / max(cpu_score, 1)
     if ratio > 1.5:
         return {"type": "cpu", "severity": "high" if ratio > 2 else "medium",
@@ -181,10 +181,10 @@ def _estimate_fps(base_fps: int, heavy_mods: List[HeavyMod], gpu_score: int, cpu
     total_fps_impact = sum(mod.fps_impact for mod in heavy_mods)
     hardware_factor = (gpu_score + cpu_score) / 200
     res_mult = {"1080p": 1.0, "1440p": 0.75, "4k": 0.55, "ultrawide": 0.7}.get(resolution.lower(), 1.0)
-    
+
     estimated_fps = max(15, base_fps * hardware_factor * res_mult + total_fps_impact)
     confidence = "high" if gpu_score > 0 and cpu_score > 0 else "medium" if gpu_score or cpu_score else "low"
-    
+
     return {"estimated": round(estimated_fps), "min": round(max(10, estimated_fps - 10)),
             "max": round(min(estimated_fps + 15, base_fps * hardware_factor)), "confidence": confidence}
 
@@ -193,7 +193,7 @@ def _generate_optimization_suggestions(heavy_mods: List[HeavyMod], specs: Dict,
                                         estimated_vram: float, game: str) -> List[Dict]:
     """Generate personalized optimization suggestions."""
     suggestions = []
-    
+
     # VRAM optimization
     vram_spec = specs.get("vram_gb") or specs.get("vram")
     if vram_spec:
@@ -208,7 +208,7 @@ def _generate_optimization_suggestions(heavy_mods: List[HeavyMod], specs: Dict,
                 })
         except (ValueError, TypeError):
             pass
-    
+
     # ENB suggestions
     if any("ENB" in m.category for m in heavy_mods):
         suggestions.append({
@@ -217,7 +217,7 @@ def _generate_optimization_suggestions(heavy_mods: List[HeavyMod], specs: Dict,
             "actions": ["Use performance ENB presets", "Disable complex shadows",
                        "Reduce ambient occlusion", "Consider ReShade alternative"]
         })
-    
+
     # Grass/flora suggestions
     if any("grass" in m.category.lower() or "flora" in m.category.lower() for m in heavy_mods):
         suggestions.append({
@@ -226,7 +226,7 @@ def _generate_optimization_suggestions(heavy_mods: List[HeavyMod], specs: Dict,
             "actions": ["Reduce grass density in INI", "Use optimized grass textures",
                        "Disable grass on distant mountains"]
         })
-    
+
     # Storage suggestions
     storage_type = specs.get("storage_type", "").lower()
     if "hdd" in storage_type or "hard drive" in storage_type:
@@ -236,7 +236,7 @@ def _generate_optimization_suggestions(heavy_mods: List[HeavyMod], specs: Dict,
             "actions": ["Move game to SSD if possible", "Disable disk-heavy mods",
                        "Increase preloading in INI"]
         })
-    
+
     # CPU-bound suggestions
     if _GAME_BASELINES.get(game, {}).get("cpu_bound") and specs.get("cpu"):
         suggestions.append({
@@ -245,7 +245,7 @@ def _generate_optimization_suggestions(heavy_mods: List[HeavyMod], specs: Dict,
             "actions": ["Reduce NPC density", "Simplify AI overhaul mods",
                        "Optimize script-heavy mods"]
         })
-    
+
     return suggestions
 
 
@@ -257,13 +257,13 @@ def get_system_impact(mod_names: List[str], enabled_count: int, specs: Optional[
                       game: Optional[str] = None) -> Dict:
     """
     Analyze mod list for system/performance impact with detailed hardware analysis.
-    
+
     Args:
         mod_names: List of mod names
         enabled_count: Number of enabled mods
         specs: System specs (gpu, cpu, vram_gb, ram_gb, resolution, storage_type)
         game: Game ID for game-specific analysis
-    
+
     Returns:
         Comprehensive performance analysis dict
     """
@@ -293,15 +293,15 @@ def get_system_impact(mod_names: List[str], enabled_count: int, specs: Optional[
     gpu_tier, gpu_vram, gpu_score = _detect_gpu(specs.get("gpu"))
     cpu_tier, cpu_cores, cpu_score = _detect_cpu(specs.get("cpu"))
     bottleneck = _calculate_bottleneck(gpu_score, cpu_score, game)
-    
+
     # FPS estimate
     game_baseline = _GAME_BASELINES.get(game, {"base_fps": 60})
     fps_estimate = _estimate_fps(game_baseline.get("base_fps", 60), heavy_mods,
                                   gpu_score, cpu_score, specs.get("resolution", "1080p"))
-    
+
     # Optimization suggestions
     suggestions = _generate_optimization_suggestions(heavy_mods, specs, estimated_vram, game)
-    
+
     # Complexity
     high_impact = sum(1 for m in heavy_mods if m.impact == "high")
     if enabled_count >= 200 or high_impact >= 3:
@@ -319,7 +319,7 @@ def get_system_impact(mod_names: List[str], enabled_count: int, specs: Optional[
             vram_spec = int(str(specs.get("vram_gb") or specs.get("vram")).replace("gb", "").strip())
         except (ValueError, TypeError):
             pass
-    
+
     if vram_spec is not None:
         if estimated_vram > vram_spec + 1:
             recommendation = f"⚠️ Your GPU has {vram_spec}GB VRAM. This load order may use ~{estimated_vram:.0f}GB. Consider reducing texture resolution or disabling heavy mods."
@@ -351,23 +351,23 @@ def format_system_impact_for_ai(si: Dict) -> str:
         return ""
     lines = ["---", "System Impact Analysis:",
              f"Complexity: {si.get('complexity_label', 'Low')} | ~{si.get('estimated_vram_gb', 0):.0f}GB VRAM | {si.get('heavy_mod_count', 0)} heavy mods"]
-    
+
     fps = si.get("fps_estimate")
     if fps:
         lines.append(f"Estimated FPS: {fps.get('estimated', '?')} ({fps.get('min', '?')}-{fps.get('max', '?')})")
-    
+
     bottleneck = si.get("bottleneck", {})
     if bottleneck.get("type") != "unknown":
         lines.append(f"Bottleneck: {bottleneck.get('type', '?').upper()} ({bottleneck.get('severity', '?')})")
-    
+
     if si.get("recommendation"):
         lines.append(f"Recommendation: {si['recommendation']}")
-    
+
     heavy = si.get("heavy_mods") or []
     if heavy:
         parts = [f"{m.get('name', '')}({m.get('impact', '?')})" for m in heavy[:12]]
         lines.append(f"Heavy mods: {', '.join(parts)}")
-    
+
     return "\n".join(lines)
 
 
@@ -375,19 +375,19 @@ def format_system_impact_report(si: Dict) -> str:
     """Format system impact as detailed plain text report."""
     if not si:
         return ""
-    
+
     lines = ["", "System Impact Analysis", "=" * 60, "", "OVERVIEW",
              f"  Complexity: {si.get('complexity_label', 'Low')}",
              f"  Enabled mods: {si.get('enabled_count', 0)}",
              f"  Heavy mods detected: {si.get('heavy_mod_count', 0)}",
              f"  Estimated VRAM: ~{si.get('estimated_vram_gb', 0):.0f} GB", ""]
-    
+
     fps = si.get("fps_estimate")
     if fps:
         lines.extend(["PERFORMANCE ESTIMATE",
                       f"  Estimated FPS: {fps.get('estimated', '?')} ({fps.get('min', '?')}-{fps.get('max', '?')})",
                       f"  Confidence: {fps.get('confidence', 'unknown')}", ""])
-    
+
     if si.get("has_specs"):
         lines.extend(["HARDWARE ANALYSIS",
                       f"  GPU Tier: {si.get('gpu_tier', '?')}/6 (Score: {si.get('gpu_score', '?')})",
@@ -396,21 +396,21 @@ def format_system_impact_report(si: Dict) -> str:
         if bottleneck.get("type"):
             lines.append(f"  Bottleneck: {bottleneck.get('type', '?').upper()} - {bottleneck.get('explanation', '')}")
         lines.append("")
-    
+
     if si.get("recommendation"):
         lines.extend(["RECOMMENDATION", f"  {si['recommendation']}", ""])
-    
+
     heavy = si.get("heavy_mods") or []
     if heavy:
         lines.extend(["MODS WITH HIGH PERFORMANCE IMPACT"] +
                      [f"  [{m.get('impact', 'medium').upper()}] {m.get('name', '')} ({m.get('category', '')}) - FPS: {m.get('fps_impact', 0):+d}"
                       for m in heavy[:15]] + [""])
-    
+
     suggestions = si.get("optimization_suggestions") or []
     if suggestions:
         lines.extend(["OPTIMIZATION SUGGESTIONS"] +
                      [f"  {i}. {sug.get('title', 'Suggestion')} [{sug.get('priority', 'medium').upper()}]\n     {sug.get('description', '')}" +
                       "".join(f"\n     • {action}" for action in sug.get('actions', [])[:3])
                       for i, sug in enumerate(suggestions[:5], 1)] + [""])
-    
+
     return "\n".join(lines)

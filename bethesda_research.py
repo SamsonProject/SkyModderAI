@@ -410,14 +410,14 @@ def get_hardware_recommendations(vram_gb: float = None, gpu_name: str = None) ->
             return HARDWARE_RECOMMENDATIONS["high_end"]
         else:
             return HARDWARE_RECOMMENDATIONS["enthusiast"]
-    
+
     if gpu_name:
         gpu_lower = gpu_name.lower()
         for tier, data in HARDWARE_RECOMMENDATIONS.items():
             for example in data["gpu_examples"]:
                 if example.lower() in gpu_lower:
                     return data
-    
+
     return HARDWARE_RECOMMENDATIONS["mid_range"]
 
 
@@ -429,19 +429,19 @@ def get_acronym_definition(acronym: str) -> str:
 def get_compatibility_info(game_id: str, mod_a: str, mod_b: str) -> dict:
     """Get compatibility information between two mods."""
     patterns = COMPATIBILITY_PATTERNS.get(game_id, {})
-    
+
     # Check incompatibility
     for pair in patterns.get("always_incompatible", []):
         if (mod_a.lower() in pair[0].lower() and mod_b.lower() in pair[1].lower()) or \
            (mod_b.lower() in pair[0].lower() and mod_a.lower() in pair[1].lower()):
             return {"compatible": False, "reason": "Known incompatibility"}
-    
+
     # Check patch requirements
     for req in patterns.get("requires_patches", []):
         if (mod_a.lower() in req[0].lower() and mod_b.lower() in req[1].lower()) or \
            (mod_b.lower() in req[0].lower() and mod_a.lower() in req[1].lower()):
             return {"compatible": True, "requires_patch": req[2]}
-    
+
     return {"compatible": True, "reason": "No known conflicts"}
 
 

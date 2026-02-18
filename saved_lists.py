@@ -5,7 +5,6 @@ Syncs mod lists across devices with full analysis snapshots.
 
 import json
 import logging
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from flask import g
@@ -22,19 +21,19 @@ def get_saved_lists(
 ) -> List[Dict[str, Any]]:
     """
     Get user's saved lists with optional filtering.
-    
+
     Args:
         user_email: User's email
         game: Filter by game (optional)
         search: Search in name/tags/notes (optional)
         limit: Max results (default 50)
         offset: Pagination offset
-    
+
     Returns:
         List of saved list metadata
     """
     db = get_db()
-    
+
     # Build query
     query = """
         SELECT id, name, game, game_version, masterlist_version,
@@ -44,12 +43,12 @@ def get_saved_lists(
         WHERE user_email = ?
     """
     params = [user_email]
-    
+
     # Add filters
     if game:
         query += " AND game = ?"
         params.append(game)
-    
+
     if search:
         query += """
             AND (
@@ -60,13 +59,13 @@ def get_saved_lists(
         """
         search_term = f"%{search}%"
         params.extend([search_term, search_term, search_term])
-    
+
     # Order and limit
     query += " ORDER BY updated_at DESC LIMIT ? OFFSET ?"
     params.extend([limit, offset])
-    
+
     rows = db.execute(query, params)
-    
+
     lists = []
     for row in rows:
         list_data = {
@@ -83,7 +82,7 @@ def get_saved_lists(
             "updated_at": row["updated_at"],
             "has_analysis": bool(row["analysis_snapshot"]),
         }
-        
+
         # Parse analysis snapshot if present
         if row["analysis_snapshot"]:
             try:
@@ -91,9 +90,9 @@ def get_saved_lists(
             except Exception as e:
                 logger.warning(f"Failed to parse analysis snapshot for list {row['id']}: {e}")
                 list_data["analysis"] = None
-        
+
         lists.append(list_data)
-    
+
     return lists
 
 
@@ -111,7 +110,7 @@ def save_list(
 ) -> Dict[str, Any]:
     """
     Save or update a mod list.
-    
+
     Args:
         user_email: User's email
         name: List name
@@ -123,18 +122,18 @@ def save_list(
         notes: User notes (optional)
         analysis_snapshot: Full analysis results (optional)
         source: Source (e.g., "build", "analyze", "import")
-    
+
     Returns:
         Saved list data with ID
     """
     db = get_db()
-    
+
     # Convert tags to comma-separated string
     tags_str = ",".join(tags) if tags else None
-    
+
     # Convert analysis to JSON string
     analysis_json = json.dumps(analysis_snapshot) if analysis_snapshot else None
-    
+
     try:
         # Try to update existing
         result = db.execute("""
@@ -155,9 +154,9 @@ def save_list(
             tags_str, notes, analysis_json, source,
             user_email, name
         ))
-        
+
         row = result.fetchone()
-        
+
         if row:
             # Updated existing
             list_id = row["id"]
@@ -174,20 +173,20 @@ def save_list(
                 user_email, name, game, game_version, masterlist_version,
                 tags_str, notes, source, list_text, analysis_json
             ))
-            
+
             row = result.fetchone()
             list_id = row["id"]
             action = "created"
-        
+
         db.commit()
-        
+
         return {
             "id": list_id,
             "name": name,
             "action": action,
             "success": True,
         }
-        
+
     except Exception as e:
         db.rollback()
         logger.exception(f"Failed to save list: {e}")
@@ -200,14 +199,14 @@ def save_list(
 def delete_list(user_email: str, list_id: int) -> Dict[str, Any]:
     """Delete a saved list."""
     db = get_db()
-    
+
     result = db.execute("""
         DELETE FROM user_saved_lists
         WHERE id = ? AND user_email = ?
     """, (list_id, user_email))
-    
+
     db.commit()
-    
+
     if result.rowcount > 0:
         return {"success": True, "deleted": True}
     else:
@@ -217,15 +216,15 @@ def delete_list(user_email: str, list_id: int) -> Dict[str, Any]:
 def get_list_by_id(user_email: str, list_id: int) -> Optional[Dict[str, Any]]:
     """Get a specific saved list by ID."""
     db = get_db()
-    
+
     row = db.execute("""
         SELECT * FROM user_saved_lists
         WHERE id = ? AND user_email = ?
     """, (list_id, user_email)).fetchone()
-    
+
     if not row:
         return None
-    
+
     list_data = {
         "id": row["id"],
         "name": row["name"],
@@ -239,14 +238,14 @@ def get_list_by_id(user_email: str, list_id: int) -> Optional[Dict[str, Any]]:
         "saved_at": row["saved_at"],
         "updated_at": row["updated_at"],
     }
-    
+
     if row["analysis_snapshot"]:
         try:
             list_data["analysis"] = json.loads(row["analysis_snapshot"])
         except Exception as e:
             logger.warning(f"Failed to parse analysis snapshot: {e}")
             list_data["analysis"] = None
-    
+
     return list_data
 
 
@@ -259,44 +258,44 @@ def update_list_metadata(
 ) -> Dict[str, Any]:
     """Update list metadata (name, tags, notes) without changing the list."""
     db = get_db()
-    
+
     # Build update query dynamically
     updates = []
     params = []
-    
+
     if name:
         updates.append("name = ?")
         params.append(name)
-    
+
     if tags is not None:
         updates.append("tags = ?")
         params.append(",".join(tags))
-    
+
     if notes is not None:
         updates.append("notes = ?")
         params.append(notes)
-    
+
     if not updates:
         return {"success": False, "error": "No fields to update"}
-    
+
     updates.append("updated_at = CURRENT_TIMESTAMP")
     params.extend([list_id, user_email])
-    
+
     query = f"""
         UPDATE user_saved_lists
         SET {', '.join(updates)}
         WHERE id = ? AND user_email = ?
     """
-    
+
     try:
         result = db.execute(query, params)
         db.commit()
-        
+
         if result.rowcount > 0:
             return {"success": True, "updated": True}
         else:
             return {"success": False, "updated": False, "error": "List not found"}
-            
+
     except Exception as e:
         db.rollback()
         logger.exception(f"Failed to update list metadata: {e}")
@@ -306,14 +305,14 @@ def update_list_metadata(
 def get_list_stats(user_email: str) -> Dict[str, Any]:
     """Get statistics about user's saved lists."""
     db = get_db()
-    
+
     # Total count
     total = db.execute("""
         SELECT COUNT(*) as count
         FROM user_saved_lists
         WHERE user_email = ?
     """, (user_email,)).fetchone()["count"]
-    
+
     # Count by game
     by_game = db.execute("""
         SELECT game, COUNT(*) as count
@@ -321,9 +320,9 @@ def get_list_stats(user_email: str) -> Dict[str, Any]:
         WHERE user_email = ?
         GROUP BY game
     """, (user_email,))
-    
+
     game_counts = {row["game"]: row["count"] for row in by_game}
-    
+
     # Recently updated
     recent = db.execute("""
         SELECT name, game, updated_at
@@ -332,12 +331,12 @@ def get_list_stats(user_email: str) -> Dict[str, Any]:
         ORDER BY updated_at DESC
         LIMIT 5
     """, (user_email,))
-    
+
     recent_lists = [
         {"name": row["name"], "game": row["game"], "updated_at": row["updated_at"]}
         for row in recent
     ]
-    
+
     return {
         "total": total,
         "by_game": game_counts,
@@ -348,10 +347,9 @@ def get_list_stats(user_email: str) -> Dict[str, Any]:
 def get_db():
     """Get database connection from Flask g."""
     if "db" not in g:
-        from flask import current_app
         import sqlite3
-        
+
         g.db = sqlite3.connect("users.db")
         g.db.row_factory = sqlite3.Row
-    
+
     return g.db

@@ -6,7 +6,7 @@ Allows users to create and share links to their mod lists and analysis results.
 import json
 import secrets
 import string
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from flask import current_app as app
