@@ -4552,18 +4552,18 @@ def _log_conflict_stats(game, conflicts):
         for c in conflicts:
             # Handle both dict (from API) and object (from detector)
             if isinstance(c, dict):
-                mod_a = c.get('affected_mod')
-                mod_b = c.get('related_mod')
-                c_type = c.get('type')
+                mod_a = c.get("affected_mod")
+                mod_b = c.get("related_mod")
+                c_type = c.get("type")
             else:
-                mod_a = getattr(c, 'affected_mod', None)
-                mod_b = getattr(c, 'related_mod', None)
-                c_type = getattr(c, 'type', None)
+                mod_a = getattr(c, "affected_mod", None)
+                mod_b = getattr(c, "related_mod", None)
+                c_type = getattr(c, "type", None)
 
             if not mod_a:
                 continue
-            mod_b = mod_b or ''
-            c_type = c_type or 'unknown'
+            mod_b = mod_b or ""
+            c_type = c_type or "unknown"
 
             db.execute("""
                 INSERT INTO conflict_stats (game, mod_a, mod_b, conflict_type, last_seen, occurrence_count)
@@ -4594,7 +4594,7 @@ def _get_deep_mod_context(game, message, user_mod_list):
         meta = p.get_mod_info(m)
         if meta:
             tags = ", ".join(meta.tags) if meta.tags else "None"
-            msgs = " ".join([msg.get('content', '') for msg in meta.messages])
+            msgs = " ".join([msg.get("content", "") for msg in meta.messages])
             # Provide raw technical data that generic LLMs usually lack
             info.append(f"Deep Data for {m}:\n- Tags: {tags}\n- LOOT Messages: {msgs or 'None'}\n- CRC: {meta.crc or 'N/A'}")
 
@@ -4612,7 +4612,7 @@ def _get_community_intelligence(game, user_mod_list):
         if not safe_mods:
             return ""
 
-        placeholders = ','.join(['?'] * len(safe_mods))
+        placeholders = ",".join(["?"] * len(safe_mods))
         sql = f"""
             SELECT mod_a, mod_b, conflict_type, occurrence_count
             FROM conflict_stats
@@ -4630,7 +4630,7 @@ def _get_community_intelligence(game, user_mod_list):
 
         info = []
         for r in rows:
-            mod_b_str = f" + {r['mod_b']}" if r['mod_b'] else ""
+            mod_b_str = f" + {r['mod_b']}" if r["mod_b"] else ""
             info.append(f"- {r['mod_a']}{mod_b_str} -> {r['conflict_type']} (Frequency: {r['occurrence_count']})")
 
         return "Community Patterns (The Bins):\n" + "\n".join(info)

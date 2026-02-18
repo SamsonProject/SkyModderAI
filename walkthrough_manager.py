@@ -36,7 +36,7 @@ class WalkthroughManager:
             return None
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 self._cache[cache_key] = data
                 return data
@@ -62,18 +62,20 @@ class WalkthroughManager:
                 # In a high-scale env, we'd use a manifest file.
                 # For local/embedded, scanning is fast enough and less prone to sync errors.
                 try:
-                    with open(os.path.join(game_dir, filename), 'r', encoding='utf-8') as f:
+                    with open(os.path.join(game_dir, filename), "r", encoding="utf-8") as f:
                         data = json.load(f)
-                        index.append({
-                            "id": data.get("id", filename.replace(".json", "")),
-                            "title": data.get("title", "Unknown Guide"),
-                            "category": data.get("category", "Uncategorized"),
-                            "tags": data.get("tags", [])
-                        })
+                        index.append(
+                            {
+                                "id": data.get("id", filename.replace(".json", "")),
+                                "title": data.get("title", "Unknown Guide"),
+                                "category": data.get("category", "Uncategorized"),
+                                "tags": data.get("tags", []),
+                            }
+                        )
                 except Exception:
                     continue
         except Exception as e:
             logger.error(f"Error scanning walkthroughs for {game}: {e}")
             return []
 
-        return sorted(index, key=lambda x: (x['category'], x['title']))
+        return sorted(index, key=lambda x: (x["category"], x["title"]))
