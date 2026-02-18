@@ -69,6 +69,9 @@ from openclaw_engine import (
     OPENCLAW_PERMISSION_SCOPES,
     build_openclaw_plan,
     suggest_loop_adjustments,
+    validate_plan_safety,
+    validate_permissions,
+    get_permission_descriptions,
 )
 from search_engine import get_search_engine
 from system_impact import (
@@ -973,64 +976,33 @@ def set_user_tier(email, tier, customer_id=None, subscription_id=None):
 
 
 def has_paid_access(tier: str) -> bool:
-    """True when tier includes paid features available in Pro."""
-    # Marketing revamp: Everything is free.
+    """Everything is free. No paid tiers."""
     return True
 
 
 def is_openclaw_tier(tier: str) -> bool:
-    """True when tier is OpenClaw Lab."""
-    # Marketing revamp: Everything is free.
+    """OpenCLAW is free for everyone. Experimental, use at own risk."""
     return True
 
 
 def tier_label(tier: str) -> str:
     """Human label for UI templates and confirmations."""
-    return {
-        "free": "Free",
-        "pro": "Pro",
-        "pro_plus": "Pro",
-        "claw": "OpenClaw Lab",
-    }.get(tier, tier)
+    return "Free"  # Everything is free
 
 
 def _tier_from_price_id(price_id: str) -> str:
-    """Map Stripe price ID to internal tier."""
-    if price_id and stripe_openclaw_price_id and price_id == stripe_openclaw_price_id:
-        return "claw"
-    if price_id and stripe_price_id and price_id == stripe_price_id:
-        return "pro"
-    return "pro"
+    """Map Stripe price ID to internal tier. Everything is free."""
+    return "free"
 
 
 def _tier_from_subscription(subscription_id: str) -> str:
-    """Infer internal tier from Stripe subscription item price IDs."""
-    if not subscription_id:
-        return "pro"
-    try:
-        sub = stripe.Subscription.retrieve(subscription_id)
-        items = (sub.get("items") or {}).get("data") or []
-        if items:
-            price_obj = items[0].get("price") or {}
-            return _tier_from_price_id(price_obj.get("id") or "")
-    except Exception as e:
-        logger.warning("Could not infer tier from subscription %s: %s", subscription_id, e)
-    return "pro"
+    """Infer tier from Stripe. Everything is free."""
+    return "free"
 
 
 def _tier_from_checkout_session(checkout_session) -> str:
-    """Infer internal tier from checkout metadata or line item price ID."""
-    metadata = checkout_session.get("metadata") or {}
-    if metadata.get("target_tier") in ("pro", "claw"):
-        return metadata.get("target_tier")
-    try:
-        line_items = stripe.checkout.Session.list_line_items(checkout_session.id, limit=1)
-        if line_items and line_items.data:
-            price_obj = line_items.data[0].get("price") or {}
-            return _tier_from_price_id(price_obj.get("id") or "")
-    except Exception as e:
-        logger.warning("Could not infer tier from checkout session %s: %s", checkout_session.id, e)
-    return "pro"
+    """Infer tier from checkout. Everything is free."""
+    return "free"
 
 
 def get_user_specs(email):
@@ -6913,6 +6885,377 @@ def health():
             "parser_cache_limit": MAX_PARSER_CACHE,
         }
     )
+
+
+# =============================================================================
+# OpenCLAW Learning & Telemetry API
+# =============================================================================
+
+@app.route("/api/openclaw/learning/record", methods=["POST"])
+@rate_limit(RATE_LIMIT_API, "openclaw")
+@login_required_api
+def openclaw_learning_record():
+    """Record learning data from analysis session (anonymized)."""
+    from dev.openclaw import get_learner, record_mod_interaction
+    from dev.openclaw.learner import SessionData
+    import hashlib
+    
+    data = request.get_json() or {}
+    user_email = session.get("user_email", "anonymous")
+    
+    # Hash session ID for anonymity
+    session_id = data.get("session_id", str(_time()))
+    session_hash = hashlib.sha256(session_id.encode()).hexdigest()[:16]
+    
+    # Record mod interactions from conflict analysis
+    conflicts = data.get("conflicts", [])
+    game = (data.get("game") or DEFAULT_GAME).lower()
+    
+    for conflict in conflicts:
+        mod_a = conflict.get("mod_a", "")
+        mod_b = conflict.get("mod_b", "")
+        conflict_type = conflict.get("type", "unknown")
+        severity = conflict.get("severity", "info")
+        
+        if mod_a and mod_b:
+            record_mod_interaction(
+                mod_a=mod_a,
+                mod_b=mod_b,
+                interaction_type=conflict_type,
+                severity=severity,
+                game=game,
+                metadata={"source": "analysis"},
+            )
+    
+    # Record session data
+    learner = get_learner()
+    mod_list = data.get("mod_list", [])
+    
+    session_data = SessionData(
+        session_hash=session_hash,
+        game=game,
+        mod_count=len(mod_list),
+        enabled_count=data.get("enabled_count", len(mod_list)),
+        conflict_count=len(conflicts),
+        error_count=sum(1 for c in conflicts if c.get("severity") == "error"),
+        warning_count=sum(1 for c in conflicts if c.get("severity") == "warning"),
+        plugin_limit_percent=len(mod_list) / 255 * 100 if mod_list else 0,
+        complexity_score=data.get("complexity", 0.5),
+        success=data.get("success", True),
+        mod_hashes=[learner._hash_mod_name(m) for m in mod_list[:100]],  # Limit to 100
+    )
+    
+    learner.record_session(session_data)
+    
+    return jsonify({
+        "success": True,
+        "message": "Learning data recorded",
+        "session_hash": session_hash,
+    })
+
+
+@app.route("/api/openclaw/learning/feedback", methods=["POST"])
+@rate_limit(RATE_LIMIT_API, "openclaw")
+@login_required_api
+def openclaw_learning_feedback():
+    """Record user feedback for learning (anonymized)."""
+    from dev.openclaw import get_learner, record_feedback
+    from dev.openclaw.learner import FeedbackData
+    import hashlib
+    
+    data = request.get_json() or {}
+    
+    # Hash IDs for anonymity
+    session_id = data.get("session_id", "")
+    plan_id = data.get("plan_id", "")
+    
+    session_hash = hashlib.sha256(session_id.encode()).hexdigest()[:16]
+    plan_hash = hashlib.sha256(plan_id.encode()).hexdigest()[:16]
+    
+    feedback_data = FeedbackData(
+        session_hash=session_hash,
+        plan_id_hash=plan_hash,
+        action_taken=data.get("action", "unknown"),  # accepted, rejected, modified
+        outcome=data.get("outcome"),  # success, partial, failure
+        rating=data.get("rating"),  # 1-5
+        feedback_text_hash=(
+            hashlib.sha256(data.get("feedback_text", "").encode()).hexdigest()[:16]
+            if data.get("feedback_text")
+            else None
+        ),
+    )
+    
+    record_feedback(feedback_data)
+    
+    return jsonify({
+        "success": True,
+        "message": "Feedback recorded",
+    })
+
+
+@app.route("/api/openclaw/learning/stats", methods=["GET"])
+@rate_limit(10, "openclaw")  # Rate limit more strictly
+@login_required_api
+def openclaw_learning_stats():
+    """Get learning statistics (Pro+ only)."""
+    from dev.openclaw import get_learner
+
+    # Everything is free - no tier check needed
+    user_email = session.get("user_email")
+
+    learner = get_learner()
+    game = request.args.get("game", DEFAULT_GAME)
+    
+    stats = learner.get_stats()
+    interaction_stats = learner.get_interaction_stats(game)
+    
+    return jsonify({
+        "success": True,
+        "stats": stats,
+        "interaction_stats": interaction_stats,
+    })
+
+
+@app.route("/api/openclaw/learning/compatibility", methods=["GET"])
+@rate_limit(30, "openclaw")
+def openclaw_learning_compatibility():
+    """Get compatibility score between two mods."""
+    from dev.openclaw import get_learner
+    
+    mod_a = request.args.get("mod_a", "")
+    mod_b = request.args.get("mod_b", "")
+    game = request.args.get("game", DEFAULT_GAME)
+    
+    if not mod_a or not mod_b:
+        return api_error("mod_a and mod_b required.", 400)
+    
+    learner = get_learner()
+    score, confidence = learner.get_compatibility_score(mod_a, mod_b, game)
+    
+    return jsonify({
+        "success": True,
+        "mod_a": mod_a,
+        "mod_b": mod_b,
+        "game": game,
+        "compatibility_score": score,
+        "confidence": confidence,
+        "interpretation": (
+            "highly_compatible" if score > 0.8
+            else "compatible" if score > 0.6
+            else "neutral" if score > 0.4
+            else "conflict_likely" if score > 0.2
+            else "incompatible"
+        ),
+    })
+
+
+@app.route("/api/openclaw/learning/conflict-prediction", methods=["POST"])
+@rate_limit(RATE_LIMIT_API, "openclaw")
+def openclaw_learning_conflict_prediction():
+    """Predict conflicts for a mod list."""
+    from dev.openclaw import get_learner
+    
+    data = request.get_json() or {}
+    mod_list = data.get("mod_list", [])
+    game = data.get("game", DEFAULT_GAME)
+    
+    if not mod_list:
+        return api_error("mod_list required.", 400)
+    
+    learner = get_learner()
+    prediction = learner.get_conflict_probability(mod_list, game)
+    
+    return jsonify({
+        "success": True,
+        "prediction": prediction,
+    })
+
+
+@app.route("/api/openclaw/telemetry/enable", methods=["POST"])
+@login_required_api
+def openclaw_telemetry_enable():
+    """Enable telemetry collection (opt-in)."""
+    from dev.openclaw import enable_telemetry
+    
+    data = request.get_json() or {}
+    consent = data.get("consent", False)
+    
+    if not consent:
+        return api_error("Explicit consent required.", 400)
+    
+    enable_telemetry()
+    
+    # Log consent
+    user_email = session.get("user_email")
+    if user_email:
+        get_db().execute(
+            """
+            INSERT INTO user_activity (user_email, event_type, event_data)
+            VALUES (?, 'telemetry_consent', ?)
+            """,
+            (user_email.lower(), json.dumps({"consent": True})),
+        )
+        get_db().commit()
+    
+    return jsonify({
+        "success": True,
+        "message": "Telemetry enabled. Thank you for contributing!",
+    })
+
+
+@app.route("/api/openclaw/telemetry/disable", methods=["POST"])
+@login_required_api
+def openclaw_telemetry_disable():
+    """Disable telemetry collection."""
+    from dev.openclaw import disable_telemetry, get_collector
+    
+    disable_telemetry()
+    
+    # Clear data if requested
+    data = request.get_json() or {}
+    if data.get("clear_data"):
+        collector = get_collector()
+        collector.clear_all_data()
+    
+    return jsonify({
+        "success": True,
+        "message": "Telemetry disabled",
+    })
+
+
+@app.route("/api/openclaw/telemetry/status", methods=["GET"])
+@login_required_api
+def openclaw_telemetry_status():
+    """Get telemetry status."""
+    from dev.openclaw import is_telemetry_enabled, get_collector
+    
+    collector = get_collector()
+    
+    return jsonify({
+        "success": True,
+        "enabled": is_telemetry_enabled(),
+        "stats": collector.get_stats(),
+    })
+
+
+@app.route("/api/openclaw/telemetry/record", methods=["POST"])
+@rate_limit(RATE_LIMIT_API, "openclaw")
+def openclaw_telemetry_record():
+    """Record telemetry data (if enabled)."""
+    from dev.openclaw import get_collector, is_telemetry_enabled
+    from dev.openclaw.telemetry import PerformanceSnapshot, UsageEvent
+    import hashlib
+    
+    if not is_telemetry_enabled():
+        return jsonify({
+            "success": True,
+            "message": "Telemetry disabled",
+        })
+    
+    data = request.get_json() or {}
+    event_type = data.get("event_type")
+    
+    # Hash session ID
+    session_id = data.get("session_id", str(_time()))
+    session_hash = hashlib.sha256(session_id.encode()).hexdigest()[:16]
+    
+    collector = get_collector()
+    
+    if event_type == "performance":
+        snapshot = PerformanceSnapshot(
+            session_hash=session_hash,
+            game=data.get("game", DEFAULT_GAME),
+            mod_count=data.get("mod_count", 0),
+            fps_avg=data.get("fps_avg"),
+            fps_min=data.get("fps_min"),
+            fps_max=data.get("fps_max"),
+            crash_count=data.get("crash_count", 0),
+            stutter_events=data.get("stutter_events", 0),
+            playtime_minutes=data.get("playtime_minutes", 0),
+        )
+        collector.record_performance(snapshot)
+    
+    elif event_type == "usage":
+        event = UsageEvent(
+            event_type="usage",
+            event_name=data.get("event_name", "unknown"),
+            session_hash=session_hash,
+            game=data.get("game"),
+            mod_count=data.get("mod_count"),
+            duration_ms=data.get("duration_ms"),
+            success=data.get("success", True),
+            metadata=data.get("metadata", {}),
+        )
+        collector.record_usage(event)
+    
+    return jsonify({
+        "success": True,
+        "message": "Telemetry recorded",
+    })
+
+
+@app.route("/api/openclaw/models/train", methods=["POST"])
+@rate_limit(5, "openclaw")  # Very rate limited
+@login_required_api
+def openclaw_models_train():
+    """Trigger model training. Free for everyone."""
+    from dev.openclaw.train_models import ModelTrainer
+
+    # Everything is free - no tier check needed
+    user_email = session.get("user_email")
+
+    data = request.get_json() or {}
+    game = data.get("game", "skyrimse")
+    
+    try:
+        trainer = ModelTrainer()
+        trained_models = trainer.train_all_models(game)
+        
+        return jsonify({
+            "success": True,
+            "game": game,
+            "models_trained": len(trained_models),
+            "model_paths": trained_models,
+        })
+    except Exception as e:
+        logger.exception(f"Model training failed: {e}")
+        return api_error(f"Training failed: {str(e)}", 500)
+
+
+@app.route("/api/openclaw/models/export", methods=["POST"])
+@rate_limit(1, "openclaw")  # Very rate limited
+@login_required_api
+def openclaw_models_export():
+    """Export training dataset. Free for everyone."""
+    from dev.openclaw.train_models import ModelTrainer
+    import tempfile
+
+    # Everything is free - no tier check needed
+    user_email = session.get("user_email")
+
+    try:
+        trainer = ModelTrainer()
+        
+        # Export to temp file
+        fd, temp_path = tempfile.mkstemp(suffix=".json")
+        os.close(fd)
+        
+        trainer.export_training_dataset(temp_path)
+        
+        # Read and return (in production, would upload to S3 etc.)
+        with open(temp_path) as f:
+            dataset = json.load(f)
+        
+        os.unlink(temp_path)
+        
+        return jsonify({
+            "success": True,
+            "dataset_size": len(json.dumps(dataset)),
+            "statistics": dataset.get("statistics", {}),
+        })
+    except Exception as e:
+        logger.exception(f"Dataset export failed: {e}")
+        return api_error(f"Export failed: {str(e)}", 500)
 
 
 if __name__ == "__main__":

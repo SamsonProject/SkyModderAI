@@ -3,25 +3,39 @@ Database helper functions for user and session management.
 This module provides core database operations used across the application.
 """
 
+from __future__ import annotations
+
 import logging
 import secrets
+import sqlite3
 from datetime import datetime, timezone
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple, TypeVar, Union
 
 from werkzeug.security import generate_password_hash
 
 logger = logging.getLogger(__name__)
 
+# Type alias for database rows
+Row = TypeVar("Row", bound=Union[sqlite3.Row, dict])
 
-def get_db():
+
+def get_db() -> sqlite3.Connection:
     """Get the database connection from Flask g object."""
     from flask import g
 
-    return g.db
+    if "db" not in g:
+        raise RuntimeError("Database connection not initialized. Call init_db() first.")
+    return g.db  # type: ignore[no-any-return]
 
 
-def ensure_user_unverified(email: str, password: Optional[str] = None):
-    """Create user record with email_verified=0 for signup flow. Optionally set password. Idempotent."""
+def ensure_user_unverified(email: str, password: Optional[str] = None) -> bool:
+    """
+    Create user record with email_verified=0 for signup flow.
+    Optionally set password. Idempotent.
+
+    Returns:
+        True if operation succeeded, False otherwise
+    """
     try:
         db = get_db()
         email = email.lower()
@@ -39,18 +53,33 @@ def ensure_user_unverified(email: str, password: Optional[str] = None):
                 (pwhash, email),
             )
         db.commit()
+        return True
+    except sqlite3.Error as e:
+        logger.error(f"ensure_user_unverified: Database error - {e}")
+        return False
     except Exception as e:
-        logger.error(f"ensure_user_unverified: {e}")
+        logger.error(f"ensure_user_unverified: Unexpected error - {e}")
+        return False
 
 
-def set_user_verified(email: str):
-    """Mark user as email-verified after they click the link."""
+def set_user_verified(email: str) -> bool:
+    """
+    Mark user as email-verified after they click the link.
+
+    Returns:
+        True if operation succeeded, False otherwise
+    """
     try:
         db = get_db()
         db.execute("UPDATE users SET email_verified = 1 WHERE email = ?", (email.lower(),))
         db.commit()
+        return db.total_changes > 0
+    except sqlite3.Error as e:
+        logger.error(f"set_user_verified: Database error - {e}")
+        return False
     except Exception as e:
-        logger.error(f"set_user_verified: {e}")
+        logger.error(f"set_user_verified: Unexpected error - {e}")
+        return False
 
 
 def is_user_verified(email: str) -> bool:
@@ -63,12 +92,24 @@ def is_user_verified(email: str) -> bool:
             "SELECT email_verified FROM users WHERE email = ?", (email.lower(),)
         ).fetchone()
         return bool(row and row[0])
-    except Exception:
+    except sqlite3.Error as e:
+        logger.error(f"is_user_verified: Database error - {e}")
+        return False
+    except Exception as e:
+        logger.error(f"is_user_verified: Unexpected error - {e}")
         return False
 
 
-def get_user_row(email: str):
-    """Return the user row (with password_hash, customer_id, subscription_id) or None."""
+def get_user_row(email: str) -> Optional[sqlite3.Row]:
+    """
+    Return the user row (with password_hash, customer_id, subscription_id) or None.
+
+    Args:
+        email: User email address
+
+    Returns:
+        sqlite3.Row if user exists, None otherwise
+    """
     if not email:
         return None
     try:
@@ -77,7 +118,11 @@ def get_user_row(email: str):
             "SELECT email, tier, email_verified, password_hash, customer_id, subscription_id FROM users WHERE email = ?",
             (email.lower(),),
         ).fetchone()
-    except Exception:
+    except sqlite3.Error as e:
+        logger.error(f"get_user_row: Database error - {e}")
+        return None
+    except Exception as e:
+        logger.error(f"get_user_row: Unexpected error - {e}")
         return None
 
 
@@ -87,15 +132,28 @@ def _utc_ts() -> int:
 
 
 def session_create(
-    user_email: str, remember_me: bool = False, user_agent: Optional[str] = None
+    user_email: str,
+    remember_me: bool = False,
+    user_agent: Optional[str] = None,
 ) -> Tuple[Optional[str], int]:
-    """Create a session row and return (token, max_age)."""
+    """
+    Create a session row and return (token, max_age).
+
+    Args:
+        user_email: User's email address
+        remember_me: If True, use longer session lifetime
+        user_agent: Optional user agent string
+
+    Returns:
+        Tuple of (session_token, max_age_seconds). Token is None if creation failed.
+    """
     from config import config
 
     token = secrets.token_urlsafe(32)
     display_id = secrets.token_urlsafe(8)
     max_age = config.SESSION_LONG_LIFETIME if remember_me else config.SESSION_SHORT_LIFETIME
     expires_ts = _utc_ts() + max_age
+
     try:
         db = get_db()
         db.execute(
@@ -104,15 +162,28 @@ def session_create(
         )
         db.commit()
         return token, max_age
+    except sqlite3.Error as e:
+        logger.error(f"session_create: Database error - {e}")
+        return None, max_age
     except Exception as e:
-        logger.error(f"session_create: {e}")
+        logger.error(f"session_create: Unexpected error - {e}")
         return None, max_age
 
 
-def session_get(token: str):
-    """Return session row (with user_email) if token valid and not expired; else None. Updates last_seen."""
+def session_get(token: str) -> Optional[sqlite3.Row]:
+    """
+    Return session row (with user_email) if token valid and not expired.
+    Updates last_seen timestamp.
+
+    Args:
+        token: Session token
+
+    Returns:
+        Session row if valid and not expired, None otherwise
+    """
     if not token:
         return None
+
     try:
         db = get_db()
         now_ts = _utc_ts()
@@ -120,34 +191,63 @@ def session_get(token: str):
             "SELECT token, user_email, user_agent, created_at, last_seen, expires_at FROM user_sessions WHERE token = ?",
             (token,),
         ).fetchone()
+
         if not row or (row["expires_at"] or 0) < now_ts:
             return None
+
         db.execute(
             "UPDATE user_sessions SET last_seen = CURRENT_TIMESTAMP WHERE token = ?", (token,)
         )
         db.commit()
         return row
+    except sqlite3.Error as e:
+        logger.error(f"session_get: Database error - {e}")
+        return None
     except Exception as e:
-        logger.error(f"session_get: {e}")
+        logger.error(f"session_get: Unexpected error - {e}")
         return None
 
 
-def session_delete(token: str):
-    """Delete a session row by token."""
+def session_delete(token: str) -> bool:
+    """
+    Delete a session row by token.
+
+    Args:
+        token: Session token to delete
+
+    Returns:
+        True if session was deleted, False otherwise
+    """
     if not token:
-        return
+        return False
+
     try:
         db = get_db()
         db.execute("DELETE FROM user_sessions WHERE token = ?", (token,))
         db.commit()
+        return db.total_changes > 0
+    except sqlite3.Error as e:
+        logger.error(f"session_delete: Database error - {e}")
+        return False
     except Exception as e:
-        logger.error(f"session_delete: {e}")
+        logger.error(f"session_delete: Unexpected error - {e}")
+        return False
 
 
-def session_cleanup(user_email: str, keep_token: Optional[str] = None):
-    """Delete all sessions for a user, optionally keeping one token."""
+def session_cleanup(user_email: str, keep_token: Optional[str] = None) -> bool:
+    """
+    Delete all sessions for a user, optionally keeping one token.
+
+    Args:
+        user_email: User's email address
+        keep_token: Optional token to preserve (e.g., current session)
+
+    Returns:
+        True if any sessions were deleted, False otherwise
+    """
     if not user_email:
-        return
+        return False
+
     try:
         db = get_db()
         if keep_token:
@@ -158,5 +258,47 @@ def session_cleanup(user_email: str, keep_token: Optional[str] = None):
         else:
             db.execute("DELETE FROM user_sessions WHERE user_email = ?", (user_email.lower(),))
         db.commit()
+        return db.total_changes > 0
+    except sqlite3.Error as e:
+        logger.error(f"session_cleanup: Database error - {e}")
+        return False
     except Exception as e:
-        logger.error(f"session_cleanup: {e}")
+        logger.error(f"session_cleanup: Unexpected error - {e}")
+        return False
+
+
+def execute_query(
+    query: str,
+    params: Optional[Tuple[Any, ...]] = None,
+    fetch: bool = False,
+    fetch_all: bool = False,
+) -> Optional[Union[sqlite3.Row, list[sqlite3.Row]]]:
+    """
+    Execute a database query with optional fetching.
+
+    Args:
+        query: SQL query string
+        params: Optional query parameters
+        fetch: If True, fetch one row
+        fetch_all: If True, fetch all rows
+
+    Returns:
+        Row, list of rows, or None depending on fetch parameters
+    """
+    try:
+        db = get_db()
+        cursor = db.execute(query, params or ())
+
+        if fetch:
+            return cursor.fetchone()
+        elif fetch_all:
+            return cursor.fetchall()
+        else:
+            db.commit()
+            return None
+    except sqlite3.Error as e:
+        logger.error(f"execute_query: Database error - {e}")
+        return None
+    except Exception as e:
+        logger.error(f"execute_query: Unexpected error - {e}")
+        return None

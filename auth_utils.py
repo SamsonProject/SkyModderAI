@@ -3,23 +3,54 @@ Authentication utility functions for OAuth state management.
 This module is designed to avoid circular imports.
 """
 
+from __future__ import annotations
+
 import secrets
+from typing import Any, Optional
 
-from itsdangerous import URLSafeTimedSerializer
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
 
-def make_state_token(secret_key, salt, next_url=""):
-    """Generate a signed state token for OAuth."""
+def make_state_token(
+    secret_key: str, salt: str, next_url: str = ""
+) -> str:
+    """
+    Generate a signed state token for OAuth.
+
+    Args:
+        secret_key: Application secret key
+        salt: Salt for the token
+        next_url: URL to redirect to after OAuth completion
+
+    Returns:
+        Signed state token string
+    """
     s = URLSafeTimedSerializer(secret_key, salt=salt)
     return s.dumps({"rnd": secrets.token_hex(16), "next": next_url[:200]})
 
 
-def verify_state_token(secret_key, salt, state, max_age=600):
-    """Verify the state token from OAuth."""
+def verify_state_token(
+    secret_key: str, salt: str, state: Optional[str], max_age: int = 600
+) -> Optional[dict[str, Any]]:
+    """
+    Verify the state token from OAuth.
+
+    Args:
+        secret_key: Application secret key
+        salt: Salt for the token
+        state: State token to verify
+        max_age: Maximum age of token in seconds
+
+    Returns:
+        Decoded token data if valid, None otherwise
+    """
     if not state:
         return None
+
     s = URLSafeTimedSerializer(secret_key, salt=salt)
     try:
-        return s.loads(state, max_age=max_age)
+        return s.loads(state, max_age=max_age)  # type: ignore[no-any-return]
+    except (BadSignature, SignatureExpired):
+        return None
     except Exception:
         return None

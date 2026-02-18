@@ -1,6 +1,55 @@
 # SkyModderAI Feature Map
 
-This document outlines the architecture of the SkyModderAI powerhouse. It maps the sophisticated user flows, the predictive intelligence engines, and the technical components that drive our bespoke analysis.
+**Last Updated**: February 17, 2026  
+**Model**: 100% Free + Donations (No Tiers, No Subscriptions, No Bullshit)
+
+---
+
+## 🎯 What We Are (And What We're Not)
+
+### ✅ What We ARE:
+1. **Mod Compatibility Engine** — LOOT-based conflict detection + AI learning
+2. **Link Aggregator** — Connects to Nexus, UESP, wikis, guides (we don't duplicate)
+3. **Specialized Data Center** — Mod interactions, conflicts, load order data (unique to us)
+4. **AI Training Platform** — OpenCLAW learns from anonymized user sessions
+
+### ❌ What We're NOT:
+1. **Bethesda game database** — No quest walkthroughs, item databases, NPC info (UESP does this better)
+2. **Content repository** — No tutorials, build guides, screenshots (link instead)
+3. **Search engine** — No general web search (Google does this)
+4. **Mod hosting** — No mod files (Nexus does this)
+
+**Philosophy:** *"We don't store what others already maintain better. We specialize in what ONLY we can do."*
+
+---
+
+## 💰 Business Model: Free + Donations
+
+**Everything is free. Forever. No catches.**
+
+- ✅ No paywalls
+- ✅ No tiers (free, pro, premium, etc.)
+- ✅ No subscriptions
+- ✅ No "upgrade to unlock"
+- ✅ No bullshit
+
+**How we survive:**
+- ☕ One-time donations (buy me a coffee)
+- 💰 Patreon (optional monthly support)
+- 🤝 GitHub Sponsors (optional monthly support)
+- 💳 PayPal donations (one-time)
+
+**What donations pay for:**
+- Server costs (~$50/mo)
+- API costs (~$100/mo)
+- Developer ramen budget (~$1,200/mo)
+
+**Philosophy:**
+> Modding should be accessible to everyone. This tool is free for every modder, everywhere. If it helps you and you can afford to support it, great. If you're broke (like I was), use it free — no hard feelings, no feature locks, no nagging.
+>
+> Everyone gets the full power of the site. Period.
+
+---
 
 ## Core User Flows
 
@@ -43,7 +92,7 @@ This document outlines the architecture of the SkyModderAI powerhouse. It maps t
 - HAL+JSON links in search results
 
 ### 3. Saved Lists (Library) Workflow
-**Entry Point**: Library tab (Pro feature)
+**Entry Point**: Library tab
 **Goal**: Save, organize, and revisit mod configurations with rich metadata
 
 **Flow Steps**:
@@ -168,7 +217,7 @@ CREATE TABLE user_saved_lists (
 - `GET /api/mod-search` - Legacy mod search endpoint
 - `GET /api/recommendations` - Get mod recommendations
 
-### List Management (Pro)
+### List Management
 - `GET /api/list-preferences` - List saved mod lists
 - `POST /api/list-preferences` - Save new mod list with analysis
 - `PATCH /api/list-preferences` - Update metadata
@@ -195,7 +244,7 @@ CREATE TABLE user_saved_lists (
 **Features**:
 - Quick Add to List
 - Single Mod Analysis
-- Web suggestions (Pro fallback)
+- Web suggestions (fallback)
 
 ### Library System
 **The "Bins"**:

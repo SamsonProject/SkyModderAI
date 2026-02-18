@@ -2840,6 +2840,76 @@ footer {
 }
 
 /* --------------------------------------------------------------------------
+   Donation Modal
+   -------------------------------------------------------------------------- */
+.donation-amounts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--space-sm);
+    margin: var(--space-md) 0;
+}
+
+.donation-amount {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.donation-amount:hover {
+    border-color: var(--accent-primary);
+    background: rgba(0, 212, 232, 0.1);
+    transform: translateY(-2px);
+}
+
+.donation-amount.selected {
+    border-color: var(--accent-primary);
+    background: rgba(0, 212, 232, 0.15);
+    box-shadow: 0 0 0 2px rgba(0, 212, 232, 0.2);
+}
+
+.donation-alternatives {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.donation-alternatives p {
+    margin-bottom: var(--space-xs);
+}
+
+.donation-alternatives a {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+.donation-alternatives a:hover {
+    text-decoration: underline;
+}
+
+.modal-content input[type="number"] {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.modal-content input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+/* --------------------------------------------------------------------------
    Auth Pages (Login, Sign Up, Verified, Success)
    -------------------------------------------------------------------------- */
 .auth-layout {

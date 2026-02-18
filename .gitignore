@@ -2,17 +2,57 @@
 .env
 .env.*
 !.env.example
+*.env
 secrets.ini
 vault.ini
+*.pem
+*.key
 
 # Development workspace (OpenCLAW future)
 dev/
 DEV/
 *.dev
 
+# Logs and debugging
+*.log
+logs/
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+data/*.json
+data/*.yaml
+!data/game_versions.json
+data/fuel/
+data/samson_fuel/
+openclaw_workspace/
+
 # Virtual Environment
 venv/
 ENV/
+env/
+.venv
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Cache directories
+__pycache__/
+*.py[cod]
+*$py.class
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

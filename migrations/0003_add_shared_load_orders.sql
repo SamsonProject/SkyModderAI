@@ -21,3 +21,9 @@ CREATE TABLE IF NOT EXISTS shared_load_orders (
 CREATE INDEX IF NOT EXISTS idx_shared_load_orders_id ON shared_load_orders(id);
 CREATE INDEX IF NOT EXISTS idx_shared_load_orders_user_email ON shared_load_orders(user_email);
 CREATE INDEX IF NOT EXISTS idx_shared_load_orders_expires ON shared_load_orders(expires_at);
+
+-- Migration metadata
+-- Created: 2026-02-17
+-- Purpose: Enable sharing mod lists via URL
+-- Rollback: DROP TABLE IF EXISTS shared_load_orders;
+

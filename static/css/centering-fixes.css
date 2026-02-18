@@ -1,0 +1,323 @@
+/* ==========================================================================
+   SkyModderAI — Centering Fixes
+   Fix horizontal alignment issues across all sections
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Container Centering
+   -------------------------------------------------------------------------- */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Hero Section - Ensure proper centering
+   -------------------------------------------------------------------------- */
+.hero {
+    position: relative;
+    text-align: center;
+    padding: var(--space-xxl) var(--space-lg);
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+}
+
+.hero-content {
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.hero-title {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-subtitle {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-badges {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-md);
+    margin: var(--space-lg) auto;
+    flex-wrap: wrap;
+}
+
+.hero-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-md);
+    margin: var(--space-lg) auto;
+    flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Panel Sections - Center content
+   -------------------------------------------------------------------------- */
+.tab-panel {
+    width: 100%;
+    max-width: 100%;
+}
+
+.analyze-panel,
+.build-panel,
+.library-panel,
+.community-panel,
+.quickstart-panel,
+.gameplay-panel,
+.dev-panel {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   Input Section - Center form
+   -------------------------------------------------------------------------- */
+.input-section {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.input-form {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.input-form textarea {
+    width: 100%;
+    max-width: 100%;
+}
+
+.input-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+}
+
+/* --------------------------------------------------------------------------
+   Results Section - Center content
+   -------------------------------------------------------------------------- */
+.results-section {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.results-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   Cards and Grids - Center within containers
+   -------------------------------------------------------------------------- */
+.features-grid,
+.stats-grid,
+.cards-grid {
+    display: grid;
+    gap: var(--space-lg);
+    max-width: 1200px;
+    margin: 0 auto;
+    justify-items: center;
+}
+
+.features-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* --------------------------------------------------------------------------
+   Section Headers - Center text
+   -------------------------------------------------------------------------- */
+.section-header {
+    text-align: center;
+    margin: 0 auto var(--space-xl);
+    max-width: 800px;
+}
+
+.section-header h2,
+.section-header h3 {
+    text-align: center;
+}
+
+.section-header p {
+    text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   Forms - Center within parents
+   -------------------------------------------------------------------------- */
+.form-group {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+}
+
+/* --------------------------------------------------------------------------
+   Buttons - Center when in containers
+   -------------------------------------------------------------------------- */
+.button-group-centered {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Mod List Display - Center container
+   -------------------------------------------------------------------------- */
+.mod-list-container {
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Conflict List - Center within results
+   -------------------------------------------------------------------------- */
+.conflicts-list {
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Recommendations Grid - Center
+   -------------------------------------------------------------------------- */
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-md);
+    max-width: 1200px;
+    margin: 0 auto;
+    justify-items: center;
+}
+
+/* --------------------------------------------------------------------------
+   OpenCLAW Sections - Center
+   -------------------------------------------------------------------------- */
+.openclaw-section {
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.openclaw-plan-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.openclaw-permissions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-md);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   Footer - Center
+   -------------------------------------------------------------------------- */
+.site-footer {
+    text-align: center;
+    margin: var(--space-xxl) auto 0;
+    max-width: 1400px;
+    padding: var(--space-xl) var(--space-lg);
+}
+
+.site-footer-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Adjustments
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
+    .hero {
+        padding: var(--space-xl) var(--space-md);
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .features-grid,
+    .stats-grid,
+    .cards-grid {
+        grid-template-columns: 1fr;
+        justify-items: stretch;
+    }
+
+    .input-actions,
+    .form-actions,
+    .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .button-group-centered {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Utility Classes for Centering
+   -------------------------------------------------------------------------- */
+.text-center {
+    text-align: center !important;
+}
+
+.mx-auto {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.flex-center {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.justify-center {
+    justify-content: center !important;
+}
+
+.items-center {
+    align-items: center !important;
+}

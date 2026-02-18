@@ -27,6 +27,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/style.modern.css">
+    <link rel="stylesheet" href="/static/css/centering-fixes.css">
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
     <script type="application/ld+json">
     {
@@ -45,8 +46,8 @@
     </script>
 </head>
 
-<body{% if user_tier in ('pro', 'pro_plus' , 'claw' ) %} class="user-is-pro" {% endif %}>
-    <script>window.__USER_TIER__ = '{{ user_tier|default("free") }}';</script>
+<body>
+    <script>window.__USER_TIER__ = 'free';</script>
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <!-- LOADING OVERLAY - FIXED -->
     <div id="loading-overlay" class="hidden">
@@ -77,9 +78,6 @@
                 {% else %}
                 <a href="{{ url_for('auth', tab='login') }}" class="nav-link">Login</a>
                 <a href="{{ url_for('auth', tab='signup') }}" class="nav-link">Sign Up</a>
-                {% endif %}
-                {% if user_tier in ('pro', 'pro_plus', 'claw') %}
-                <a href="{{ url_for('billing_portal') }}" id="pro-manage-link" class="nav-link nav-manage">Manage</a>
                 {% endif %}
             </nav>
         </header>
@@ -122,13 +120,114 @@
                     aria-selected="false">Gameplay</button>
                 <button type="button" class="main-tab" data-tab="community" role="tab"
                     aria-selected="false">Community</button>
-                <button type="button" class="main-tab main-tab-dev" data-tab="openclaw" role="tab" aria-selected="false" 
-                    style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(6, 182, 212, 0.15)); border: 1px dashed var(--accent-secondary); color: var(--accent-secondary);">
-                    🚧 OpenCLAW <span style="font-size: 0.75rem; opacity: 0.8;">(Coming Soon)</span>
+                <button type="button" class="main-tab main-tab-dev" data-tab="dev" role="tab" aria-selected="false"
+                    style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(6, 182, 212, 0.15)); border: 1px solid var(--accent-primary);">
+                    🛠️ Dev Tools
                 </button>
             </div>
             <section class="tool-section tab-panel active" id="panel-analyze" role="tabpanel" aria-hidden="false">
                 <div class="input-panel">
+                    <!-- Mod Author Tools Header -->
+                    <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.1)); border: 1px solid var(--accent-primary); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-xl);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                            <h3 style="margin: 0; font-size: 1.5rem;">🛠️ Mod Author Workspace</h3>
+                            <div style="display: flex; gap: var(--space-sm);">
+                                <button type="button" id="author-mode-toggle" class="secondary-button" style="font-size: 0.9rem;">
+                                    👤 Player Mode
+                                </button>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
+                            Tools for mod creators: Papyrus analysis, compatibility testing, project sharing, and author community.
+                        </p>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-md);">
+                            <a href="#panel-analyze" data-author-tool="papyrus" class="author-tool-link" style="padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm); text-decoration: none; color: var(--text-primary); display: flex; align-items: center; gap: var(--space-sm);">
+                                <span style="font-size: 1.5rem;">📜</span>
+                                <div>
+                                    <div style="font-weight: 600;">Papyrus Tools</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Script analysis & debugging</div>
+                                </div>
+                            </a>
+                            <a href="#panel-analyze" data-author-tool="compat" class="author-tool-link" style="padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm); text-decoration: none; color: var(--text-primary); display: flex; align-items: center; gap: var(--space-sm);">
+                                <span style="font-size: 1.5rem;">⚔️</span>
+                                <div>
+                                    <div style="font-weight: 600;">Compatibility</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Test against popular mods</div>
+                                </div>
+                            </a>
+                            <a href="#panel-analyze" data-author-tool="projects" class="author-tool-link" style="padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm); text-decoration: none; color: var(--text-primary); display: flex; align-items: center; gap: var(--space-sm);">
+                                <span style="font-size: 1.5rem;">📁</span>
+                                <div>
+                                    <div style="font-weight: 600;">My Projects</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Share & collaborate</div>
+                                </div>
+                            </a>
+                            <a href="#panel-analyze" data-author-tool="community" class="author-tool-link" style="padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm); text-decoration: none; color: var(--text-primary); display: flex; align-items: center; gap: var(--space-sm);">
+                                <span style="font-size: 1.5rem;">💬</span>
+                                <div>
+                                    <div style="font-weight: 600;">Author Community</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Discuss & share</div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <!-- Author Tool Panels -->
+                        <div id="author-tool-papyrus" class="author-tool-panel" style="display: none; margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--border);">
+                            <h4 style="margin-bottom: var(--space-md);">📜 Papyrus Script Analysis</h4>
+                            <div style="display: grid; gap: var(--space-md);">
+                                <div>
+                                    <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Upload Papyrus Script (.psc):</label>
+                                    <input type="file" id="papyrus-file" accept=".psc" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);">
+                                </div>
+                                <button type="button" id="papyrus-analyze-btn" class="secondary-button">🔍 Analyze Script</button>
+                                <div id="papyrus-results" style="padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm);">
+                                    <p style="color: var(--text-secondary);">Upload a .psc file to analyze for common issues, optimization opportunities, and best practices...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="author-tool-compat" class="author-tool-panel" style="display: none; margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--border);">
+                            <h4 style="margin-bottom: var(--space-md);">⚔️ Quick Compatibility Test</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+                                <input type="text" id="author-mod-name" placeholder="YourMod.esp" style="padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: monospace;">
+                                <button type="button" id="author-compat-test-btn" class="secondary-button">Test vs Popular Mods</button>
+                            </div>
+                            <div id="author-compat-results" style="margin-top: var(--space-md); padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm);"></div>
+                        </div>
+                        
+                        <div id="author-tool-projects" class="author-tool-panel" style="display: none; margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--border);">
+                            <h4 style="margin-bottom: var(--space-md);">📁 My Mod Projects</h4>
+                            <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">Share your work-in-progress with other authors for feedback and collaboration.</p>
+                            <button type="button" id="new-project-btn" class="primary-button">+ New Project</button>
+                            <div id="author-projects-list" style="margin-top: var(--space-md); display: grid; gap: var(--space-sm);"></div>
+                        </div>
+                        
+                        <div id="author-tool-community" class="author-tool-panel" style="display: none; margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--border);">
+                            <h4 style="margin-bottom: var(--space-md);">💬 Mod Author Community</h4>
+                            <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">Discuss techniques, share resources, and collaborate with fellow mod creators.</p>
+                            <div style="display: grid; gap: var(--space-sm);">
+                                <div style="padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm);">
+                                    <div style="font-weight: 600;">📚 Mod Author Resources</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: var(--space-xs);">Guides, tutorials, and documentation for creating mods</div>
+                                    <div style="margin-top: var(--space-xs); display: flex; gap: var(--space-xs); flex-wrap: wrap;">
+                                        <a href="https://.creationkit.com/" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">Creation Kit Wiki</a>
+                                        <a href="https://papyrus.skyrimmods.org/" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">Papyrus Reference</a>
+                                        <a href="https://www.youtube.com/results?search_query=skyrim+modding+tutorial" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">Video Tutorials</a>
+                                    </div>
+                                </div>
+                                <div style="padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm);">
+                                    <div style="font-weight: 600;">💬 Author Discussions</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: var(--space-xs);">Connect with other mod authors</div>
+                                    <div style="margin-top: var(--space-xs); display: flex; gap: var(--space-xs); flex-wrap: wrap;">
+                                        <a href="https://forums.nexusmods.com/" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">Nexus Forums</a>
+                                        <a href="https://discord.gg/skyrimmods" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">Skyrim Mods Discord</a>
+                                        <a href="https://www.reddit.com/r/skyrimmods/" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">r/skyrimmods</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <form id="analyze-form" action="#" method="post" novalidate>
                         <h3 class="input-panel-title">Analyze your mod list</h3>
                         <p class="input-panel-subtitle">Get AI-powered conflict detection, load order optimization, and compatibility insights. Our engine combines LOOT data with machine learning and community knowledge.</p>
@@ -718,70 +817,8 @@ Supports:
                 </div>
             </section>
 
-            <!-- OpenCLAW — Coming Soon -->
-            <section class="tab-panel openclaw-panel" id="panel-openclaw" role="tabpanel" aria-hidden="true">
-                <div class="openclaw-content" style="text-align: center; padding: 4rem 2rem;">
-                    <div style="max-width: 800px; margin: 0 auto;">
-                        <div style="font-size: 5rem; margin-bottom: 1rem;">🚧</div>
-                        <h2 style="font-size: 2.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">OpenCLAW</h2>
-                        <h3 style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 2rem;">The Future of Auto-Modding</h3>
-                        
-                        <div style="background: var(--bg-card); backdrop-filter: blur(20px); border: 1px dashed var(--accent-secondary); border-radius: var(--radius-xl); padding: var(--space-xl); margin: var(--space-xl) 0;">
-                            <p style="font-size: 1.1rem; line-height: 1.8; color: var(--text-primary); margin-bottom: var(--space-lg);">
-                                <strong>OpenCLAW</strong> is our ambitious vision for software that <em>learns from modding and can mod for you</em>.
-                            </p>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-lg); margin: var(--space-xl) 0;">
-                                <div style="padding: var(--space-md);">
-                                    <div style="font-size: 2rem; margin-bottom: var(--space-sm);">🧠</div>
-                                    <h4 style="margin-bottom: var(--space-xs);">Learn</h4>
-                                    <p style="font-size: 0.9rem; color: var(--text-secondary);">From thousands of modding sessions</p>
-                                </div>
-                                <div style="padding: var(--space-md);">
-                                    <div style="font-size: 2rem; margin-bottom: var(--space-sm);">🤖</div>
-                                    <h4 style="margin-bottom: var(--space-xs);">Automate</h4>
-                                    <p style="font-size: 0.9rem; color: var(--text-secondary);">The entire modding workflow</p>
-                                </div>
-                                <div style="padding: var(--space-md);">
-                                    <div style="font-size: 2rem; margin-bottom: var(--space-sm);">🎮</div>
-                                    <h4 style="margin-bottom: var(--space-xs);">Adapt</h4>
-                                    <p style="font-size: 0.9rem; color: var(--text-secondary);">To your playstyle & hardware</p>
-                                </div>
-                                <div style="padding: var(--space-md);">
-                                    <div style="font-size: 2rem; margin-bottom: var(--space-sm);">📈</div>
-                                    <h4 style="margin-bottom: var(--space-xs);">Evolve</h4>
-                                    <p style="font-size: 0.9rem; color: var(--text-secondary);">Through community feedback</p>
-                                </div>
-                            </div>
-                            
-                            <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--warning); padding: var(--space-md); border-radius: var(--radius-md); margin: var(--space-xl) 0; text-align: left;">
-                                <h4 style="color: var(--warning); margin-bottom: var(--space-sm);">⚠️ Important</h4>
-                                <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
-                                    OpenCLAW is <strong>experimental and high-risk</strong>. It's intended for advanced users who understand the risks of automation. 
-                                    SkyModderAI's core features (analysis, conflict detection, recommendations) will remain <strong>free and safe for everyone</strong>.
-                                </p>
-                            </div>
-                            
-                            <p style="font-size: 1rem; color: var(--text-secondary); margin-top: var(--space-xl);">
-                                <strong>Status:</strong> In Development · <strong>Timeline:</strong> No ETA (safety first)
-                            </p>
-                            
-                            <div style="margin-top: var(--space-xl);">
-                                <a href="https://github.com/SamsonProject/SkyModderAI/blob/main/dev/README.md" target="_blank" rel="noopener" class="primary-button" style="display: inline-flex; align-items: center; gap: var(--space-sm);">
-                                    <span>📖</span> Read the Vision
-                                </a>
-                                <a href="https://github.com/SamsonProject/SkyModderAI" target="_blank" rel="noopener" class="secondary-button" style="display: inline-flex; align-items: center; gap: var(--space-sm); margin-left: var(--space-md);">
-                                    <span>🐙</span> Follow on GitHub
-                                </a>
-                            </div>
-                        </div>
-                        
-                        <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: var(--space-xl);">
-                            Built by modders, for modders. Learning from the community, giving back to the community.
-                        </p>
-                    </div>
-                </div>
-            </section>
+            <!-- Developer Tools Panel -->
+            {% include "includes/dev_panel.html" %}
 
         </main>
         <!-- Footer -->
@@ -855,17 +892,34 @@ Supports:
         <div class="modal-backdrop" id="checkout-modal-backdrop"></div>
         <div class="modal-content">
             <button type="button" class="modal-close" id="checkout-modal-close" aria-label="Close">&times;</button>
-            <h3>Support SkyModderAI</h3>
-            <p class="modal-tagline">If this tool saved your load order, consider buying me a coffee. It keeps the
-                servers running and the code flowing. We never see your card—Stripe handles everything securely.</p>
+            <h3>☕ Keep SkyModderAI Free</h3>
+            <p class="modal-tagline">
+                This tool is 100% free. No paywalls. No premium tiers.<br>
+                If it saved you time or headaches, consider supporting:
+            </p>
+            <div class="donation-amounts">
+                <button type="button" class="donation-amount" data-amount="5">$5 — Coffee</button>
+                <button type="button" class="donation-amount" data-amount="10">$10 — Lunch</button>
+                <button type="button" class="donation-amount" data-amount="20">$20 — Keeps the lights on</button>
+                <button type="button" class="donation-amount" data-amount="50">$50 — You're amazing</button>
+            </div>
             <form id="checkout-form">
-                <label for="checkout-email">Email address (for receipt)</label>
+                <label for="checkout-email">Email (for receipt)</label>
                 <input type="email" id="checkout-email" placeholder="you@example.com" required>
+                <label for="checkout-amount">Amount</label>
+                <input type="number" id="checkout-amount" min="1" max="1000" value="5" required>
+                <p class="hint">Your donation pays for servers, APIs, and my ramen budget. Thank you. 🍜</p>
                 <div class="modal-actions">
                     <button type="button" class="secondary-button" id="checkout-modal-cancel">Cancel</button>
-                    <button type="submit" class="primary-button" id="checkout-submit-btn">Donate</button>
+                    <button type="submit" class="primary-button" id="checkout-submit-btn">Donate with Stripe</button>
                 </div>
             </form>
+            <div class="donation-alternatives">
+                <p>Other ways to support:</p>
+                <a href="https://patreon.com/skymodderai" target="_blank" rel="noopener">Patreon (monthly)</a> ·
+                <a href="https://github.com/sponsors/samsonproject" target="_blank" rel="noopener">GitHub Sponsors</a> ·
+                <a href="https://paypal.me/skymodderai" target="_blank" rel="noopener">PayPal</a>
+            </div>
         </div>
     </div>
     <!-- Link preview popover (Obsidian-style hover) -->
@@ -895,3 +949,188 @@ Supports:
     </body>
 
 </html>
+<script>
+// Mod Author Tools JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Author Mode Toggle
+    const authorModeToggle = document.getElementById('author-mode-toggle');
+    const analyzePanel = document.getElementById('panel-analyze');
+    let isAuthorMode = true;
+    
+    authorModeToggle?.addEventListener('click', function() {
+        isAuthorMode = !isAuthorMode;
+        this.textContent = isAuthorMode ? '👤 Player Mode' : '🛠️ Author Mode';
+        analyzePanel.classList.toggle('author-mode-active', isAuthorMode);
+    });
+    
+    // Author Tool Navigation
+    document.querySelectorAll('[data-author-tool]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const toolName = this.dataset.authorTool;
+            
+            // Hide all panels
+            document.querySelectorAll('.author-tool-panel').forEach(panel => {
+                panel.style.display = 'none';
+            });
+            
+            // Show selected panel
+            const selectedPanel = document.getElementById(`author-tool-${toolName}`);
+            if (selectedPanel) {
+                selectedPanel.style.display = 'block';
+            }
+            
+            // Update active state
+            document.querySelectorAll('[data-author-tool]').forEach(l => {
+                l.style.background = 'var(--bg-input)';
+            });
+            this.style.background = 'rgba(0, 212, 232, 0.1)';
+        });
+    });
+    
+    // Papyrus Script Analysis
+    document.getElementById('papyrus-analyze-btn')?.addEventListener('click', async function() {
+        const fileInput = document.getElementById('papyrus-file');
+        const resultsEl = document.getElementById('papyrus-results');
+        
+        if (!fileInput.files || fileInput.files.length === 0) {
+            resultsEl.innerHTML = '<p style="color: var(--error);">Please select a .psc file</p>';
+            return;
+        }
+        
+        const file = fileInput.files[0];
+        if (!file.name.endsWith('.psc')) {
+            resultsEl.innerHTML = '<p style="color: var(--error);">Please select a valid Papyrus script file (.psc)</p>';
+            return;
+        }
+        
+        resultsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Analyzing script...</p>';
+        
+        // Read file content
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const scriptContent = e.target.result;
+            
+            // Basic Papyrus analysis (would need backend for full analysis)
+            const analysis = {
+                issues: [],
+                warnings: [],
+                suggestions: []
+            };
+            
+            // Check for common issues
+            if (scriptContent.includes('Debug.Notification')) {
+                analysis.warnings.push('Uses Debug.Notification - consider removing for release builds');
+            }
+            if (scriptContent.includes('Utility.Wait')) {
+                analysis.warnings.push('Uses Utility.Wait - may cause script lag if used excessively');
+            }
+            if ((scriptContent.match(/Event/g) || []).length > 10) {
+                analysis.suggestions.push('Many events detected - consider using event filters for performance');
+            }
+            if (scriptContent.length > 50000) {
+                analysis.suggestions.push('Large script - consider breaking into smaller modules');
+            }
+            
+            // Display results
+            let html = '<h5 style="margin-bottom: var(--space-sm);">📊 Script Analysis Results</h5>';
+            
+            if (analysis.issues.length > 0) {
+                html += '<div style="margin-bottom: var(--space-md);">';
+                html += '<div style="color: var(--error); font-weight: 600; margin-bottom: var(--space-xs);">❌ Issues:</div>';
+                analysis.issues.forEach(issue => {
+                    html += `<div style="padding: var(--space-xs); background: var(--bg-input); border-radius: var(--radius-sm); margin-bottom: var(--space-xs); font-size: 0.9rem;">${issue}</div>`;
+                });
+                html += '</div>';
+            }
+            
+            if (analysis.warnings.length > 0) {
+                html += '<div style="margin-bottom: var(--space-md);">';
+                html += '<div style="color: var(--warning); font-weight: 600; margin-bottom: var(--space-xs);">⚠️ Warnings:</div>';
+                analysis.warnings.forEach(warning => {
+                    html += `<div style="padding: var(--space-xs); background: var(--bg-input); border-radius: var(--radius-sm); margin-bottom: var(--space-xs); font-size: 0.9rem;">${warning}</div>`;
+                });
+                html += '</div>';
+            }
+            
+            if (analysis.suggestions.length > 0) {
+                html += '<div style="margin-bottom: var(--space-md);">';
+                html += '<div style="color: var(--accent-primary); font-weight: 600; margin-bottom: var(--space-xs);">💡 Suggestions:</div>';
+                analysis.suggestions.forEach(suggestion => {
+                    html += `<div style="padding: var(--space-xs); background: var(--bg-input); border-radius: var(--radius-sm); margin-bottom: var(--space-xs); font-size: 0.9rem;">${suggestion}</div>`;
+                });
+                html += '</div>';
+            }
+            
+            if (analysis.issues.length === 0 && analysis.warnings.length === 0 && analysis.suggestions.length === 0) {
+                html = '<p style="color: var(--success); text-align: center; padding: var(--space-xl);">✅ Script looks clean! No issues detected.</p>';
+            }
+            
+            resultsEl.innerHTML = html;
+        };
+        reader.readAsText(file);
+    });
+    
+    // Author Compatibility Test
+    document.getElementById('author-compat-test-btn')?.addEventListener('click', async function() {
+        const modName = document.getElementById('author-mod-name').value;
+        const resultsEl = document.getElementById('author-compat-results');
+        
+        if (!modName) {
+            resultsEl.innerHTML = '<p style="color: var(--error);">Please enter your mod name</p>';
+            return;
+        }
+        
+        resultsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Testing compatibility...</p>';
+        
+        // Popular mods to test against
+        const popularMods = [
+            'USSEP.esp',
+            'SkyUI.esp',
+            'Ordinator - Perks of Skyrim.esp',
+            'Immersive Citizens - AI Overhaul.esp',
+            'Open Cities Skyrim.esp',
+            'Alternate Start - Live Another Life.esp'
+        ];
+        
+        const modList = [modName, ...popularMods].join('\n');
+        
+        try {
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mod_list: modList, game: 'skyrimse' })
+            });
+            const data = await response.json();
+            
+            if (data.conflicts && data.conflicts.length > 0) {
+                const yourModConflicts = data.conflicts.filter(c => 
+                    c.affected_mod?.toLowerCase().includes(modName.toLowerCase())
+                );
+                
+                if (yourModConflicts.length > 0) {
+                    resultsEl.innerHTML = `<h5 style="margin-bottom: var(--space-sm); color: var(--warning);">⚠️ Found ${yourModConflicts.length} compatibility issues:</h5>` +
+                        yourModConflicts.map(c => `
+                            <div style="padding: var(--space-sm); background: var(--bg-input); border-left: 3px solid var(--${c.severity === 'error' ? 'error' : 'warning'}); border-radius: var(--radius-sm); margin-bottom: var(--space-sm);">
+                                <div style="font-weight: 600; color: var(--${c.severity === 'error' ? 'error' : 'warning'});">${c.type.toUpperCase()}</div>
+                                <div style="font-size: 0.9rem;">${c.message}</div>
+                                ${c.suggested_action ? `<div style="font-size: 0.85rem; color: var(--accent-primary); margin-top: var(--space-xs);">💡 ${c.suggested_action}</div>` : ''}
+                            </div>
+                        `).join('');
+                } else {
+                    resultsEl.innerHTML = '<p style="color: var(--success); text-align: center; padding: var(--space-xl);">✅ No conflicts detected! Your mod appears compatible with popular mods.</p>';
+                }
+            } else {
+                resultsEl.innerHTML = '<p style="color: var(--success); text-align: center; padding: var(--space-xl);">✅ No conflicts detected! Your mod appears compatible with popular mods.</p>';
+            }
+        } catch (e) {
+            resultsEl.innerHTML = `<p style="color: var(--error); text-align: center; padding: var(--space-xl);">Error: ${e.message}</p>`;
+        }
+    });
+    
+    // New Project Button
+    document.getElementById('new-project-btn')?.addEventListener('click', function() {
+        alert('Project sharing feature coming soon! This will allow you to share work-in-progress mods with other authors for feedback and collaboration.');
+    });
+});
+</script>
