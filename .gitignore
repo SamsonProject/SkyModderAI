@@ -5,6 +5,11 @@
 secrets.ini
 vault.ini
 
+# Development workspace (OpenCLAW future)
+dev/
+DEV/
+*.dev
+
 # Virtual Environment
 venv/
 ENV/

@@ -13,6 +13,12 @@ Philosophy:
   Output pruning: Optional distillation of AI responses into key points.
   Used for Fix Guide steps, not for chat replies (user sees full reply).
 
+  Context Threading: Integrated with context_threading.py for intentional
+  compression. When AI explores tangents, it leaves bookmarks that track:
+  - WHY we diverged (intention)
+  - WHAT we're exploring (branch)
+  - WHEN to return (return condition)
+
 Invariants (we never cut):
   - Error-level conflicts and their suggested actions
   - Warning-level conflicts and their suggested actions
@@ -23,21 +29,89 @@ Invariants (we never cut):
 Config:
   PRUNING_ENABLED=1 (default) — set 0 to bypass
   PRUNING_MAX_CONTEXT_CHARS=12000 — soft cap; we prefer smart pruning over hard truncation
+  CONTEXT_THREADING_ENABLED=1 (default) — enable context threading with bookmarks
 """
 
 import logging
 import os
 import re
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 PRUNING_ENABLED = os.environ.get("PRUNING_ENABLED", "1").strip() in ("1", "true", "yes")
 PRUNING_MAX_CONTEXT_CHARS = int(os.environ.get("PRUNING_MAX_CONTEXT_CHARS", "12000"))
+CONTEXT_THREADING_ENABLED = os.environ.get("CONTEXT_THREADING_ENABLED", "1").strip() in ("1", "true", "yes")
+
+# Import context threading if enabled
+if CONTEXT_THREADING_ENABLED:
+    try:
+        from context_threading import (
+            CompressionLevel,
+            InformationPipeline,
+            get_pipeline,
+            start_thread,
+        )
+    except ImportError:
+        CONTEXT_THREADING_ENABLED = False
 
 
 # Conflict line pattern: [type] severity [mods]: message
 _CONFLICT_LINE = re.compile(r"^\[([^\]]+)\]\s+(error|warning|info)\s+", re.I)
+
+
+def prune_with_intention(
+    context: str,
+    intention: str,
+    max_chars: Optional[int] = None,
+) -> Tuple[str, Dict]:
+    """
+    Prune context with intention tracking using context threading.
+    
+    This is smarter than basic pruning — it tracks WHY we're compressing
+    and preserves goal-relevant information even if it would normally be cut.
+    
+    Args:
+        context: Context to prune
+        intention: The goal/intention (preserves goal-relevant info)
+        max_chars: Maximum characters (default: PRUNING_MAX_CONTEXT_CHARS)
+    
+    Returns:
+        (pruned_context, stats) — stats includes threading info if enabled
+    """
+    if CONTEXT_THREADING_ENABLED:
+        try:
+            pipeline = get_pipeline()
+
+            # Compress with intention
+            compressed, compress_stats = pipeline.compress(
+                context,
+                intention=intention,
+                level=CompressionLevel.MODERATE,
+            )
+
+            # Then apply traditional pruning as safety net
+            pruned, prune_stats = prune_input_context(
+                compressed,
+                user_message=intention,
+                max_chars=max_chars,
+            )
+
+            # Combine stats
+            stats = {
+                **prune_stats,
+                "compression": compress_stats,
+                "threading_enabled": True,
+                "intention": intention[:100],
+            }
+
+            return (pruned, stats)
+
+        except Exception as e:
+            logger.warning(f"Context threading failed: {e}, falling back to basic pruning")
+
+    # Fallback to basic pruning
+    return prune_input_context(context, user_message=intention, max_chars=max_chars)
 
 
 def _classify_conflict_line(line: str) -> Optional[str]:

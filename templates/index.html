@@ -122,8 +122,10 @@
                     aria-selected="false">Gameplay</button>
                 <button type="button" class="main-tab" data-tab="community" role="tab"
                     aria-selected="false">Community</button>
-                <button type="button" class="main-tab main-tab-dev" data-tab="dev" role="tab" aria-selected="false">Dev
-                    Tools</button>
+                <button type="button" class="main-tab main-tab-dev" data-tab="openclaw" role="tab" aria-selected="false" 
+                    style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(6, 182, 212, 0.15)); border: 1px dashed var(--accent-secondary); color: var(--accent-secondary);">
+                    🚧 OpenCLAW <span style="font-size: 0.75rem; opacity: 0.8;">(Coming Soon)</span>
+                </button>
             </div>
             <section class="tool-section tab-panel active" id="panel-analyze" role="tabpanel" aria-hidden="false">
                 <div class="input-panel">
@@ -716,141 +718,67 @@ Supports:
                 </div>
             </section>
 
-            <!-- Dev (Pro) — AI code analysis, repo/upload/paste, dev report -->
-            <section class="tab-panel dev-panel" id="panel-dev" role="tabpanel" aria-hidden="true">
-                <div class="dev-content">
-                    <div class="dev-hero">
-                        <div class="samson-avatar-wrap">
-                            <img src="/static/icons/samson-dog.svg" alt="Samson dog companion avatar"
-                                class="samson-avatar">
-                        </div>
-                        <h2 class="dev-title">Dev Tools</h2>
-                        <p class="dev-tagline">Ship with confidence. Know before you deploy.</p>
-                        <p class="dev-intro">Drop your Papyrus, configs, or repo. AI checks runtime compatibility—what
-                            might break, what to fix first.</p>
-                        <p class="hint">Samson Companion (experimental): proposes new feature ideas + optimization
-                            loops, and can recommend going idle when the best stability outcome is to stop changing
-                            things.</p>
-                    </div>
-                    <details class="dev-what-we-check">
-                        <summary>New to mod development? Start here.</summary>
-                        <ul>
-                            <li><strong>Path 1: Patch-maker</strong> — Learn xEdit conflict resolution first, then start
-                                publishing compatibility patches.</li>
-                            <li><strong>Path 2: Script modder</strong> — Learn Papyrus basics (events, properties,
-                                guards), then build small quality-of-life mods.</li>
-                            <li><strong>Path 3: Config specialist</strong> — Start with INI/JSON tuning packs and
-                                documentation before deeper scripting.</li>
-                            <li><strong>Practice loop</strong> — Build a tiny change, run Dev Analyze, test in-game,
-                                then iterate.</li>
-                            <li><strong>Ship smart</strong> — Always include requirements, install steps, known
-                                conflicts, and rollback notes in README.</li>
-                        </ul>
-                        <p class="hint">Beginner-friendly references: <a href="https://tes5edit.github.io/docs/"
-                                target="_blank" rel="noopener">xEdit docs</a>, <a href="https://www.creationkit.com/"
-                                target="_blank" rel="noopener">Creation Kit wiki</a>, <a
-                                href="https://www.youtube.com/@GamerPoets" target="_blank"
-                                rel="noopener">GamerPoets</a>.</p>
-                    </details>
-                    <div class="dev-input-tabs" role="tablist">
-                        <button type="button" class="dev-input-tab active" data-mode="repo" role="tab">GitHub</button>
-                        <button type="button" class="dev-input-tab" data-mode="upload" role="tab">Upload</button>
-                        <button type="button" class="dev-input-tab" data-mode="paste" role="tab">Paste</button>
-                    </div>
-                    <div id="dev-mode-repo" class="dev-mode-panel active">
-                        <label for="dev-repo-url" class="dev-label">Repository URL</label>
-                        <input type="url" id="dev-repo-url" placeholder="https://github.com/owner/repo"
-                            class="dev-input dev-input-monospace">
-                        <p class="hint">Public repo. We fetch .psc, .ini, .json, README, and plugin paths.</p>
-                    </div>
-                    <div id="dev-mode-upload" class="dev-mode-panel">
-                        <div id="dev-drop-zone" class="dev-drop-zone" role="button" tabindex="0"
-                            aria-label="Drop mod project files">
-                            <span class="dev-drop-icon" aria-hidden="true">📂</span>
-                            <span class="dev-drop-text">Drop .psc, .ini, .json, README, etc.</span>
-                            <span class="dev-drop-sub">or click to browse · up to 25 files</span>
-                        </div>
-                        <input type="file" id="dev-file-input" multiple class="hidden" aria-hidden="true">
-                        <div id="dev-file-list" class="dev-file-list hidden"></div>
-                    </div>
-                    <div id="dev-mode-paste" class="dev-mode-panel">
-                        <label for="dev-paste-input" class="dev-label">Paste code or config</label>
-                        <textarea id="dev-paste-input" class="dev-paste-input"
-                            placeholder="Paste Papyrus script, .ini snippet, or any relevant code..."
-                            rows="8"></textarea>
-                        <p class="hint">For quick checks. Include filename in a comment if helpful.</p>
-                    </div>
-                    <div class="dev-actions-row">
-                        <div class="dev-game-select-wrap">
-                            <label for="dev-game-select" class="dev-label">Target game</label>
-                            <select id="dev-game-select">
-                                <option value="skyrimse">Skyrim SE</option>
-                                <option value="skyrim">Skyrim LE</option>
-                                <option value="skyrimvr">Skyrim VR</option>
-                                <option value="oblivion">Oblivion</option>
-                                <option value="fallout3">Fallout 3</option>
-                                <option value="fallout4">Fallout 4</option>
-                                <option value="falloutnv">Fallout New Vegas</option>
-                                <option value="starfield">Starfield</option>
-                            </select>
-                        </div>
-                        <div class="dev-buttons">
-                            <button type="button" id="dev-sample-btn" class="secondary-button"
-                                title="See a sample report">View sample</button>
-                            <button type="button" id="dev-analyze-btn" class="primary-button">Analyze</button>
-                        </div>
-                    </div>
-                    <div class="samson-loop-card">
-                        <h3>Samson Loop (feature + performance coach)</h3>
-                        <p class="hint">Tell Samson what you want to build and how the current run felt. He proposes dev
-                            features, optimization steps, and may recommend idle mode when your setup is already
-                            healthy.</p>
-                        <div class="samson-loop-grid">
-                            <label for="dev-loop-objective">Goal</label>
-                            <input type="text" id="dev-loop-objective"
-                                placeholder="e.g. more immersive companions with low script overhead">
-                            <label for="dev-loop-playstyle">Playstyle target</label>
-                            <input type="text" id="dev-loop-playstyle"
-                                placeholder="e.g. exploration-heavy, roleplay, combat">
-                            <label for="dev-loop-fps">Avg FPS</label>
-                            <input type="number" id="dev-loop-fps" min="1" max="360" placeholder="60">
-                            <label for="dev-loop-crashes">Crashes this run</label>
-                            <input type="number" id="dev-loop-crashes" min="0" max="50" placeholder="0">
-                            <label for="dev-loop-stutter">Stutter events</label>
-                            <input type="number" id="dev-loop-stutter" min="0" max="500" placeholder="2">
-                            <label for="dev-loop-enjoyment">Enjoyment (1-10)</label>
-                            <input type="number" id="dev-loop-enjoyment" min="1" max="10" placeholder="8">
-                        </div>
-                        <div class="dev-buttons" style="margin-top:.8rem;">
-                            <button type="button" id="dev-loop-suggest-btn" class="secondary-button">Suggest next
-                                loop</button>
-                        </div>
-                        <div id="dev-loop-output" class="dev-loop-output hidden"></div>
-                    </div>
-                    <p class="hint dev-shortcut-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> to analyze</p>
-                    <details class="dev-what-we-check">
-                        <summary>What we analyze</summary>
-                        <ul>
-                            <li><strong>Papyrus (.psc)</strong> — Missing properties, race conditions, common pitfalls
-                            </li>
-                            <li><strong>Configs (.ini, .json)</strong> — Version checks, dependencies, structure</li>
-                            <li><strong>Manifests</strong> — FOMOD, meta.ini, dependencies</li>
-                            <li><strong>Plugin paths</strong> — .esp/.esm/.esl presence (structure only)</li>
-                            <li><strong>README / docs</strong> — Requirements, install notes</li>
-                        </ul>
-                    </details>
-                    <div id="dev-status" class="dev-status hint hidden" aria-live="polite"></div>
-                    <div id="dev-results" class="dev-results hidden">
-                        <div class="dev-results-header">
-                            <h3 class="dev-results-title">Dev report</h3>
-                            <div class="dev-report-actions">
-                                <button type="button" id="dev-copy-report-btn" class="dev-action-btn"
-                                    title="Copy to clipboard">Copy</button>
-                                <button type="button" id="dev-download-report-btn" class="dev-action-btn"
-                                    title="Download as Markdown">Download .md</button>
+            <!-- OpenCLAW — Coming Soon -->
+            <section class="tab-panel openclaw-panel" id="panel-openclaw" role="tabpanel" aria-hidden="true">
+                <div class="openclaw-content" style="text-align: center; padding: 4rem 2rem;">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        <div style="font-size: 5rem; margin-bottom: 1rem;">🚧</div>
+                        <h2 style="font-size: 2.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">OpenCLAW</h2>
+                        <h3 style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 2rem;">The Future of Auto-Modding</h3>
+                        
+                        <div style="background: var(--bg-card); backdrop-filter: blur(20px); border: 1px dashed var(--accent-secondary); border-radius: var(--radius-xl); padding: var(--space-xl); margin: var(--space-xl) 0;">
+                            <p style="font-size: 1.1rem; line-height: 1.8; color: var(--text-primary); margin-bottom: var(--space-lg);">
+                                <strong>OpenCLAW</strong> is our ambitious vision for software that <em>learns from modding and can mod for you</em>.
+                            </p>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-lg); margin: var(--space-xl) 0;">
+                                <div style="padding: var(--space-md);">
+                                    <div style="font-size: 2rem; margin-bottom: var(--space-sm);">🧠</div>
+                                    <h4 style="margin-bottom: var(--space-xs);">Learn</h4>
+                                    <p style="font-size: 0.9rem; color: var(--text-secondary);">From thousands of modding sessions</p>
+                                </div>
+                                <div style="padding: var(--space-md);">
+                                    <div style="font-size: 2rem; margin-bottom: var(--space-sm);">🤖</div>
+                                    <h4 style="margin-bottom: var(--space-xs);">Automate</h4>
+                                    <p style="font-size: 0.9rem; color: var(--text-secondary);">The entire modding workflow</p>
+                                </div>
+                                <div style="padding: var(--space-md);">
+                                    <div style="font-size: 2rem; margin-bottom: var(--space-sm);">🎮</div>
+                                    <h4 style="margin-bottom: var(--space-xs);">Adapt</h4>
+                                    <p style="font-size: 0.9rem; color: var(--text-secondary);">To your playstyle & hardware</p>
+                                </div>
+                                <div style="padding: var(--space-md);">
+                                    <div style="font-size: 2rem; margin-bottom: var(--space-sm);">📈</div>
+                                    <h4 style="margin-bottom: var(--space-xs);">Evolve</h4>
+                                    <p style="font-size: 0.9rem; color: var(--text-secondary);">Through community feedback</p>
+                                </div>
+                            </div>
+                            
+                            <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--warning); padding: var(--space-md); border-radius: var(--radius-md); margin: var(--space-xl) 0; text-align: left;">
+                                <h4 style="color: var(--warning); margin-bottom: var(--space-sm);">⚠️ Important</h4>
+                                <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
+                                    OpenCLAW is <strong>experimental and high-risk</strong>. It's intended for advanced users who understand the risks of automation. 
+                                    SkyModderAI's core features (analysis, conflict detection, recommendations) will remain <strong>free and safe for everyone</strong>.
+                                </p>
+                            </div>
+                            
+                            <p style="font-size: 1rem; color: var(--text-secondary); margin-top: var(--space-xl);">
+                                <strong>Status:</strong> In Development · <strong>Timeline:</strong> No ETA (safety first)
+                            </p>
+                            
+                            <div style="margin-top: var(--space-xl);">
+                                <a href="https://github.com/SamsonProject/SkyModderAI/blob/main/dev/README.md" target="_blank" rel="noopener" class="primary-button" style="display: inline-flex; align-items: center; gap: var(--space-sm);">
+                                    <span>📖</span> Read the Vision
+                                </a>
+                                <a href="https://github.com/SamsonProject/SkyModderAI" target="_blank" rel="noopener" class="secondary-button" style="display: inline-flex; align-items: center; gap: var(--space-sm); margin-left: var(--space-md);">
+                                    <span>🐙</span> Follow on GitHub
+                                </a>
                             </div>
                         </div>
-                        <div id="dev-report-content" class="dev-report-content"></div>
+                        
+                        <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: var(--space-xl);">
+                            Built by modders, for modders. Learning from the community, giving back to the community.
+                        </p>
                     </div>
                 </div>
             </section>
@@ -909,7 +837,7 @@ Supports:
                 <option value="ui">UI</option>
                 <option value="performance">Performance</option>
                 <option value="billing">Billing</option>
-                <option value="devtools">Dev tools</option>
+                <option value="openclaw">OpenCLAW (coming soon)</option>
                 <option value="other">Other</option>
             </select>
             <label for="feedback-content">Details</label>
