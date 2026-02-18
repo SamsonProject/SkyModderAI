@@ -4597,7 +4597,9 @@ def _get_deep_mod_context(game, message, user_mod_list):
             tags = ", ".join(meta.tags) if meta.tags else "None"
             msgs = " ".join([msg.get("content", "") for msg in meta.messages])
             # Provide raw technical data that generic LLMs usually lack
-            info.append(f"Deep Data for {m}:\n- Tags: {tags}\n- LOOT Messages: {msgs or 'None'}\n- CRC: {meta.crc or 'N/A'}")
+            info.append(
+                f"Deep Data for {m}:\n- Tags: {tags}\n- LOOT Messages: {msgs or 'None'}\n- CRC: {meta.crc or 'N/A'}"
+            )
 
     return "\n\n".join(info)
 
@@ -4632,7 +4634,9 @@ def _get_community_intelligence(game, user_mod_list):
         info = []
         for r in rows:
             mod_b_str = f" + {r['mod_b']}" if r["mod_b"] else ""
-            info.append(f"- {r['mod_a']}{mod_b_str} -> {r['conflict_type']} (Frequency: {r['occurrence_count']})")
+            info.append(
+                f"- {r['mod_a']}{mod_b_str} -> {r['conflict_type']} (Frequency: {r['occurrence_count']})"
+            )
 
         return "Community Patterns (The Bins):\n" + "\n".join(info)
     except Exception as e:
