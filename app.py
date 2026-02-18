@@ -61,8 +61,6 @@ from game_versions import (
 )
 from knowledge_index import (
     build_ai_context as build_knowledge_context,
-)
-from knowledge_index import (
     format_knowledge_for_ai,
     get_game_resources,
     get_resolution_for_conflict,
@@ -4565,12 +4563,15 @@ def _log_conflict_stats(game, conflicts):
             mod_b = mod_b or ""
             c_type = c_type or "unknown"
 
-            db.execute("""
+            db.execute(
+                """
                 INSERT INTO conflict_stats (game, mod_a, mod_b, conflict_type, last_seen, occurrence_count)
                 VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
                 ON CONFLICT(game, mod_a, mod_b, conflict_type)
                 DO UPDATE SET occurrence_count = occurrence_count + 1, last_seen = CURRENT_TIMESTAMP
-            """, (game, mod_a, mod_b, c_type))
+                """,
+                (game, mod_a, mod_b, c_type),
+            )
         db.commit()
     except Exception as e:
         logger.debug(f"Failed to log conflict stats: {e}")

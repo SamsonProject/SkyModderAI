@@ -64,14 +64,12 @@ class WalkthroughManager:
                 try:
                     with open(os.path.join(game_dir, filename), "r", encoding="utf-8") as f:
                         data = json.load(f)
-                        index.append(
-                            {
-                                "id": data.get("id", filename.replace(".json", "")),
-                                "title": data.get("title", "Unknown Guide"),
-                                "category": data.get("category", "Uncategorized"),
-                                "tags": data.get("tags", []),
-                            }
-                        )
+                        index.append({
+                            "id": data.get("id", filename.replace(".json", "")),
+                            "title": data.get("title", "Unknown Guide"),
+                            "category": data.get("category", "Uncategorized"),
+                            "tags": data.get("tags", []),
+                        })
                 except Exception:
                     continue
         except Exception as e:
