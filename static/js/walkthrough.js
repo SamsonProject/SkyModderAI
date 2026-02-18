@@ -27,6 +27,13 @@ const GameplayUI = {
         this.elements.container = document.getElementById(containerId);
         if (!this.elements.container) return;
 
+        const game = (window.userContext && window.userContext.selectedGame) || 'skyrimse';
+        // Only render if game changed or container is empty
+        if (this.elements.container.dataset.loadedGame === game && this.elements.container.innerHTML.trim() !== '') {
+            return;
+        }
+        this.elements.container.dataset.loadedGame = game;
+
         this.renderLayout();
 
         // Bind events

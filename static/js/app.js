@@ -362,58 +362,61 @@ window.addEventListener('userContextChange', () => {
 });
 
 // DOM Elements
-const elements = {
-    modListInput: document.getElementById('mod-list-input'),
-    analyzeBtn: document.getElementById('analyze-btn'),
-    clearBtn: document.getElementById('clear-btn'),
-    pasteBtn: document.getElementById('paste-btn'),
-    sampleBtn: document.getElementById('sample-btn'),
-    modCount: document.getElementById('mod-count'),
-    modCountDetail: document.getElementById('mod-count-detail'),
-    pluginLimitWarning: document.getElementById('plugin-limit-warning'),
-    resultsPanel: document.getElementById('results-panel'),
-    loadingOverlay: document.getElementById('loading-overlay'),
-    conflictsContainer: document.getElementById('conflicts-container'),
-    errorCount: document.getElementById('error-count'),
-    warningCount: document.getElementById('warning-count'),
-    infoCount: document.getElementById('info-count'),
-    exportBtn: document.getElementById('export-btn'),
-    downloadReportBtn: document.getElementById('download-report-btn'),
-    downloadReportJsonBtn: document.getElementById('download-report-json-btn'),
-    newAnalysisBtn: document.getElementById('new-analysis-btn'),
-    gameSelect: document.getElementById('game-select'),
-    filterErrors: document.getElementById('filter-errors'),
-    filterWarnings: document.getElementById('filter-warnings'),
-    filterInfo: document.getElementById('filter-info'),
-    loadOrderSection: document.getElementById('load-order-section'),
-    copyLoadOrderBtn: document.getElementById('copy-load-order-btn'),
-    applyLoadOrderBtn: document.getElementById('apply-load-order-btn'),
-    pluginLimitBanner: document.getElementById('plugin-limit-banner'),
-    proUpgradeBtn: document.getElementById('pro-upgrade-btn'),
-    modSearchInput: document.getElementById('mod-search-input'),
-    modSearchResults: document.getElementById('mod-search-results'),
-    chatSection: document.getElementById('chat-section'),
-    chatMessages: document.getElementById('chat-messages'),
-    chatForm: document.getElementById('chat-form'),
-    contextTrailContent: document.getElementById('context-trail-content'),
-    chatInput: document.getElementById('chat-input'),
-    chatSendBtn: document.getElementById('chat-send-btn'),
-    chatUpgradeCta: document.getElementById('chat-upgrade-cta'),
-    fixGuideSection: document.getElementById('fix-guide-section'),
-    fixGuideContent: document.getElementById('fix-guide-content'),
-    // Library elements
-    librarySearch: document.getElementById('library-search'),
-    librarySearchClear: document.getElementById('library-search-clear'),
-    libraryFilterGame: document.getElementById('library-filter-game'),
-    libraryFilterVersion: document.getElementById('library-filter-version'),
-    libraryFilterMasterlist: document.getElementById('library-filter-masterlist'),
-    libraryRefreshBtn: document.getElementById('library-refresh-btn'),
-    libraryStatus: document.getElementById('library-status'),
-    libraryGrid: document.getElementById('library-grid'),
-    // Context trail elements
-    contextTrail: document.getElementById('context-trail'),
-    contextTrailContent: document.getElementById('context-trail-content')
-};
+const elements = {};
+
+function initDomElements() {
+    Object.assign(elements, {
+        modListInput: document.getElementById('mod-list-input'),
+        analyzeBtn: document.getElementById('analyze-btn'),
+        clearBtn: document.getElementById('clear-btn'),
+        pasteBtn: document.getElementById('paste-btn'),
+        sampleBtn: document.getElementById('sample-btn'),
+        modCount: document.getElementById('mod-count'),
+        modCountDetail: document.getElementById('mod-count-detail'),
+        pluginLimitWarning: document.getElementById('plugin-limit-warning'),
+        resultsPanel: document.getElementById('results-panel'),
+        loadingOverlay: document.getElementById('loading-overlay'),
+        conflictsContainer: document.getElementById('conflicts-container'),
+        errorCount: document.getElementById('error-count'),
+        warningCount: document.getElementById('warning-count'),
+        infoCount: document.getElementById('info-count'),
+        exportBtn: document.getElementById('export-btn'),
+        downloadReportBtn: document.getElementById('download-report-btn'),
+        downloadReportJsonBtn: document.getElementById('download-report-json-btn'),
+        newAnalysisBtn: document.getElementById('new-analysis-btn'),
+        gameSelect: document.getElementById('game-select'),
+        filterErrors: document.getElementById('filter-errors'),
+        filterWarnings: document.getElementById('filter-warnings'),
+        filterInfo: document.getElementById('filter-info'),
+        loadOrderSection: document.getElementById('load-order-section'),
+        copyLoadOrderBtn: document.getElementById('copy-load-order-btn'),
+        applyLoadOrderBtn: document.getElementById('apply-load-order-btn'),
+        pluginLimitBanner: document.getElementById('plugin-limit-banner'),
+        proUpgradeBtn: document.getElementById('pro-upgrade-btn'),
+        modSearchInput: document.getElementById('mod-search-input'),
+        modSearchResults: document.getElementById('mod-search-results'),
+        chatSection: document.getElementById('chat-section'),
+        chatMessages: document.getElementById('chat-messages'),
+        chatForm: document.getElementById('chat-form'),
+        contextTrailContent: document.getElementById('context-trail-content'),
+        chatInput: document.getElementById('chat-input'),
+        chatSendBtn: document.getElementById('chat-send-btn'),
+        chatUpgradeCta: document.getElementById('chat-upgrade-cta'),
+        fixGuideSection: document.getElementById('fix-guide-section'),
+        fixGuideContent: document.getElementById('fix-guide-content'),
+        // Library elements
+        librarySearch: document.getElementById('library-search'),
+        librarySearchClear: document.getElementById('library-search-clear'),
+        libraryFilterGame: document.getElementById('library-filter-game'),
+        libraryFilterVersion: document.getElementById('library-filter-version'),
+        libraryFilterMasterlist: document.getElementById('library-filter-masterlist'),
+        libraryRefreshBtn: document.getElementById('library-refresh-btn'),
+        libraryStatus: document.getElementById('library-status'),
+        libraryGrid: document.getElementById('library-grid'),
+        // Context trail elements
+        contextTrail: document.getElementById('context-trail')
+    });
+}
 
 let modSearchTimeout = null;
 let recommendationsTimeout = null;
@@ -800,6 +803,12 @@ async function updateGlobalGame(gameId, sourceId = null) {
     loadBuildListOptions(gameId);
     fetchAndShowRecommendations();
     refreshInputMatchPreview({ silent: true });
+
+    // Refresh gameplay tab if active
+    if (document.querySelector('.main-tab[data-tab="gameplay"].active')) {
+        if (window.GameplayUI) window.GameplayUI.init('gameplay-container');
+        else if (window.WalkthroughUI) window.WalkthroughUI.init('gameplay-container');
+    }
 
     await Promise.all([p1, p2]);
 }
@@ -2881,172 +2890,256 @@ function copyReport() {
 // -------------------------------------------------------------------
 // Event Listeners
 // -------------------------------------------------------------------
-if (elements.modListInput) {
-    elements.modListInput.addEventListener('input', updateModCounter);
-}
-const autoFormatBtn = document.getElementById('auto-format-btn');
-if (autoFormatBtn) {
-    autoFormatBtn.addEventListener('click', () => refreshInputMatchPreview({ applyFormatted: true }));
-}
-const refreshMatchesBtn = document.getElementById('refresh-matches-btn');
-if (refreshMatchesBtn) {
-    refreshMatchesBtn.addEventListener('click', () => refreshInputMatchPreview({ silent: false }));
-}
-
-(function setupModSearch() {
-    const inputEl = document.getElementById('mod-search-input');
-    const resultsEl = document.getElementById('mod-search-results');
-    const clearBtn = document.getElementById('mod-search-clear');
-    if (!inputEl || !resultsEl) return;
-    inputEl.addEventListener('input', () => {
-        clearTimeout(modSearchTimeout);
-        modSearchTimeout = setTimeout(runModSearch, 220);
-    });
-    inputEl.addEventListener('blur', () => {
-        setTimeout(() => {
-            if (!resultsEl.contains(document.activeElement) && !clearBtn?.contains(document.activeElement)) resultsEl.classList.add('hidden');
-        }, 180);
-    });
-    if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-            inputEl.value = '';
-            inputEl.focus();
-            resultsEl.classList.add('hidden');
-            resultsEl.innerHTML = '';
-            clearBtn.classList.add('hidden');
-        });
+function initGlobalEventListeners() {
+    if (elements.modListInput) {
+        elements.modListInput.addEventListener('input', updateModCounter);
     }
-    inputEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            inputEl.blur();
-            resultsEl.classList.add('hidden');
-            return;
-        }
-        const rows = resultsEl.querySelectorAll('.mod-search-row[data-mod-name]');
-        if (rows.length === 0) return;
-        const current = resultsEl.querySelector('.mod-search-row.highlighted');
-        let idx = current ? parseInt(current.dataset.index, 10) : -1;
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            idx = Math.min(idx + 1, rows.length - 1);
-            rows.forEach(r => r.classList.remove('highlighted'));
-            rows[idx].classList.add('highlighted');
-            rows[idx].scrollIntoView({ block: 'nearest' });
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            idx = Math.max(idx - 1, 0);
-            rows.forEach(r => r.classList.remove('highlighted'));
-            rows[idx].classList.add('highlighted');
-            rows[idx].scrollIntoView({ block: 'nearest' });
-        } else if (e.key === 'Enter' && current) {
-            e.preventDefault();
-            const name = current.dataset.modName;
-            if (name) {
-                const listInput = document.getElementById('mod-list-input');
-                if (listInput) {
-                    const prefix = listInput.value.trim() ? '\n' : '';
-                    listInput.value += prefix + '*' + name;
-                    updateModCounter();
-                }
-                resultsEl.classList.add('hidden');
+    const autoFormatBtn = document.getElementById('auto-format-btn');
+    if (autoFormatBtn) {
+        autoFormatBtn.addEventListener('click', () => refreshInputMatchPreview({ applyFormatted: true }));
+    }
+    const refreshMatchesBtn = document.getElementById('refresh-matches-btn');
+    if (refreshMatchesBtn) {
+        refreshMatchesBtn.addEventListener('click', () => refreshInputMatchPreview({ silent: false }));
+    }
+
+    (function setupModSearch() {
+        const inputEl = document.getElementById('mod-search-input');
+        const resultsEl = document.getElementById('mod-search-results');
+        const clearBtn = document.getElementById('mod-search-clear');
+        if (!inputEl || !resultsEl) return;
+        inputEl.addEventListener('input', () => {
+            clearTimeout(modSearchTimeout);
+            modSearchTimeout = setTimeout(runModSearch, 220);
+        });
+        inputEl.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (!resultsEl.contains(document.activeElement) && !clearBtn?.contains(document.activeElement)) resultsEl.classList.add('hidden');
+            }, 180);
+        });
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
                 inputEl.value = '';
+                inputEl.focus();
+                resultsEl.classList.add('hidden');
+                resultsEl.innerHTML = '';
+                clearBtn.classList.add('hidden');
+            });
+        }
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                inputEl.blur();
+                resultsEl.classList.add('hidden');
+                return;
+            }
+            const rows = resultsEl.querySelectorAll('.mod-search-row[data-mod-name]');
+            if (rows.length === 0) return;
+            const current = resultsEl.querySelector('.mod-search-row.highlighted');
+            let idx = current ? parseInt(current.dataset.index, 10) : -1;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                idx = Math.min(idx + 1, rows.length - 1);
+                rows.forEach(r => r.classList.remove('highlighted'));
+                rows[idx].classList.add('highlighted');
+                rows[idx].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                idx = Math.max(idx - 1, 0);
+                rows.forEach(r => r.classList.remove('highlighted'));
+                rows[idx].classList.add('highlighted');
+                rows[idx].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'Enter' && current) {
+                e.preventDefault();
+                const name = current.dataset.modName;
+                if (name) {
+                    const listInput = document.getElementById('mod-list-input');
+                    if (listInput) {
+                        const prefix = listInput.value.trim() ? '\n' : '';
+                        listInput.value += prefix + '*' + name;
+                        updateModCounter();
+                    }
+                    resultsEl.classList.add('hidden');
+                    inputEl.value = '';
+                    if (clearBtn) clearBtn.classList.add('hidden');
+                }
+            }
+        });
+    })();
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            const target = e.target;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+            e.preventDefault();
+            // When results are visible, focus results search; otherwise mod search
+            const resultsPanel = document.getElementById('results-panel');
+            const resultsSearchInput = document.getElementById('results-search-input');
+            const modSearchInput = document.getElementById('mod-search-input');
+            if (resultsPanel && !resultsPanel.classList.contains('hidden') && resultsSearchInput) {
+                resultsSearchInput.focus();
+            } else if (modSearchInput) {
+                modSearchInput.focus();
+            }
+        }
+        if (e.key === 'Escape') {
+            const resultsSearchInput = document.getElementById('results-search-input');
+            if (resultsSearchInput && document.activeElement === resultsSearchInput) {
+                resultsSearchInput.value = '';
+                resultsSearchInput.blur();
+                applyConflictFilters();
+                const clearBtn = document.getElementById('results-search-clear');
                 if (clearBtn) clearBtn.classList.add('hidden');
             }
         }
     });
-})();
-document.addEventListener('keydown', (e) => {
-    if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        const target = e.target;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
-        e.preventDefault();
-        // When results are visible, focus results search; otherwise mod search
-        const resultsPanel = document.getElementById('results-panel');
-        const resultsSearchInput = document.getElementById('results-search-input');
-        const modSearchInput = document.getElementById('mod-search-input');
-        if (resultsPanel && !resultsPanel.classList.contains('hidden') && resultsSearchInput) {
-            resultsSearchInput.focus();
-        } else if (modSearchInput) {
-            modSearchInput.focus();
+    document.addEventListener('click', (e) => {
+        const resultsEl = document.getElementById('mod-search-results');
+        const inputEl = document.getElementById('mod-search-input');
+        if (resultsEl && inputEl && !resultsEl.contains(e.target) && e.target !== inputEl) {
+            resultsEl.classList.add('hidden');
         }
+    });
+
+    if (elements.clearBtn) {
+        elements.clearBtn.addEventListener('click', () => {
+            lastAnalysisSummary = null; // so "X enabled / Y total" and plugin limit warning reset
+            if (elements.modListInput) {
+                userContext.setAnalysisResult(null); // Clear analysis to hide context trail
+                elements.modListInput.value = '';
+                updateModCounter();
+            }
+            if (elements.resultsPanel) {
+                elements.resultsPanel.classList.add('hidden');
+            }
+        });
     }
-    if (e.key === 'Escape') {
-        const resultsSearchInput = document.getElementById('results-search-input');
-        if (resultsSearchInput && document.activeElement === resultsSearchInput) {
-            resultsSearchInput.value = '';
-            resultsSearchInput.blur();
-            applyConflictFilters();
-            const clearBtn = document.getElementById('results-search-clear');
-            if (clearBtn) clearBtn.classList.add('hidden');
-        }
+
+    const analyzeForm = document.getElementById('analyze-form');
+    if (analyzeForm) {
+        analyzeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            analyzeModList();
+        });
     }
-});
-document.addEventListener('click', (e) => {
-    const resultsEl = document.getElementById('mod-search-results');
-    const inputEl = document.getElementById('mod-search-input');
-    if (resultsEl && inputEl && !resultsEl.contains(e.target) && e.target !== inputEl) {
-        resultsEl.classList.add('hidden');
+    // Direct click handler as fallback (form submit can be unreliable in some setups)
+    if (elements.analyzeBtn) {
+        elements.analyzeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            analyzeModList();
+        });
     }
-});
 
-if (elements.clearBtn) {
-    elements.clearBtn.addEventListener('click', () => {
-        lastAnalysisSummary = null; // so "X enabled / Y total" and plugin limit warning reset
-        if (elements.modListInput) {
-            userContext.setAnalysisResult(null); // Clear analysis to hide context trail
-            elements.modListInput.value = '';
-            updateModCounter();
-        }
-        if (elements.resultsPanel) {
-            elements.resultsPanel.classList.add('hidden');
-        }
+    if (elements.exportBtn) {
+        elements.exportBtn.addEventListener('click', copyReport);
+    }
+
+    if (elements.newAnalysisBtn) {
+        elements.newAnalysisBtn.addEventListener('click', () => {
+            if (elements.resultsPanel) {
+                elements.resultsPanel.classList.add('hidden');
+            }
+            if (elements.modListInput) {
+                elements.modListInput.focus();
+            }
+        });
+    }
+
+    const specsSaveBtn = document.getElementById('specs-save-btn');
+    if (specsSaveBtn) {
+        specsSaveBtn.addEventListener('click', saveSpecs);
+    }
+    const scanSystemBtn = document.getElementById('scan-system-btn');
+    if (scanSystemBtn) {
+        scanSystemBtn.addEventListener('click', scanSystem);
+    }
+
+    if (elements.pasteBtn) {
+        elements.pasteBtn.addEventListener('click', pasteFromClipboard);
+    }
+    const shareLinkBtn = document.getElementById('share-link-btn');
+    if (shareLinkBtn) shareLinkBtn.addEventListener('click', copyShareLink);
+
+    if (elements.sampleBtn) {
+        elements.sampleBtn.addEventListener('click', loadSampleList);
+    }
+
+    if (saveListBtn) saveListBtn.addEventListener('click', saveListToStorage);
+    if (loadSavedSelect) {
+        loadSavedSelect.addEventListener('change', loadSavedList);
+        (async () => {
+            await refreshSavedListsSource();
+            populateLoadSavedSelect();
+        })();
+    }
+    const importFileBtn = document.getElementById('import-file-btn');
+    const importFileInput = document.getElementById('import-file-input');
+    if (importFileBtn && importFileInput) {
+        importFileBtn.addEventListener('click', () => importFileInput.click());
+        importFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files?.[0];
+            if (!file || !elements.modListInput) return;
+            try {
+                const text = await file.text();
+                elements.modListInput.value = text;
+                updateModCounter();
+            } catch (err) {
+                showToast('Could not read file. Try a .txt file.', 'error');
+            }
+            importFileInput.value = '';
+        });
+    }
+    if (elements.downloadReportBtn) {
+        elements.downloadReportBtn.addEventListener('click', downloadReport);
+    }
+    if (elements.downloadReportJsonBtn) {
+        elements.downloadReportJsonBtn.addEventListener('click', downloadReportJson);
+    }
+    const downloadFixGuideBtn = document.getElementById('download-fix-guide-btn');
+    const printFixGuideBtn = document.getElementById('print-fix-guide-btn');
+    if (downloadFixGuideBtn) downloadFixGuideBtn.addEventListener('click', downloadFixGuideHTML);
+    if (printFixGuideBtn) printFixGuideBtn.addEventListener('click', printFixGuide);
+    const fixGuidePreviewScroll = document.getElementById('fix-guide-preview-scroll');
+    if (fixGuidePreviewScroll) fixGuidePreviewScroll.addEventListener('click', scrollToFixGuide);
+    if (elements.copyLoadOrderBtn) {
+        elements.copyLoadOrderBtn.addEventListener('click', copyLoadOrderAsPluginsTxt);
+    }
+    if (elements.applyLoadOrderBtn) {
+        elements.applyLoadOrderBtn.addEventListener('click', applyLoadOrder);
+    }
+
+    if (elements.chatForm) {
+        elements.chatForm.addEventListener('submit', sendChatMessage);
+    }
+
+    [elements.filterErrors, elements.filterWarnings, elements.filterInfo].forEach(el => {
+        if (el) el.addEventListener('change', applyConflictFilters);
     });
-}
 
-const analyzeForm = document.getElementById('analyze-form');
-if (analyzeForm) {
-    analyzeForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        analyzeModList();
-    });
-}
-// Direct click handler as fallback (form submit can be unreliable in some setups)
-if (elements.analyzeBtn) {
-    elements.analyzeBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        analyzeModList();
-    });
-}
+    const resultsSearchInput = document.getElementById('results-search-input');
+    if (resultsSearchInput) {
+        resultsSearchInput.addEventListener('input', applyConflictFilters);
+        resultsSearchInput.addEventListener('keyup', applyConflictFilters);
+    }
+    const resultsSearchClear = document.getElementById('results-search-clear');
+    if (resultsSearchClear) {
+        resultsSearchClear.addEventListener('click', () => {
+            if (resultsSearchInput) {
+                resultsSearchInput.value = '';
+                resultsSearchInput.focus();
+                applyConflictFilters();
+                resultsSearchClear.classList.add('hidden');
+            }
+        });
+    }
 
-if (elements.exportBtn) {
-    elements.exportBtn.addEventListener('click', copyReport);
+    if (elements.modListInput) {
+        elements.modListInput.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                analyzeModList();
+            }
+        });
+    }
 }
-
-if (elements.newAnalysisBtn) {
-    elements.newAnalysisBtn.addEventListener('click', () => {
-        if (elements.resultsPanel) {
-            elements.resultsPanel.classList.add('hidden');
-        }
-        if (elements.modListInput) {
-            elements.modListInput.focus();
-        }
-    });
-}
-
-const specsSaveBtn = document.getElementById('specs-save-btn');
-if (specsSaveBtn) {
-    specsSaveBtn.addEventListener('click', saveSpecs);
-}
-const scanSystemBtn = document.getElementById('scan-system-btn');
-if (scanSystemBtn) {
-    scanSystemBtn.addEventListener('click', scanSystem);
-}
-loadSpecs();
-if (elements.pasteBtn) {
-    elements.pasteBtn.addEventListener('click', pasteFromClipboard);
-}
-const shareLinkBtn = document.getElementById('share-link-btn');
-if (shareLinkBtn) shareLinkBtn.addEventListener('click', copyShareLink);
 
 // -------------------------------------------------------------------
 // Game folder scan (Pro) — AI analyzes Data folder, plugins, structure
@@ -3525,7 +3618,10 @@ function initMainTabs() {
             if (target === 'build-list') initBuildListIfNeeded();
             if (target === 'quickstart') loadQuickstartContent();
             if (target === 'dev') initDevTools();
-            if (target === 'gameplay' && window.GameplayUI) window.GameplayUI.init('gameplay-container');
+            if (target === 'gameplay') {
+                if (window.GameplayUI) window.GameplayUI.init('gameplay-container');
+                else if (window.WalkthroughUI) window.WalkthroughUI.init('gameplay-container');
+            }
         });
     });
     updateForTab('analyze');
@@ -5267,7 +5363,23 @@ function openPortal(url) {
 // Link preview — Obsidian-style hover popover for links
 // -------------------------------------------------------------------
 function initLinkPreviews() {
-    const popover = document.getElementById('link-preview-popover');
+    let popover = document.getElementById('link-preview-popover');
+    if (!popover) {
+        popover = document.createElement('div');
+        popover.id = 'link-preview-popover';
+        popover.className = 'link-preview-popover';
+        popover.setAttribute('aria-hidden', 'true');
+        popover.innerHTML = `
+            <div class="link-preview-content">
+                <div id="link-preview-image" class="link-preview-image empty"></div>
+                <div class="link-preview-body">
+                    <div id="link-preview-title" class="link-preview-title">Loading...</div>
+                    <div id="link-preview-desc" class="link-preview-desc"></div>
+                    <a id="link-preview-open" href="#" target="_blank" rel="noopener noreferrer" class="link-preview-open">Open Link</a>
+                </div>
+            </div>`;
+        document.body.appendChild(popover);
+    }
     const imgEl = document.getElementById('link-preview-image');
     const titleEl = document.getElementById('link-preview-title');
     const descEl = document.getElementById('link-preview-desc');
@@ -6327,7 +6439,7 @@ function closeVaultModal() {
 // -------------------------------------------------------------------
 // Gameplay Engine UI (Walkthroughs)
 // -------------------------------------------------------------------
-const GameplayUI = {
+const WalkthroughUI = {
     container: null,
     currentGame: '',
 
@@ -6450,10 +6562,13 @@ const GameplayUI = {
         });
     }
 };
-window.GameplayUI = GameplayUI;
+window.WalkthroughUI = WalkthroughUI;
 
 // Wait for the DOM to be fully loaded before initializing
 document.addEventListener('DOMContentLoaded', function () {
+    initDomElements();
+    initGlobalEventListeners();
+
     // Initialize all components
     initModernTheme();
     initVaultUI();
@@ -6481,6 +6596,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load any shared list from URL if present
     loadShareFromUrl();
+    loadSpecs();
+    initPageActionBindings();
+    initToastSystem();
+    initCommunityPost();
+    initQuickstartGameSelect();
+    initQuickstartLivePreview();
 
     // Initialize game folder scan if on the analyze page
     if (document.querySelector('.tab-panel#panel-analyze')) {

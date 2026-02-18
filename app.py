@@ -2278,10 +2278,7 @@ def signup_submit():
     return jsonify(
         {
             "success": True,
-            "game": game,
-            "feedback": feedback,
-            "suggestions": suggestions,
-            "loop_state_written": True,
+            "message": "Check your email for a verification link. Click it to finish setting up your account—then you can choose to go to Pro checkout.",
         }
     )
 
@@ -2302,15 +2299,6 @@ def get_walkthrough(guide_id):
     if not data:
         return api_error("Walkthrough not found", 404)
     return jsonify(data)
-
-
-def _openclaw_safety_status():
-    """Compute OpenClaw hardening status as a simple score/checklist."""
-    checks = [
-        ("feature_toggle", OPENCLAW_ENABLED, "Feature toggle present and explicit"),
-            "message": "Check your email for a verification link. Click it to finish setting up your account—then you can choose to go to Pro checkout.",
-        }
-    )
 
 
 @app.route("/verify-email")
