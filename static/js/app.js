@@ -1294,6 +1294,7 @@ async function scanSystem() {
 
     if (btn) btn.disabled = false;
 }
+window.scanSystem = scanSystem;
 
 /**
  * Get current specs from form or stored (currentSpecs).
@@ -4890,6 +4891,25 @@ function initModernTheme() {
             background: rgba(56, 189, 248, 0.03);
             transform: scale(1.005);
         }
+
+        /* Gameplay Search Suggestions */
+        .gp-search-box { position: relative; }
+        .gp-suggestions {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: var(--bg-panel); border: 1px solid var(--border);
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            z-index: 100; max-height: 300px; overflow-y: auto;
+            box-shadow: var(--shadow-md);
+        }
+        .gp-suggestion-item {
+            padding: 10px 16px; cursor: pointer; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            transition: background 0.15s;
+        }
+        .gp-suggestion-item:last-child { border-bottom: none; }
+        .gp-suggestion-item:hover { background: var(--bg-input); }
+        .gp-suggestion-type { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
         .dev-file-chip {
             display: inline-flex;
             align-items: center;

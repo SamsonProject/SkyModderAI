@@ -39,19 +39,69 @@ const GameplayUI = {
         // Bind events
         this.elements.input = document.getElementById('gp-search-input');
         this.elements.results = document.getElementById('gp-results');
+        this.elements.suggestions = document.getElementById('gp-search-suggestions');
 
         const btn = document.getElementById('gp-search-btn');
         if (btn) btn.addEventListener('click', () => this.runSearch());
 
         if (this.elements.input) {
             this.elements.input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') this.runSearch();
+                if (e.key === 'Enter') {
+                    this.runSearch();
+                    if (this.elements.suggestions) this.elements.suggestions.classList.add('hidden');
+                }
+            });
+            this.elements.input.addEventListener('input', (e) => {
+                this.showSuggestions(e.target.value);
             });
             // Auto-search if empty to show categories
             this.elements.input.addEventListener('focus', () => {
-                if (!this.elements.input.value) this.renderCategories();
+                if (this.elements.input.value.trim()) {
+                    this.showSuggestions(this.elements.input.value);
+                } else {
+                    this.renderCategories();
+                }
+            });
+            this.elements.input.addEventListener('blur', () => {
+                setTimeout(() => {
+                    if (this.elements.suggestions) this.elements.suggestions.classList.add('hidden');
+                }, 200);
             });
         }
+    },
+
+    showSuggestions(query) {
+        if (!query || query.length < 2) {
+            if (this.elements.suggestions) this.elements.suggestions.classList.add('hidden');
+            return;
+        }
+        const q = query.toLowerCase();
+        const game = (window.userContext && window.userContext.selectedGame) || 'skyrimse';
+
+        const cats = this.getCategoriesForGame(game).filter(c => c.name.toLowerCase().includes(q));
+        const pops = this.getPopularLinks(game).filter(l => l.toLowerCase().includes(q));
+        const mods = (window.userContext && window.userContext.currentModListParsed || [])
+            .filter(m => m.toLowerCase().includes(q))
+            .slice(0, 3);
+
+        if (cats.length === 0 && pops.length === 0 && mods.length === 0) {
+            this.elements.suggestions.classList.add('hidden');
+            return;
+        }
+
+        let html = '';
+        cats.forEach(c => {
+            html += `<div class="gp-suggestion-item" onclick="window.GameplayUI.runSearch('${this.escapeHtml(c.query)}')"><span>${c.icon} ${this.escapeHtml(c.name)}</span><span class="gp-suggestion-type">Category</span></div>`;
+        });
+        pops.forEach(l => {
+            html += `<div class="gp-suggestion-item" onclick="window.GameplayUI.runSearch('${this.escapeHtml(l)}')"><span>${this.escapeHtml(l)}</span><span class="gp-suggestion-type">Popular</span></div>`;
+        });
+        mods.forEach(m => {
+            html += `<div class="gp-suggestion-item" onclick="window.GameplayUI.runSearch('${this.escapeHtml(m)}')"><span>⚡ ${this.escapeHtml(m)}</span><span class="gp-suggestion-type">Your Mod</span></div>`;
+        });
+
+        this.elements.suggestions.innerHTML = html;
+        this.elements.suggestions.classList.remove('hidden');
     },
 
     renderLayout() {
@@ -65,6 +115,7 @@ const GameplayUI = {
                 <div class="gp-search-box">
                     <input type="text" id="gp-search-input" placeholder="e.g. Bleak Falls Barrow, Nick Valentine, The Golden Claw..." autocomplete="off">
                     <button id="gp-search-btn" class="primary-button">Search</button>
+                    <div id="gp-search-suggestions" class="gp-suggestions hidden"></div>
                 </div>
 
                 <div id="gp-categories" class="gp-categories">

@@ -1,41 +1,90 @@
 {
   "skyrimse": {
-    "latest_version": "1.6.1170",
-    "released": "2025-01-15",
-    "skse_version": "2.2.6",
-    "status": "warning",
-    "message": "Update 1.6.1170 requires SKSE 2.2.6+. Many mods not yet updated. Check before launching.",
-    "known_issues": [
-      "Address Library needs update",
-      ".NET Script Framework incompatible",
-      "DLL mods need recompilation"
-    ]
+    "default": "1.6.1170",
+    "versions": {
+      "1.6.1170": {
+        "name": "1.6.1170 (Steam Current)",
+        "skse": "SKSE 2.2.6",
+        "common": true,
+        "recommended": true,
+        "date": "Jan 2024"
+      },
+      "1.6.1130": {
+        "name": "1.6.1130",
+        "skse": "SKSE 2.2.5",
+        "date": "Dec 2023"
+      },
+      "1.6.640": {
+        "name": "1.6.640 (Steam Pre-Creations)",
+        "skse": "SKSE 2.2.3",
+        "common": true,
+        "date": "Sep 2022"
+      },
+      "1.6.659": {
+        "name": "1.6.659 (GOG)",
+        "skse": "SKSE 2.2.4",
+        "date": "Oct 2022"
+      },
+      "1.5.97": {
+        "name": "1.5.97 (Best of Both/Downgraded)",
+        "skse": "SKSE 2.0.20",
+        "common": true,
+        "notes": "Maximum mod compatibility (NetScriptFramework)",
+        "date": "Nov 2019"
+      }
+    }
   },
   "fallout4": {
-    "latest_version": "1.10.980",
-    "released": "2024-11-10",
-    "f4se_version": "0.6.23",
-    "status": "stable",
-    "message": "Update 1.10.980 is stable with F4SE 0.6.23"
+    "default": "1.10.984",
+    "versions": {
+      "1.10.984": {
+        "name": "1.10.984 (Next Gen 2)",
+        "f4se": "F4SE 0.7.2",
+        "recommended": true,
+        "date": "May 2024"
+      },
+      "1.10.980": {
+        "name": "1.10.980 (Next Gen 1)",
+        "f4se": "F4SE 0.7.1",
+        "date": "Apr 2024"
+      },
+      "1.10.163": {
+        "name": "1.10.163 (Pre-Next Gen)",
+        "f4se": "F4SE 0.6.23",
+        "common": true,
+        "warning": "Many new mods require Next Gen, but old DLL mods need this. Consider the Downgrader if you rely on Buffout 4.",
+        "warning_link": "https://www.nexusmods.com/fallout4/mods/81630",
+        "date": "Dec 2019"
+      }
+    }
+  },
+  "skyrim": {
+    "default": "1.9.32",
+    "versions": {
+      "1.9.32": {
+        "name": "1.9.32.0.8 (Legendary Edition)",
+        "skse": "SKSE 1.7.3",
+        "recommended": true
+      }
+    }
   },
   "skyrimvr": {
-    "latest_version": "1.4.15",
-    "released": "2024-08-22",
-    "sksevr_version": "2.0.12",
-    "status": "stable",
-    "message": "Current version is stable with SKSEVR 2.0.12"
+    "default": "1.4.15",
+    "versions": {
+      "1.4.15": {
+        "name": "1.4.15 (Final)",
+        "skse": "SKSEVR 2.0.12",
+        "recommended": true
+      }
+    }
   },
-  "fallout4vr": {
-    "latest_version": "1.2.72",
-    "released": "2024-05-14",
-    "f4sevr_version": "0.6.22",
-    "status": "warning",
-    "message": "F4SEVR 0.6.22 is the latest version. Some mods may require updates."
-  },
-  "enderal": {
-    "latest_version": "2.0.12",
-    "released": "2024-09-30",
-    "status": "stable",
-    "message": "Current version is stable with most Skyrim SE mods"
+  "starfield": {
+    "default": "1.14.70",
+    "versions": {
+      "1.14.70": {
+        "name": "1.14.70 (Current)",
+        "sfse": "SFSE Latest"
+      }
+    }
   }
 }

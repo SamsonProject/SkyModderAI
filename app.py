@@ -53,12 +53,6 @@ from constants import (
     RATE_LIMIT_SEARCH,
     RATE_LIMIT_WINDOW,
 )
-from game_versions import (
-    get_default_version,
-    get_version_info,
-    get_version_warning,
-    get_versions_for_game,
-)
 from knowledge_index import (
     build_ai_context as build_knowledge_context,
     format_knowledge_for_ai,
@@ -82,6 +76,37 @@ from system_impact import (
 )
 from walkthrough_manager import WalkthroughManager
 
+
+# -------------------------------------------------------------------
+# Game Version Helpers (Replaces game_versions.py dependency)
+# -------------------------------------------------------------------
+def _load_game_versions_data():
+    """Load game versions from JSON file."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "game_versions.json")
+    try:
+        with open(path, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Failed to load game versions: {e}")
+        return {}
+
+def get_versions_for_game(game_id):
+    data = _load_game_versions_data()
+    return data.get(game_id, {}).get("versions", {})
+
+def get_default_version(game_id):
+    data = _load_game_versions_data()
+    return data.get(game_id, {}).get("default", "")
+
+def get_version_info(game_id, version):
+    versions = get_versions_for_game(game_id)
+    return versions.get(version)
+
+def get_version_warning(game_id, version):
+    info = get_version_info(game_id, version)
+    if info and info.get("warning"):
+        return {"message": info["warning"], "link": info.get("warning_link")}
+    return None
 
 # -------------------------------------------------------------------
 # PII redaction for logs (never log emails, tokens, or customer data)
