@@ -1252,6 +1252,26 @@ async function scanSystem() {
         // WebGPU may be blocked or unavailable
     }
 
+    // GPU Fallback: WebGL (More compatible)
+    if (!detected.gpu) {
+        try {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (gl) {
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                    const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    if (renderer) {
+                        detected.gpu = renderer;
+                        parts.push(`GPU (WebGL): ${renderer}`);
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('WebGL scan failed:', e);
+        }
+    }
+
     // Fill form
     if (cpuEl && detected.cpu) cpuEl.value = detected.cpu;
     if (gpuEl && detected.gpu) gpuEl.value = detected.gpu;
@@ -4705,6 +4725,15 @@ function initModernTheme() {
             --content-width: 1200px;
         }
 
+        /* Layout Stability & Reset */
+        html {
+            scrollbar-gutter: stable;
+            overflow-x: hidden;
+        }
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         body {
             background-color: var(--bg-app);
             color: var(--text-main);
@@ -4714,6 +4743,8 @@ function initModernTheme() {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            width: 100%;
+            margin: 0;
         }
 
         /* Universal Layout Lane */

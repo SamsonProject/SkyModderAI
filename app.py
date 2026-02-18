@@ -693,22 +693,6 @@ GOOGLE_OAUTH_ENABLED = config.GOOGLE_OAUTH_ENABLED
 GITHUB_OAUTH_ENABLED = config.GITHUB_OAUTH_ENABLED
 
 
-# Import OAuth functions after app is created to avoid circular imports
-def init_oauth_routes():
-    from oauth_utils import (
-        github_oauth_authorize,
-        github_oauth_callback,
-        google_oauth_authorize,
-        google_oauth_callback,
-    )
-
-    # Register OAuth routes
-    app.route("/auth/google")(google_oauth_authorize)
-    app.route("/auth/google/callback")(google_oauth_callback)
-    app.route("/auth/github")(github_oauth_authorize)
-    app.route("/auth/github/callback")(github_oauth_callback)
-
-
 # -------------------------------------------------------------------
 # LOOT parser(s) - default game preloaded, others lazy-loaded
 # -------------------------------------------------------------------
@@ -2168,21 +2152,6 @@ def login_submit():
             samesite=app.config["SESSION_COOKIE_SAMESITE"],
         )
     return resp
-
-
-def _google_oauth_state_make(next_url=""):
-    s = URLSafeTimedSerializer(app.config["SECRET_KEY"], salt="google-oauth-state")
-    return s.dumps({"rnd": secrets.token_hex(16), "next": next_url[:200]})
-
-
-def _google_oauth_state_verify(state):
-    if not state:
-        return None
-    s = URLSafeTimedSerializer(app.config["SECRET_KEY"], salt="google-oauth-state")
-    try:
-        return s.loads(state, max_age=600)
-    except Exception:
-        return None
 
 
 @app.route("/auth/google")

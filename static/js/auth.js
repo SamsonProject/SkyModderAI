@@ -1,6 +1,6 @@
 (function () {
     let emailCache = new Set();
-    
+
     function showMessage(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
@@ -8,12 +8,12 @@
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 5000);
     }
-    
+
     function detectExistingAccount(email) {
-        return emailCache.has(email) || 
-               (localStorage.getItem('knownEmails') || '').split(',').includes(email);
+        return emailCache.has(email) ||
+            (localStorage.getItem('knownEmails') || '').split(',').includes(email);
     }
-    
+
     function trackKnownEmail(email) {
         if (!email || !email.includes('@')) return;
         emailCache.add(email);
@@ -46,7 +46,7 @@
             document.getElementById('login-password').focus();
         }
     }
-    
+
     function switchToSignup(email = '') {
         document.getElementById('signup-email').value = email;
         document.getElementById('signup-tab').click();
@@ -54,7 +54,7 @@
             document.getElementById('signup-password').focus();
         }
     }
-    
+
     async function onLoginSubmit(e) {
         e.preventDefault();
         const emailInput = document.getElementById('login-email');
@@ -62,7 +62,7 @@
         const rememberInput = document.getElementById('login-remember');
         const btn = document.getElementById('login-submit-btn');
         if (!emailInput || !passwordInput || !btn) return;
-        
+
         const email = emailInput.value.trim().toLowerCase();
         if (!email || !email.includes('@')) {
             showMessage('Please enter a valid email address', 'error');
@@ -94,6 +94,7 @@
                 showMessage(data.error || 'Login failed.');
                 return;
             }
+            trackKnownEmail(email);
             window.location.href = data.redirect || '/';
         } catch (err) {
             showMessage('Network error. Try again.');
@@ -160,30 +161,8 @@
             if (document.activeElement.tagName !== 'INPUT') {
                 input.focus();
             }
-            
-            // Check for existing account on blur
-            input.addEventListener('blur', (e) => {
-                const email = e.target.value.trim().toLowerCase();
-                if (!email || !email.includes('@')) return;
-                
-                if (e.target.id === 'signup-email' && detectExistingAccount(email)) {
-                    showMessage('You already have an account. Switching to login...', 'info');
-                    setTimeout(() => switchToLogin(email), 800);
-                }
-            });
-            
-            // Auto-detect email provider
-            input.addEventListener('input', (e) => {
-                const email = e.target.value.toLowerCase();
-                if (email.includes('@')) {
-                    const domain = email.split('@')[1];
-                    if (['gmail.com', 'outlook.com', 'yahoo.com', 'proton.me'].some(d => domain.includes(d))) {
-                        trackKnownEmail(email);
-                    }
-                }
-            });
         });
-        
+
         // Tab switching
         const tabs = document.querySelectorAll('[role="tab"]');
         tabs.forEach(tab => {
@@ -196,19 +175,19 @@
             });
         });
     }
-    
+
     // Initialize everything
     document.addEventListener('DOMContentLoaded', () => {
         handleUrlErrors();
-        
+
         const loginForm = document.getElementById('login-form');
         if (loginForm) loginForm.addEventListener('submit', onLoginSubmit);
-        
+
         const signupForm = document.getElementById('signup-pro-form');
         if (signupForm) signupForm.addEventListener('submit', onSignupSubmit);
-        
+
         initEmailAutofill();
-        
+
         // Check URL for email parameter
         const urlParams = new URLSearchParams(window.location.search);
         const email = urlParams.get('email');
