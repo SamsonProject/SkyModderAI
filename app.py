@@ -3437,7 +3437,6 @@ def mod_search():
         limit = 25
     if not q:
         return jsonify({"matches": [], "web_suggestions": []})
-    user_email = session.get("user_email")
     is_pro = True
     try:
         p = get_parser(game, version=version)
@@ -4794,7 +4793,6 @@ def scan_game_folder():
     """Pro: AI scans user's game folder (file tree + key files) for issues beyond Mod Organizer."""
     if not AI_CHAT_ENABLED:
         return jsonify({"error": "AI is not configured. Set OPENAI_API_KEY."}), 503
-    user_email = session.get("user_email")
     data = request.get_json() or {}
     game = (data.get("game") or DEFAULT_GAME).lower()
     tree = (data.get("tree") or "").strip()
