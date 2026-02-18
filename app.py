@@ -2783,7 +2783,6 @@ def list_preferences_options():
 def api_list_preferences():
     """Paid tiers: server-side saved mod lists. Free tier should use localStorage."""
     user_email = session.get("user_email")
-    tier = get_user_tier(user_email) if user_email else "free"
     if not user_email:
         return api_error("Login required.", 401)
 
@@ -2936,7 +2935,6 @@ def api_build_list():
             specs = get_user_specs(user_email) or {}
         if isinstance(specs, dict):
             specs = {k: v for k, v in specs.items() if v}
-        tier = get_user_tier(user_email) if user_email else "free"
         is_pro = True  # All users get full features
 
         try:
@@ -3440,7 +3438,6 @@ def mod_search():
     if not q:
         return jsonify({"matches": [], "web_suggestions": []})
     user_email = session.get("user_email")
-    user_tier = get_user_tier(user_email) if user_email else "free"
     is_pro = True
     try:
         p = get_parser(game, version=version)
@@ -3887,7 +3884,6 @@ def search_solutions():
         limit = 8
     if not q:
         return jsonify({"solutions": [], "error": "q or query required"})
-    user_email = session.get("user_email")
     try:
         from web_search import search_solutions_web
 
@@ -4565,7 +4561,8 @@ def _log_conflict_stats(game, conflicts):
                 mod_b = getattr(c, 'related_mod', None)
                 c_type = getattr(c, 'type', None)
 
-            if not mod_a: continue
+            if not mod_a:
+                continue
             mod_b = mod_b or ''
             c_type = c_type or 'unknown'
 
@@ -4582,7 +4579,8 @@ def _log_conflict_stats(game, conflicts):
 
 def _get_deep_mod_context(game, message, user_mod_list):
     """Retrieve deep LOOT metadata for mods mentioned in chat (The 'Deep Dive')."""
-    if not message: return ""
+    if not message:
+        return ""
     p = get_parser(game)
     mentioned = set()
     msg_lower = message.lower()
@@ -4612,7 +4610,8 @@ def _get_community_intelligence(game, user_mod_list):
         db = get_db()
         # Sanitize and limit mod list for SQL query
         safe_mods = list(set(user_mod_list))[:100]
-        if not safe_mods: return ""
+        if not safe_mods:
+            return ""
 
         placeholders = ','.join(['?'] * len(safe_mods))
         sql = f"""
@@ -4627,7 +4626,8 @@ def _get_community_intelligence(game, user_mod_list):
         params = [game] + safe_mods + safe_mods
         rows = db.execute(sql, params).fetchall()
 
-        if not rows: return ""
+        if not rows:
+            return ""
 
         info = []
         for r in rows:
@@ -4649,7 +4649,6 @@ def chat():
             {"error": "AI chat is not configured. Set LLM_API_KEY in your environment."}
         ), 503
     user_email = session.get("user_email")
-    tier = get_user_tier(user_email) if user_email else "free"
     data = request.get_json() or {}
     message = (data.get("message") or "").strip()
     if not message:
@@ -4681,7 +4680,7 @@ def chat():
         if specs:
             profile_summary += f"- Specs: {json.dumps(specs)}\n"
         if saved_lists:
-            profile_summary += f"- Saved Lists: {len(saved_lists)} lists ({', '.join(l['name'] for l in saved_lists[:3])}...)\n"
+            profile_summary += f"- Saved Lists: {len(saved_lists)} lists ({', '.join(item['name'] for item in saved_lists[:3])}...)\n"
 
     # Deep Dive: Inject intimate database knowledge for mentioned mods
     mod_list = data.get("mod_list") or []
@@ -4796,7 +4795,6 @@ def scan_game_folder():
     if not AI_CHAT_ENABLED:
         return jsonify({"error": "AI is not configured. Set OPENAI_API_KEY."}), 503
     user_email = session.get("user_email")
-    tier = get_user_tier(user_email) if user_email else "free"
     data = request.get_json() or {}
     game = (data.get("game") or DEFAULT_GAME).lower()
     tree = (data.get("tree") or "").strip()
@@ -4963,7 +4961,6 @@ def api_dev_analyze():
     if not AI_CHAT_ENABLED:
         return jsonify({"error": "AI is not configured. Set OPENAI_API_KEY."}), 503
     user_email = session.get("user_email")
-    tier = get_user_tier(user_email) if user_email else "free"
 
     data = request.get_json() or {}
     repo_url = (data.get("repo_url") or data.get("repoUrl") or "").strip()
@@ -5040,7 +5037,6 @@ def api_dev_loop_suggest():
     - explicitly recommend "idle" when further changes likely hurt stability
     """
     user_email = session.get("user_email")
-    tier = get_user_tier(user_email) if user_email else "free"
 
     data = request.get_json() or {}
     game = (data.get("game") or DEFAULT_GAME).lower()
@@ -5625,7 +5621,6 @@ def _openclaw_decode_grant(token: str):
 def _openclaw_require_lab_access(data):
     """Shared OpenClaw authz gate (tier + feature flag + grant token)."""
     user_email = session.get("user_email")
-    tier = get_user_tier(user_email) if user_email else "free"
     if not OPENCLAW_ENABLED:
         return None, None, api_error("OpenClaw is currently disabled on this deployment.", 403)
     token = (data or {}).get("grant_token") or ""
@@ -5703,7 +5698,6 @@ def _openclaw_write_state_json(user_email: str, workspace_rel: str, rel_path: st
 def openclaw_guard_check():
     """Dry-run policy checker for OpenClaw operations (no side effects)."""
     user_email = session.get("user_email")
-    tier = get_user_tier(user_email) if user_email else "free"
     if not OPENCLAW_ENABLED:
         return api_error("OpenClaw is currently disabled on this deployment.", 403)
     data = request.get_json() or {}

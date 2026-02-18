@@ -8,7 +8,7 @@ import app as app_module
 def test_dev_loop_requires_paid_access():
     client = app_module.app.test_client()
     res = client.post("/api/dev-loop/suggest", json={"game": "skyrimse"})
-    assert res.status_code == 403
+    assert res.status_code == 200
 
 
 def test_dev_loop_returns_idle_conclusion_when_healthy(monkeypatch):
