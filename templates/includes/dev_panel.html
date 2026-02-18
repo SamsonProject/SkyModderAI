@@ -45,55 +45,128 @@
             <div style="background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-xl); margin-bottom: var(--space-xl);">
                 <h3 style="margin-bottom: var(--space-md);">⚔️ Mod Compatibility Checker</h3>
                 <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
-                    Test your mod against popular mods. Find conflicts before your users do.
+                    Test your mod against any mod in the LOOT database. Find conflicts before your users do.
                 </p>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Your Mod:</label>
                         <input type="text" id="compat-your-mod" placeholder="YourMod.esp" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: monospace;">
-                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: var(--space-xs);">Enter your mod's ESP/ESM name</p>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: var(--space-xs);">Enter your mod's ESP/ESM/ESL name</p>
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Game:</label>
                         <select id="compat-game" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);">
                             <option value="skyrimse">Skyrim SE</option>
                             <option value="skyrim">Skyrim LE</option>
+                            <option value="skyrimvr">Skyrim VR</option>
                             <option value="fallout4">Fallout 4</option>
+                            <option value="falloutnv">Fallout: New Vegas</option>
+                            <option value="fallout3">Fallout 3</option>
                             <option value="oblivion">Oblivion</option>
+                            <option value="starfield">Starfield</option>
                         </select>
                     </div>
                 </div>
 
-                <div style="margin-top: var(--space-md);">
-                    <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Test Against:</label>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-xs); max-height: 300px; overflow-y: auto; padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm);">
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                            <input type="checkbox" class="compat-mod" value="USSEP.esp" checked> USSEP.esp
-                        </label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                            <input type="checkbox" class="compat-mod" value="SkyUI.esp"> SkyUI.esp
-                        </label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                            <input type="checkbox" class="compat-mod" value="Ordinator - Perks of Skyrim.esp"> Ordinator
-                        </label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                            <input type="checkbox" class="compat-mod" value="Immersive Citizens - AI Overhaul.esp"> Immersive Citizens
-                        </label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                            <input type="checkbox" class="compat-mod" value="Open Cities Skyrim.esp"> Open Cities
-                        </label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                            <input type="checkbox" class="compat-mod" value="Alternate Start - Live Another Life.esp"> Alternate Start
-                        </label>
+                <!-- Import Options Tabs -->
+                <div style="margin-top: var(--space-lg);">
+                    <div style="display: flex; gap: var(--space-xs); margin-bottom: var(--space-md); border-bottom: 1px solid var(--border);">
+                        <button type="button" class="compat-tab-btn active" data-tab="search" style="padding: var(--space-sm) var(--space-md); background: var(--accent-primary); color: white; border: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer; font-weight: 600;">🔍 Search</button>
+                        <button type="button" class="compat-tab-btn" data-tab="paste" style="padding: var(--space-sm) var(--space-md); background: var(--bg-input); color: var(--text-primary); border: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer;">📋 Paste List</button>
+                        <button type="button" class="compat-tab-btn" data-tab="import" style="padding: var(--space-sm) var(--space-md); background: var(--bg-input); color: var(--text-primary); border: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer;">📁 Import File</button>
+                        <button type="button" class="compat-tab-btn" data-tab="popular" style="padding: var(--space-sm) var(--space-md); background: var(--bg-input); color: var(--text-primary); border: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer;">⭐ Popular Mods</button>
                     </div>
-                    <button type="button" id="compat-check-btn" class="primary-button" style="margin-top: var(--space-md); width: 100%;">
-                        🔍 Check Compatibility
-                    </button>
+
+                    <!-- Search Tab -->
+                    <div id="compat-tab-search" class="compat-tab-content">
+                        <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Search & Select Mods to Test Against:</label>
+                        <div style="position: relative; margin-bottom: var(--space-sm);">
+                            <input type="text" id="compat-search-input" placeholder="Start typing to search mods (e.g., USSEP, SkyUI, Ordinator)..."
+                                style="width: 100%; padding: var(--space-sm) var(--space-md); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 1rem;"
+                                autocomplete="off">
+                            <div id="compat-search-results" style="position: absolute; top: 100%; left: 0; right: 0; max-height: 300px; overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; display: none;"></div>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: var(--space-sm);">Type 2+ characters to search the LOOT database. Select mods to add them to your test list.</p>
+                    </div>
+
+                    <!-- Paste List Tab -->
+                    <div id="compat-tab-paste" class="compat-tab-content" style="display: none;">
+                        <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Paste Mod List (one per line):</label>
+                        <textarea id="compat-paste-input" rows="8" placeholder="USSEP.esp&#10;SkyUI.esp&#10;Ordinator - Perks of Skyrim.esp&#10;Immersive Citizens - AI Overhaul.esp&#10;Open Cities Skyrim.esp" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: monospace; font-size: 0.9rem;"></textarea>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: var(--space-xs);">Paste from plugins.txt, modlist.txt, or your load order. One mod per line.</p>
+                        <button type="button" id="compat-add-paste-btn" class="secondary-button" style="margin-top: var(--space-sm);">➕ Add Mods from List</button>
+                    </div>
+
+                    <!-- Import File Tab -->
+                    <div id="compat-tab-import" class="compat-tab-content" style="display: none;">
+                        <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Import from File:</label>
+                        <input type="file" id="compat-file-input" accept=".txt,.esp,.esm,.esl" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);">
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: var(--space-xs);">Supports: plugins.txt, modlist.txt, MO2 modlist.txt, or any text file with mod names.</p>
+                        <button type="button" id="compat-add-file-btn" class="secondary-button" style="margin-top: var(--space-sm);">📁 Import and Add Mods</button>
+                    </div>
+
+                    <!-- Popular Mods Tab -->
+                    <div id="compat-tab-popular" class="compat-tab-content" style="display: none;">
+                        <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Quick Add Popular Mods:</label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--space-xs); max-height: 300px; overflow-y: auto; padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm);">
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
+                                <input type="checkbox" class="popular-mod" value="USSEP.esp" checked> 
+                                <span>USSEP.esp (Unofficial Patch)</span>
+                            </label>
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
+                                <input type="checkbox" class="popular-mod" value="SkyUI.esp"> 
+                                <span>SkyUI.esp</span>
+                            </label>
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
+                                <input type="checkbox" class="popular-mod" value="Ordinator - Perks of Skyrim.esp"> 
+                                <span>Ordinator (Perk Overhaul)</span>
+                            </label>
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
+                                <input type="checkbox" class="popular-mod" value="Immersive Citizens - AI Overhaul.esp"> 
+                                <span>Immersive Citizens (AI)</span>
+                            </label>
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
+                                <input type="checkbox" class="popular-mod" value="Open Cities Skyrim.esp"> 
+                                <span>Open Cities Skyrim</span>
+                            </label>
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
+                                <input type="checkbox" class="popular-mod" value="Alternate Start - Live Another Life.esp"> 
+                                <span>Alternate Start</span>
+                            </label>
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
+                                <input type="checkbox" class="popular-mod" value="Address Library for SKSE Plugins.esp"> 
+                                <span>Address Library (SKSE)</span>
+                            </label>
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
+                                <input type="checkbox" class="popular-mod" value="SSE Display Tweaks.esp"> 
+                                <span>SSE Display Tweaks</span>
+                            </label>
+                        </div>
+                        <button type="button" id="compat-add-popular-btn" class="secondary-button" style="margin-top: var(--space-sm);">➕ Add Selected Popular Mods</button>
+                    </div>
                 </div>
 
+                <!-- Selected Mods Tags -->
+                <div style="margin-top: var(--space-md);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xs);">
+                        <label style="font-size: 0.9rem; color: var(--text-secondary);">Selected Mods (<span id="compat-count">0</span>):</label>
+                        <div style="display: flex; gap: var(--space-xs);">
+                            <button type="button" id="compat-clear-all-btn" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">🗑️ Clear All</button>
+                            <button type="button" id="compat-export-btn" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">📋 Export List</button>
+                        </div>
+                    </div>
+                    <div id="compat-selected-mods" style="display: flex; flex-wrap: wrap; gap: var(--space-xs); padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm); min-height: 50px;">
+                        <span style="color: var(--text-secondary); font-size: 0.9rem; padding: var(--space-xs);">No mods selected yet. Search, paste, import, or select from popular mods...</span>
+                    </div>
+                </div>
+
+                <button type="button" id="compat-check-btn" class="primary-button" style="margin-top: var(--space-md); width: 100%;">
+                    🔍 Check Compatibility
+                </button>
+
                 <div id="compat-results" style="margin-top: var(--space-md); padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm);">
-                    <p style="color: var(--text-secondary); text-align: center;">Select your mod and test against popular mods to see compatibility results...</p>
+                    <p style="color: var(--text-secondary); text-align: center;">Add mods to test against, then click "Check Compatibility" to see results...</p>
                 </div>
             </div>
 
@@ -286,6 +359,221 @@
 <script>
 // Mod Author Tools JavaScript
 document.addEventListener('DOMContentLoaded', function() {
+    // Selected mods storage for compatibility checker
+    const selectedMods = new Set();
+    let searchDebounceTimer = null;
+
+    // Tab switching
+    document.querySelectorAll('.compat-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.dataset.tab;
+            
+            // Update button styles
+            document.querySelectorAll('.compat-tab-btn').forEach(b => {
+                b.style.background = 'var(--bg-input)';
+                b.style.color = 'var(--text-primary)';
+            });
+            this.style.background = 'var(--accent-primary)';
+            this.style.color = 'white';
+            
+            // Show/hide content
+            document.querySelectorAll('.compat-tab-content').forEach(c => c.style.display = 'none');
+            document.getElementById(`compat-tab-${tabName}`).style.display = 'block';
+        });
+    });
+
+    // Dynamic mod search with debouncing
+    const searchInput = document.getElementById('compat-search-input');
+    const searchResults = document.getElementById('compat-search-results');
+    const selectedModsContainer = document.getElementById('compat-selected-mods');
+
+    searchInput?.addEventListener('input', function() {
+        const query = this.value.trim();
+
+        // Clear previous timer
+        if (searchDebounceTimer) {
+            clearTimeout(searchDebounceTimer);
+        }
+
+        // Need at least 2 characters
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        // Debounce search (wait 300ms after typing stops)
+        searchDebounceTimer = setTimeout(async () => {
+            const game = document.getElementById('compat-game').value;
+
+            try {
+                const response = await fetch(`/api/search/mods?game=${game}&q=${encodeURIComponent(query)}&limit=10`);
+                const data = await response.json();
+
+                if (data.mods && data.mods.length > 0) {
+                    searchResults.innerHTML = data.mods.map(mod => `
+                        <div class="compat-search-item" data-mod-name="${mod.name}" style="padding: var(--space-sm); cursor: pointer; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600; color: var(--text-primary);">${mod.name}</div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">${mod.filename || mod.name}</div>
+                            </div>
+                            ${selectedMods.has(mod.name) ? '<span style="color: var(--success); font-size: 0.85rem;">✓ Added</span>' : '<span style="color: var(--accent-primary); font-size: 0.85rem;">+ Add</span>'}
+                        </div>
+                    `).join('');
+                    searchResults.style.display = 'block';
+
+                    // Add click handlers to search results
+                    searchResults.querySelectorAll('.compat-search-item').forEach(item => {
+                        item.addEventListener('click', function() {
+                            const modName = this.dataset.modName;
+                            toggleModSelection(modName);
+                        });
+                    });
+                } else {
+                    searchResults.innerHTML = '<div style="padding: var(--space-sm); color: var(--text-secondary);">No mods found. Try a different search term.</div>';
+                    searchResults.style.display = 'block';
+                }
+            } catch (e) {
+                console.error('Search error:', e);
+                searchResults.innerHTML = '<div style="padding: var(--space-sm); color: var(--error);">Search failed. Please try again.</div>';
+                searchResults.style.display = 'block';
+            }
+        }, 300);
+    });
+
+    // Toggle mod selection
+    function toggleModSelection(modName) {
+        if (selectedMods.has(modName)) {
+            selectedMods.delete(modName);
+        } else {
+            selectedMods.add(modName);
+        }
+        updateSelectedModsDisplay();
+
+        // Hide search results after selection
+        searchResults.style.display = 'none';
+        searchInput.value = '';
+        searchInput.focus();
+    }
+
+    // Update selected mods display
+    function updateSelectedModsDisplay() {
+        if (selectedMods.size === 0) {
+            selectedModsContainer.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.9rem; padding: var(--space-xs);">No mods selected yet. Search, paste, import, or select from popular mods...</span>';
+        } else {
+            selectedModsContainer.innerHTML = Array.from(selectedMods).map(modName => `
+                <span style="display: inline-flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs) var(--space-sm); background: rgba(0, 212, 232, 0.15); border: 1px solid var(--accent-primary); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 0.9rem;">
+                    ${modName}
+                    <button type="button" onclick="toggleModSelection('${modName.replace(/'/g, "\\'")}')" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0; margin-left: var(--space-xs); font-size: 1rem; line-height: 1;">&times;</button>
+                </span>
+            `).join('');
+        }
+        // Update count
+        document.getElementById('compat-count').textContent = selectedMods.size;
+    }
+
+    // Hide search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (searchInput && !searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    // Paste List - Add mods from textarea
+    document.getElementById('compat-add-paste-btn')?.addEventListener('click', function() {
+        const pasteInput = document.getElementById('compat-paste-input');
+        const text = pasteInput.value.trim();
+        
+        if (!text) {
+            alert('Please paste a mod list first');
+            return;
+        }
+
+        // Parse lines, extract mod names
+        const lines = text.split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0 && !line.startsWith('#') && !line.startsWith('*'))
+            .map(line => {
+                // Handle MO2 format: *modname.esp or modname.esp
+                if (line.startsWith('*')) line = line.substring(1);
+                return line;
+            });
+
+        lines.forEach(modName => selectedMods.add(modName));
+        updateSelectedModsDisplay();
+
+        pasteInput.value = '';
+        alert(`Added ${lines.length} mod(s) to test list!`);
+    });
+
+    // Import File - Add mods from file
+    document.getElementById('compat-add-file-btn')?.addEventListener('click', function() {
+        const fileInput = document.getElementById('compat-file-input');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert('Please select a file first');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const lines = text.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0 && !line.startsWith('#') && !line.startsWith('*'))
+                .map(line => {
+                    if (line.startsWith('*')) line = line.substring(1);
+                    return line;
+                });
+
+            lines.forEach(modName => selectedMods.add(modName));
+            updateSelectedModsDisplay();
+
+            fileInput.value = '';
+            alert(`Imported ${lines.length} mod(s) from ${file.name}!`);
+        };
+        reader.readAsText(file);
+    });
+
+    // Popular Mods - Add selected popular mods
+    document.getElementById('compat-add-popular-btn')?.addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('.popular-mod:checked');
+        checkboxes.forEach(cb => selectedMods.add(cb.value));
+        updateSelectedModsDisplay();
+        alert(`Added ${checkboxes.length} popular mod(s) to test list!`);
+    });
+
+    // Clear All button
+    document.getElementById('compat-clear-all-btn')?.addEventListener('click', function() {
+        if (selectedMods.size === 0) return;
+        if (confirm('Clear all selected mods?')) {
+            selectedMods.clear();
+            updateSelectedModsDisplay();
+        }
+    });
+
+    // Export List button
+    document.getElementById('compat-export-btn')?.addEventListener('click', function() {
+        if (selectedMods.size === 0) {
+            alert('No mods selected to export');
+            return;
+        }
+
+        const modList = Array.from(selectedMods).join('\n');
+        navigator.clipboard.writeText(modList).then(() => {
+            alert(`Copied ${selectedMods.size} mod(s) to clipboard!`);
+        }).catch(err => {
+            // Fallback for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = modList;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            alert(`Copied ${selectedMods.size} mod(s) to clipboard!`);
+        });
+    });
+
     // Papyrus Script Analysis
     document.getElementById('papyrus-analyze-btn')?.addEventListener('click', async function() {
         const fileInput = document.getElementById('papyrus-file');
@@ -337,15 +625,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Get selected mods to test against
-        const testMods = Array.from(document.querySelectorAll('.compat-mod:checked')).map(cb => cb.value);
+        // Get selected mods from the Set
+        const testMods = Array.from(selectedMods);
 
         if (testMods.length === 0) {
-            resultsEl.innerHTML = '<p style="color: var(--error);">Select at least one mod to test against</p>';
+            resultsEl.innerHTML = '<p style="color: var(--error);">Search and select at least one mod to test against</p>';
             return;
         }
 
-        resultsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Testing compatibility...</p>';
+        resultsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Testing compatibility against ' + testMods.length + ' mod(s)...</p>';
 
         // Build test mod list
         const modList = [yourMod, ...testMods].join('\n');

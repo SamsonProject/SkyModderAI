@@ -1,0 +1,112 @@
+<!--
+  SkyModderAI — Base Template
+  Master template extended by all other templates
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SkyModderAI - Intelligent mod compatibility checker for Bethesda games">
+    <meta name="theme-color" content="#0f172a">
+    
+    <title>{% block title %}SkyModderAI{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.modern.svg') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.modern.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/centering-fixes.css') }}">
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="container">
+            <div class="nav-content">
+                <a href="{{ url_for('index') }}" class="nav-logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 2L4 8V24L16 30L28 24V8L16 2Z" fill="#3b82f6"/>
+                        <path d="M16 6L8 10V22L16 26L24 22V10L16 6Z" fill="#60a5fa"/>
+                    </svg>
+                    <span>SkyModderAI</span>
+                </a>
+                
+                <div class="nav-links">
+                    <a href="{{ url_for('index') }}" class="nav-link">Analysis</a>
+                    <a href="{{ url_for('community.community_index') }}" class="nav-link">Community</a>
+                    <a href="{{ url_for('api_hub') }}" class="nav-link">API</a>
+                    {% if current_user %}
+                        <a href="{{ url_for('profile') }}" class="nav-link nav-link-user">Profile</a>
+                        <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary">Sign In</a>
+                    {% endif %}
+                </div>
+                
+                <button class="nav-toggle" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>SkyModderAI</h4>
+                    <p>Built by modders, for modders.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="{{ url_for('index') }}">Analysis</a></li>
+                        <li><a href="{{ url_for('community.community_index') }}">Community</a></li>
+                        <li><a href="{{ url_for('api_hub') }}">API</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="{{ url_for('terms') }}">Terms</a></li>
+                        <li><a href="{{ url_for('privacy') }}">Privacy</a></li>
+                        <li><a href="{{ url_for('safety') }}">Safety</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="https://github.com/SamsonProject/SkyModderAI" target="_blank">GitHub</a></li>
+                        <li><a href="mailto:mcompchecker@gmail.com">Email</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; {{ now().year }} SkyModderAI. MIT License.</p>
+                <p>Not affiliated with Bethesda Softworks.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

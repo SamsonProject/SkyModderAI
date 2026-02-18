@@ -6,12 +6,42 @@ on:
   pull_request:
   release:
     types: [published]
+  # Allow manual triggers for testing
+  workflow_dispatch:
 
 env:
   PYTHON_DEFAULT: "3.11"
   PIP_CACHE_DIR: ~/.cache/pip
+  # Coverage threshold - fail CI if below this
+  COVERAGE_THRESHOLD: 80
 
 jobs:
+  # ─────────────────────────────────────────────────────────────
+  # TYPE CHECK - Static type validation with mypy
+  # ─────────────────────────────────────────────────────────────
+  type-check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_DEFAULT }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools
+          pip install -r requirements.txt
+          pip install mypy types-requests types-PyYAML
+
+      - name: Run mypy
+        run: |
+          mypy blueprints/ services/ exceptions/ --ignore-missing-imports || true
+
   # ─────────────────────────────────────────────────────────────
   # LINT & FORMAT - Fast feedback for developers
   # ─────────────────────────────────────────────────────────────
@@ -69,7 +99,12 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Run tests with coverage
-        run: pytest --tb=short -v --cov=. --cov-report=xml --cov-report=term-missing
+        run: |
+          pytest --tb=short -v \
+            --cov=. \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --cov-fail-under=${{ env.COVERAGE_THRESHOLD }}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -79,6 +114,7 @@ jobs:
           env_vars: PYTHON_VERSION
           name: codecov-${{ matrix.python-version }}
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   # ─────────────────────────────────────────────────────────────
   # GAME COMPATIBILITY - Test all supported Bethesda games

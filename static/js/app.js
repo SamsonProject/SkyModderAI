@@ -4663,6 +4663,7 @@ const THEMES = {
             '--bg-app': '#0f172a', '--bg-panel': '#1e293b', '--bg-input': '#020617',
             '--text-main': '#f8fafc', '--text-muted': '#94a3b8', '--border': '#334155',
             '--accent': '#38bdf8', '--accent-hover': '#0ea5e9', '--accent-text': '#0f172a',
+            '--accent-rgb': '56, 189, 248',
             '--danger': '#ef4444', '--success': '#22c55e', '--warning': '#f59e0b',
             '--shadow-sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
             '--shadow-md': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06)'
@@ -4674,6 +4675,7 @@ const THEMES = {
             '--bg-app': '#111111', '--bg-panel': '#1e1e1e', '--bg-input': '#252525',
             '--text-main': '#e0e0e0', '--text-muted': '#888888', '--border': '#333333',
             '--accent': '#a855f7', '--accent-hover': '#9333ea', '--accent-text': '#ffffff',
+            '--accent-rgb': '168, 85, 247',
             '--danger': '#ff5555', '--success': '#4caf50', '--warning': '#ff9800',
             '--shadow-sm': 'none', '--shadow-md': '0 4px 12px rgba(0,0,0,0.5)'
         }
@@ -4684,6 +4686,7 @@ const THEMES = {
             '--bg-app': '#222222', '--bg-panel': '#2b2b2b', '--bg-input': '#1a1a1a',
             '--text-main': '#ffffff', '--text-muted': '#9b9b9b', '--border': '#404040',
             '--accent': '#da8e35', '--accent-hover': '#e69d45', '--accent-text': '#000000',
+            '--accent-rgb': '218, 142, 53',
             '--danger': '#d32f2f', '--success': '#388e3c', '--warning': '#fbc02d',
             '--shadow-sm': '0 1px 3px rgba(0,0,0,0.3)', '--shadow-md': '0 4px 6px rgba(0,0,0,0.4)'
         }
@@ -4694,6 +4697,7 @@ const THEMES = {
             '--bg-app': '#f8fafc', '--bg-panel': '#ffffff', '--bg-input': '#f1f5f9',
             '--text-main': '#0f172a', '--text-muted': '#64748b', '--border': '#e2e8f0',
             '--accent': '#0ea5e9', '--accent-hover': '#0284c7', '--accent-text': '#ffffff',
+            '--accent-rgb': '14, 165, 233',
             '--danger': '#ef4444', '--success': '#22c55e', '--warning': '#f59e0b',
             '--shadow-sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
             '--shadow-md': '0 4px 6px -1px rgb(0 0 0 / 0.1)'
@@ -4704,6 +4708,11 @@ const THEMES = {
 function applyTheme(key) {
     const t = THEMES[key] || THEMES['slate'];
     const root = document.documentElement;
+    
+    // Set data-theme attribute for CSS hooks
+    root.setAttribute('data-theme', key);
+    
+    // Apply CSS variables from theme
     for (const [k, v] of Object.entries(t.colors)) {
         root.style.setProperty(k, v);
     }

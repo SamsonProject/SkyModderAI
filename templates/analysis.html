@@ -1,0 +1,193 @@
+<!--
+  SkyModderAI — Analysis Page Template
+  Main interface for mod list analysis
+-->
+{% extends "base.html" %}
+
+{% block title %}Analyze Mod List - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analysis-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .analysis-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .analysis-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .analysis-header p {
+        color: #94a3b8;
+        font-size: 1.125rem;
+    }
+    
+    .analysis-form {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #f8fafc;
+    }
+    
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        color: #f8fafc;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+    }
+    
+    .form-group textarea {
+        min-height: 300px;
+        resize: vertical;
+    }
+    
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+    
+    .btn-analyze {
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        color: white;
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    
+    .btn-analyze:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+    
+    .analysis-examples {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: #0f172a;
+        border-radius: 8px;
+    }
+    
+    .analysis-examples h3 {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        margin-bottom: 1rem;
+    }
+    
+    .example-mods {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        color: #94a3b8;
+        line-height: 1.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analysis-page">
+    
+    <header class="analysis-header">
+        <h1>Analyze Your Mod List</h1>
+        <p>Paste your load order and get instant conflict detection, recommendations, and optimization tips.</p>
+    </header>
+    
+    <form class="analysis-form" method="POST" action="{{ url_for('analysis.analyze') }}">
+        
+        <div class="form-group">
+            <label for="game">Select Game</label>
+            <select name="game" id="game" required>
+                <option value="skyrimse" {% if game == 'skyrimse' %}selected{% endif %}>Skyrim Special Edition (2016)</option>
+                <option value="skyrim" {% if game == 'skyrim' %}selected{% endif %}>Skyrim Legendary Edition (2011)</option>
+                <option value="skyrimvr" {% if game == 'skyrimvr' %}selected{% endif %}>Skyrim VR</option>
+                <option value="oblivion" {% if game == 'oblivion' %}selected{% endif %}>Oblivion</option>
+                <option value="fallout3" {% if game == 'fallout3' %}selected{% endif %}>Fallout 3</option>
+                <option value="falloutnv" {% if game == 'falloutnv' %}selected{% endif %}>Fallout: New Vegas</option>
+                <option value="fallout4" {% if game == 'fallout4' %}selected{% endif %}>Fallout 4</option>
+                <option value="starfield" {% if game == 'starfield' %}selected{% endif %}>Starfield</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="mod_list">Your Mod List</label>
+            <textarea name="mod_list" id="mod_list" placeholder="Paste your mod list here (one mod per line)..." required></textarea>
+            <p style="color: #64748b; font-size: 0.75rem; margin-top: 0.5rem;">
+                Supports .esp, .esm, .esl files. One per line.
+            </p>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-analyze">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 8px;">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Analyze Load Order
+            </button>
+        </div>
+        
+    </form>
+    
+    <div class="analysis-examples">
+        <h3>Example Format</h3>
+        <div class="example-mods">
+            Skyrim.esm<br>
+            Update.esm<br>
+            Dawnguard.esm<br>
+            HearthFires.esm<br>
+            Dragonborn.esm<br>
+            USSEP.esp<br>
+            SkyUI.esp<br>
+            Ordinator - Perks of Skyrim.esp<br>
+            Apocalypse - Magic of Skyrim.esp<br>
+            ...
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-focus on textarea
+document.getElementById('mod_list').focus();
+</script>
+{% endblock %}

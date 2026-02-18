@@ -304,3 +304,17 @@ __marimo__/
 # OpenClaw & Samson runtime data
 openclaw_workspace/
 data/samson_fuel/
+
+# Generated database files
+users.db
+*.db-journal
+
+# Coverage reports (generated)
+.coverage
+coverage.xml
+htmlcov/
+
+# AI design artifacts (generated during design sessions)
+static/css/dashboard.css
+static/js/conflict-graph.js
+static/js/dashboard-interactions.js

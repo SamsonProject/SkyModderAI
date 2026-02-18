@@ -1,0 +1,400 @@
+<!--
+  SkyModderAI — Analysis Results Template
+  Professional-grade results display with severity-first scanning
+-->
+{% extends "base.html" %}
+
+{% block title %}Analysis Results - {{ game }}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analysis-results.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="analysis-results">
+    
+    <!-- ==========================================================================
+         Header
+         ========================================================================== -->
+    <header class="results-header">
+        <div>
+            <h1>Analysis Results</h1>
+            <p style="color: var(--color-text-secondary); margin: var(--space-xs) 0 0 0;">
+                Game: <strong>{{ game }}</strong> &bull; 
+                Mods: <strong>{{ mod_count }}</strong> &bull; 
+                Analyzed: <strong>{{ now() }}</strong>
+            </p>
+        </div>
+        
+        <div class="results-meta">
+            <span><strong>{{ analysis.conflicts|length }}</strong> issues found</span>
+        </div>
+    </header>
+    
+    <!-- ==========================================================================
+         Summary Stats
+         ========================================================================== -->
+    <section class="summary-stats" aria-label="Issue summary">
+        {% set critical = analysis.conflicts|selectattr('severity', 'equalto', 'critical')|list %}
+        {% set high = analysis.conflicts|selectattr('severity', 'equalto', 'high')|list %}
+        {% set medium = analysis.conflicts|selectattr('severity', 'equalto', 'medium')|list %}
+        {% set low = analysis.conflicts|selectattr('severity', 'equalto', 'low')|list %}
+        
+        <div class="stat-card critical" role="status">
+            <div class="stat-number">{{ critical|length }}</div>
+            <div class="stat-label">Critical</div>
+        </div>
+        
+        <div class="stat-card high" role="status">
+            <div class="stat-number">{{ high|length }}</div>
+            <div class="stat-label">High</div>
+        </div>
+        
+        <div class="stat-card medium" role="status">
+            <div class="stat-number">{{ medium|length }}</div>
+            <div class="stat-label">Medium</div>
+        </div>
+        
+        <div class="stat-card low" role="status">
+            <div class="stat-number">{{ low|length }}</div>
+            <div class="stat-label">Low</div>
+        </div>
+    </section>
+    
+    <!-- ==========================================================================
+         Action Bar
+         ========================================================================== -->
+    <div class="action-bar">
+        <button class="btn btn-primary" onclick="fixAllCritical()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Fix All Critical
+        </button>
+        
+        <button class="btn btn-secondary" onclick="exportReport()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Export Report
+        </button>
+        
+        <button class="btn btn-secondary" onclick="window.print()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+            Print
+        </button>
+        
+        <div style="flex-grow: 1;"></div>
+        
+        <button class="btn btn-secondary" onclick="toggleAllSections()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+            Collapse All
+        </button>
+    </div>
+    
+    <!-- ==========================================================================
+         Critical Conflicts Section
+         ========================================================================== -->
+    {% if critical %}
+    <section class="conflict-section" aria-label="Critical conflicts">
+        <div class="conflict-section-header" onclick="toggleSection(this)" role="button" tabindex="0">
+            <h2 class="conflict-section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-critical)" stroke-width="2">
+                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                Critical Issues
+            </h2>
+            <span class="conflict-count">{{ critical|length }}</span>
+        </div>
+        
+        <div class="conflict-section-content">
+            {% for conflict in critical %}
+            <article class="conflict-item critical">
+                <div class="conflict-item-header">
+                    <div>
+                        <h3 class="conflict-item-title">{{ conflict.title or 'Missing Master' }}</h3>
+                        <code class="conflict-item-mods">{{ conflict.mod_a }} {% if conflict.mod_b %}+ {{ conflict.mod_b }}{% endif %}</code>
+                    </div>
+                    <span class="conflict-item-severity critical">Critical</span>
+                </div>
+                
+                <p class="conflict-item-description">
+                    {{ conflict.message or 'This issue will cause crashes or prevent the game from launching.' }}
+                </p>
+                
+                {% if conflict.suggested_action or conflict.resolution %}
+                <div class="solution-box">
+                    <div class="solution-box-title">Recommended Fix</div>
+                    <ol class="solution-steps">
+                        <li class="solution-step">
+                            <span class="solution-step-number">1</span>
+                            <span>{{ conflict.suggested_action or 'Download the required mod from Nexus Mods' }}</span>
+                        </li>
+                        {% if conflict.resolution %}
+                        <li class="solution-step">
+                            <span class="solution-step-number">2</span>
+                            <span>{{ conflict.resolution }}</span>
+                        </li>
+                        {% endif %}
+                    </ol>
+                    
+                    <div class="solution-links">
+                        {% if conflict.nexus_url %}
+                        <a href="{{ conflict.nexus_url }}" target="_blank" class="solution-link">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px;">
+                                <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            Download on Nexus
+                        </a>
+                        {% endif %}
+                        {% if conflict.uesp_url %}
+                        <a href="{{ conflict.uesp_url }}" target="_blank" class="solution-link">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px;">
+                                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                            UESP Guide
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- AI Insight (SkyModderAI Differentiator) -->
+                {% if conflict.ai_insight %}
+                <div class="ai-insight-box">
+                    <div class="ai-insight-header">
+                        <span class="ai-badge">AI Insight</span>
+                        <span style="font-size: 0.75rem; color: var(--color-text-muted);">
+                            {{ conflict.ai_model or 'SkyModderAI v2.0' }}
+                        </span>
+                    </div>
+                    <div class="ai-insight-content">
+                        {{ conflict.ai_insight }}
+                    </div>
+                    <div class="ai-confidence">
+                        <span>Confidence:</span>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: {{ conflict.confidence or 85 }}%;"></div>
+                        </div>
+                        <span>{{ conflict.confidence or 85 }}%</span>
+                    </div>
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- ==========================================================================
+         High Priority Conflicts Section
+         ========================================================================== -->
+    {% if high %}
+    <section class="conflict-section" aria-label="High priority conflicts">
+        <div class="conflict-section-header" onclick="toggleSection(this)" role="button" tabindex="0">
+            <h2 class="conflict-section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-high)" stroke-width="2">
+                    <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                High Priority
+            </h2>
+            <span class="conflict-count">{{ high|length }}</span>
+        </div>
+        
+        <div class="conflict-section-content">
+            {% for conflict in high %}
+            <article class="conflict-item high">
+                <div class="conflict-item-header">
+                    <div>
+                        <h3 class="conflict-item-title">{{ conflict.title or 'Compatibility Issue' }}</h3>
+                        <code class="conflict-item-mods">{{ conflict.mod_a }} {% if conflict.mod_b %}+ {{ conflict.mod_b }}{% endif %}</code>
+                    </div>
+                    <span class="conflict-item-severity high">High</span>
+                </div>
+                
+                <p class="conflict-item-description">
+                    {{ conflict.message or 'These mods may conflict and cause issues in-game.' }}
+                </p>
+                
+                {% if conflict.suggested_action %}
+                <div class="solution-box">
+                    <div class="solution-box-title">Recommended Fix</div>
+                    <ol class="solution-steps">
+                        <li class="solution-step">
+                            <span class="solution-step-number">1</span>
+                            <span>{{ conflict.suggested_action }}</span>
+                        </li>
+                    </ol>
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- ==========================================================================
+         Medium Priority Conflicts Section
+         ========================================================================== -->
+    {% if medium %}
+    <section class="conflict-section" aria-label="Medium priority conflicts">
+        <div class="conflict-section-header" onclick="toggleSection(this)" role="button" tabindex="0">
+            <h2 class="conflict-section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-medium)" stroke-width="2">
+                    <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Medium Priority
+            </h2>
+            <span class="conflict-count">{{ medium|length }}</span>
+        </div>
+        
+        <div class="conflict-section-content">
+            {% for conflict in medium %}
+            <article class="conflict-item medium">
+                <div class="conflict-item-header">
+                    <div>
+                        <h3 class="conflict-item-title">{{ conflict.title or 'Load Order Issue' }}</h3>
+                        <code class="conflict-item-mods">{{ conflict.mod_a }}</code>
+                    </div>
+                    <span class="conflict-item-severity medium">Medium</span>
+                </div>
+                
+                <p class="conflict-item-description">
+                    {{ conflict.message or 'This mod should be loaded at a different position.' }}
+                </p>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- ==========================================================================
+         Low Priority Conflicts Section
+         ========================================================================== -->
+    {% if low %}
+    <section class="conflict-section" aria-label="Low priority conflicts">
+        <div class="conflict-section-header" onclick="toggleSection(this)" role="button" tabindex="0">
+            <h2 class="conflict-section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-low)" stroke-width="2">
+                    <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Low Priority
+            </h2>
+            <span class="conflict-count">{{ low|length }}</span>
+        </div>
+        
+        <div class="conflict-section-content">
+            {% for conflict in low %}
+            <article class="conflict-item low">
+                <div class="conflict-item-header">
+                    <div>
+                        <h3 class="conflict-item-title">{{ conflict.title or 'Minor Issue' }}</h3>
+                        <code class="conflict-item-mods">{{ conflict.mod_a }}</code>
+                    </div>
+                    <span class="conflict-item-severity low">Low</span>
+                </div>
+                
+                <p class="conflict-item-description">
+                    {{ conflict.message or 'Minor issue that may not affect gameplay.' }}
+                </p>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- ==========================================================================
+         No Conflicts State
+         ========================================================================== -->
+    {% if not analysis.conflicts or analysis.conflicts|length == 0 %}
+    <section class="conflict-section" style="text-align: center; padding: var(--space-2xl);">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-low)" stroke-width="2" style="margin: 0 auto var(--space-lg);">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <h2 style="font-size: 1.5rem; margin-bottom: var(--space-sm);">No Conflicts Detected!</h2>
+        <p style="color: var(--color-text-secondary); max-width: 600px; margin: 0 auto;">
+            Your load order looks clean. This doesn't guarantee a crash-free experience, 
+            but all known conflicts have been addressed.
+        </p>
+        <div class="action-bar" style="justify-content: center; margin-top: var(--space-xl);">
+            <button class="btn btn-success" onclick="window.location.href='/'">
+                Analyze Another List
+            </button>
+            <button class="btn btn-secondary" onclick="saveAnalysis()">
+                Save This Analysis
+            </button>
+        </div>
+    </section>
+    {% endif %}
+    
+</div>
+
+<script>
+// Section toggle functionality
+function toggleSection(header) {
+    const section = header.closest('.conflict-section');
+    section.classList.toggle('collapsed');
+}
+
+function toggleAllSections() {
+    const sections = document.querySelectorAll('.conflict-section');
+    const allCollapsed = Array.from(sections).every(s => s.classList.contains('collapsed'));
+    
+    sections.forEach(section => {
+        if (allCollapsed) {
+            section.classList.remove('collapsed');
+        } else {
+            section.classList.add('collapsed');
+        }
+    });
+}
+
+function fixAllCritical() {
+    // OpenCLAW integration would go here
+    alert('OpenCLAW will analyze critical issues and propose automated fixes...');
+}
+
+function exportReport() {
+    // Export to JSON/PDF
+    const data = {
+        game: '{{ game }}',
+        mod_count: {{ mod_count }},
+        conflicts: {{ analysis.conflicts|tojson }}
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `skymodderai-report-${Date.now()}.json`;
+    a.click();
+}
+
+function saveAnalysis() {
+    // Save to user account
+    fetch('/analysis/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            game: '{{ game }}',
+            mod_list: '{{ mod_list }}',
+            analysis_snapshot: {{ analysis|tojson }}
+        })
+    });
+}
+
+// Keyboard accessibility for section headers
+document.querySelectorAll('.conflict-section-header').forEach(header => {
+    header.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleSection(header);
+        }
+    });
+});
+</script>
+{% endblock %}

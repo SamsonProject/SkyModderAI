@@ -3459,6 +3459,51 @@ def mod_search():
         return jsonify({"matches": [], "web_suggestions": []})
 
 
+@app.route("/api/search/mods", methods=["GET"])
+@rate_limit(RATE_LIMIT_SEARCH, "search")
+def search_mods_for_author():
+    """Search for mods with detailed info for mod author compatibility checker.
+    Returns: {mods: [{name, filename, nexus_id, author}]}"""
+    q = (request.args.get("q") or "").strip()
+    game = (request.args.get("game") or DEFAULT_GAME).lower()
+    version = (request.args.get("version") or "").strip() or "latest"
+    
+    # Validate game
+    allowed = {g["id"] for g in SUPPORTED_GAMES}
+    if game not in allowed:
+        game = DEFAULT_GAME
+    
+    # Validate limit
+    try:
+        limit = min(max(1, int(request.args.get("limit", 10))), 20)
+    except (TypeError, ValueError):
+        limit = 10
+    
+    if not q or len(q) < 2:
+        return jsonify({"mods": []})
+    
+    try:
+        p = get_parser(game, version=version)
+        engine = get_search_engine(p)
+        results = engine.search(q, limit=limit)
+        
+        # Format for mod author UI
+        mods = []
+        for r in results:
+            mod_info = r.mod_info or {}
+            mods.append({
+                "name": r.mod_name,
+                "filename": r.mod_name,  # Use mod_name as filename fallback
+                "nexus_id": mod_info.get("nexus_id"),
+                "author": mod_info.get("author", "Unknown"),
+            })
+        
+        return jsonify({"mods": mods, "game": game, "query": q})
+    except Exception as e:
+        logger.exception("Mod search failed: %s", e)
+        return jsonify({"mods": [], "error": str(e)})
+
+
 @app.route("/api/modlist/normalize", methods=["POST"])
 @rate_limit(RATE_LIMIT_SEARCH, "search")
 def normalize_modlist_input():

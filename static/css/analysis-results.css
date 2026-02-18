@@ -1,0 +1,743 @@
+/*
+ * SkyModderAI — Professional Analysis Results Styles
+ * 
+ * Design Principles:
+ * 1. Severity-first scanning (critical issues in <3 seconds)
+ * 2. Action-oriented (every conflict has a fix button)
+ * 3. Progressive disclosure (expand details on demand)
+ * 4. Dark-mode native (modders work at night)
+ * 5. Mobile-responsive (check results on phone)
+ */
+
+:root {
+    /* Semantic Color System - Theme Aware */
+    /* Dark theme defaults (override with data-theme attribute) */
+    --color-critical: #ef4444;
+    --color-critical-bg: rgba(239, 68, 68, 0.1);
+    --color-high: #f97316;
+    --color-high-bg: rgba(249, 115, 22, 0.1);
+    --color-medium: #eab308;
+    --color-medium-bg: rgba(234, 179, 8, 0.1);
+    --color-low: #22c55e;
+    --color-low-bg: rgba(34, 197, 94, 0.1);
+    
+    /* UI Colors - Dark Theme Default */
+    --color-bg-primary: #0f172a;
+    --color-bg-secondary: #1e293b;
+    --color-bg-tertiary: #334155;
+    --color-text-primary: #f8fafc;
+    --color-text-secondary: #94a3b8;
+    --color-text-muted: #64748b;
+    --color-border: #475569;
+    --color-accent: #3b82f6;
+    --color-accent-hover: #2563eb;
+    
+    /* Link colors - Theme aware */
+    --color-link: #60a5fa;
+    --color-link-hover: #93c5fd;
+    --color-link-visited: #a78bfa;
+}
+
+/* Dawn/Light Theme */
+[data-theme="dawn"], [data-theme="light"] {
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f8fafc;
+    --color-bg-tertiary: #f1f5f9;
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #475569;
+    --color-text-muted: #94a3b8;
+    --color-border: #e2e8f0;
+    --color-accent: #0ea5e9;
+    --color-accent-hover: #0284c7;
+    
+    /* Readable blue links for light themes */
+    --color-link: #0369a1;
+    --color-link-hover: #0c4a6e;
+    --color-link-visited: #6b21a8;
+}
+    
+    /* Spacing Scale */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --font-sans: 'Inter', system-ui, sans-serif;
+    
+    /* Effects */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --transition: 150ms ease-in-out;
+}
+
+/* ==========================================================================
+   Link Styling - Theme Aware
+   ========================================================================== */
+
+/* All links use theme-aware colors */
+a, .solution-link, .action-link {
+    color: var(--color-link);
+    transition: color var(--transition);
+}
+
+a:hover, .solution-link:hover, .action-link:hover {
+    color: var(--color-link-hover);
+}
+
+a:visited, .solution-link:visited {
+    color: var(--color-link-visited);
+}
+
+/* Ensure links in dark themes are readable */
+[data-theme="slate"] a, [data-theme="obsidian"] a,
+[data-theme="slate"] .solution-link, [data-theme="obsidian"] .solution-link {
+    color: var(--color-link, #60a5fa);
+}
+
+/* Ensure links in dawn/light themes are readable (darker blue) */
+[data-theme="dawn"] a, [data-theme="light"] a,
+[data-theme="dawn"] .solution-link, [data-theme="light"] .solution-link {
+    color: var(--color-link, #0369a1);
+}
+
+[data-theme="dawn"] a:hover, [data-theme="light"] a:hover,
+[data-theme="dawn"] .solution-link:hover, [data-theme="light"] .solution-link:hover {
+    color: var(--color-link-hover, #0c4a6e);
+}
+
+/* ==========================================================================
+   Results Container
+   ========================================================================== */
+
+.analysis-results {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-xl);
+    font-family: var(--font-sans);
+    color: var(--color-text-primary);
+    background: var(--color-bg-primary);
+    min-height: 100vh;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.results-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.results-meta {
+    display: flex;
+    gap: var(--space-lg);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+}
+
+.results-meta strong {
+    color: var(--color-text-primary);
+}
+
+/* ==========================================================================
+   Summary Stats Bar
+   ========================================================================== */
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+.stat-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    text-align: center;
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card.critical {
+    border-color: var(--color-critical);
+    background: var(--color-critical-bg);
+}
+
+.stat-card.high {
+    border-color: var(--color-high);
+    background: var(--color-high-bg);
+}
+
+.stat-card.medium {
+    border-color: var(--color-medium);
+    background: var(--color-medium-bg);
+}
+
+.stat-card.low {
+    border-color: var(--color-low);
+    background: var(--color-low-bg);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: var(--space-xs);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Action Bar
+   ========================================================================== */
+
+.action-bar {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xl);
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: var(--font-sans);
+}
+
+.btn-primary {
+    background: var(--color-accent);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--color-accent-hover);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+}
+
+.btn-secondary:hover {
+    background: var(--color-border);
+}
+
+.btn-success {
+    background: var(--color-low);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #16a34a;
+}
+
+.btn-icon {
+    padding: var(--space-sm);
+    min-width: 36px;
+    justify-content: center;
+}
+
+/* ==========================================================================
+   Conflict Sections
+   ========================================================================== */
+
+.conflict-section {
+    margin-bottom: var(--space-xl);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--color-bg-secondary);
+}
+
+.conflict-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--color-bg-tertiary);
+    border-bottom: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.conflict-section-header:hover {
+    background: var(--color-border);
+}
+
+.conflict-section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.conflict-count {
+    background: var(--color-bg-primary);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+}
+
+.conflict-section-content {
+    padding: 0;
+}
+
+.conflict-section.collapsed .conflict-section-content {
+    display: none;
+}
+
+/* ==========================================================================
+   Conflict Items
+   ========================================================================== */
+
+.conflict-item {
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-lg);
+    transition: background var(--transition);
+}
+
+.conflict-item:last-child {
+    border-bottom: none;
+}
+
+.conflict-item:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.conflict-item.critical {
+    border-left: 4px solid var(--color-critical);
+}
+
+.conflict-item.high {
+    border-left: 4px solid var(--color-high);
+}
+
+.conflict-item.medium {
+    border-left: 4px solid var(--color-medium);
+}
+
+.conflict-item.low {
+    border-left: 4px solid var(--color-low);
+}
+
+.conflict-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+}
+
+.conflict-item-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0 0 var(--space-xs) 0;
+    color: var(--color-text-primary);
+}
+
+.conflict-item-mods {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-primary);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+
+.conflict-item-severity {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+}
+
+.conflict-item-severity.critical {
+    background: var(--color-critical);
+    color: white;
+}
+
+.conflict-item-severity.high {
+    background: var(--color-high);
+    color: white;
+}
+
+.conflict-item-severity.medium {
+    background: var(--color-medium);
+    color: var(--color-bg-primary);
+}
+
+.conflict-item-severity.low {
+    background: var(--color-low);
+    color: white;
+}
+
+.conflict-item-description {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: var(--space-md);
+}
+
+/* ==========================================================================
+   Solution Box
+   ========================================================================== */
+
+.solution-box {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-top: var(--space-md);
+}
+
+.solution-box-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+}
+
+.solution-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--space-md) 0;
+}
+
+.solution-step {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+.solution-step:last-child {
+    margin-bottom: 0;
+}
+
+.solution-step-number {
+    background: var(--color-accent);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.solution-links {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.solution-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-size: 0.875rem;
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition);
+}
+
+.solution-link:hover {
+    background: var(--color-accent);
+    color: white;
+    border-color: var(--color-accent);
+}
+
+/* ==========================================================================
+   AI Insight Box (SkyModderAI Differentiator)
+   ========================================================================== */
+
+.ai-insight-box {
+    background: linear-gradient(135deg, rgba(var(--accent-rgb, 59, 130, 246), 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-top: var(--space-md);
+}
+
+.ai-insight-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.ai-badge {
+    background: linear-gradient(135deg, var(--color-accent) 0%, #9333ea 100%);
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+}
+
+.ai-insight-content {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+}
+
+.ai-confidence {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.confidence-bar {
+    width: 100px;
+    height: 4px;
+    background: var(--color-bg-tertiary);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-accent) 0%, #9333ea 100%);
+    border-radius: 2px;
+}
+
+/* ==========================================================================
+   Mod List Panel
+   ========================================================================== */
+
+.mod-list-panel {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-top: var(--space-xl);
+}
+
+.mod-list-panel h3 {
+    margin: 0 0 var(--space-md) 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.mod-list-textarea {
+    width: 100%;
+    min-height: 200px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-text-primary);
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.mod-list-textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.loading-skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--color-bg-secondary) 25%,
+        var(--color-bg-tertiary) 50%,
+        var(--color-bg-secondary) 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s ease-in-out infinite;
+    border-radius: var(--radius-md);
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-text {
+    height: 16px;
+    margin-bottom: var(--space-sm);
+}
+
+.skeleton-title {
+    height: 24px;
+    width: 60%;
+    margin-bottom: var(--space-md);
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+    .analysis-results {
+        padding: var(--space-md);
+    }
+    
+    .summary-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .results-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-md);
+    }
+    
+    .results-meta {
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+    
+    .summary-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .action-bar {
+        width: 100%;
+    }
+    
+    .action-bar .btn {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .conflict-item-header {
+        flex-direction: column;
+    }
+    
+    .conflict-item-severity {
+        align-self: flex-start;
+    }
+}
+
+/* ==========================================================================
+   Print Styles (for exported reports)
+   ========================================================================== */
+
+@media print {
+    .analysis-results {
+        background: white;
+        color: black;
+        max-width: none;
+    }
+    
+    .action-bar,
+    .btn {
+        display: none !important;
+    }
+    
+    .conflict-section {
+        break-inside: avoid;
+        border: 1px solid #ccc;
+    }
+    
+    :root {
+        --color-bg-primary: white;
+        --color-bg-secondary: #f5f5f5;
+        --color-text-primary: black;
+        --color-text-secondary: #666;
+    }
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* Focus indicators */
+.btn:focus,
+.solution-link:focus,
+.conflict-section-header:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    :root {
+        --color-border: #fff;
+        --color-text-secondary: #fff;
+    }
+    
+    .conflict-item {
+        border-width: 2px;
+    }
+}
