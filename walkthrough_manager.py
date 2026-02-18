@@ -1,13 +1,18 @@
 """
-Walkthrough Citation Manager — Academic-Grade Source Citations
+Walkthrough Citation Manager — Live Links to External Sources
 
-Every claim, tip, or reference MUST cite a specific source:
-- UESP: Specific section/anchor, not main page
+SkyModderAI is a LINK HUB, not a content vault.
+
+Every claim, tip, or reference cites a specific EXTERNAL source:
+- UESP: Specific section/anchor (not main page)
 - YouTube: Timestamp to exact moment
-- Nexus: Specific article/guide, not mod page
+- Nexus: Specific article/guide (not mod page)
 - Wikis: Specific paragraph/section
 
-This is scientific citation for modding. No vague links.
+We do NOT store walkthrough data locally. We link intimately and dynamically
+to the best existing resources. This is scientific citation for modding.
+
+No vague links. No content duplication. Just smart linking.
 """
 
 import logging

@@ -1,10 +1,10 @@
-<!-- MOD AUTHOR TOOLS - Built for Bethesda Mod Creators -->
+<!-- MOD AUTHOR TOOLS - Dedicated tab for mod creators -->
 <section class="tab-panel dev-panel" id="panel-dev" role="tabpanel" aria-hidden="true">
     <div class="dev-content" style="padding: var(--space-xl);">
         <div style="max-width: 1400px; margin: 0 auto;">
             <h2 style="font-size: 2rem; margin-bottom: var(--space-lg);">🛠️ Mod Author Tools</h2>
             <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: var(--space-xl);">
-                Tools built specifically for mod creators, testers, and maintainers.
+                Complete toolkit for mod creators: script analysis, compatibility testing, load order validation, and community collaboration.
             </p>
 
             <!-- Quick Stats -->
@@ -23,13 +23,31 @@
                 </div>
             </div>
 
+            <!-- Papyrus Script Analysis -->
+            <div style="background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-xl); margin-bottom: var(--space-xl);">
+                <h3 style="margin-bottom: var(--space-md);">📜 Papyrus Script Analysis</h3>
+                <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
+                    Analyze your .psc scripts for common issues, optimization opportunities, and best practices.
+                </p>
+                <div style="display: grid; gap: var(--space-md);">
+                    <div>
+                        <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Upload Papyrus Script (.psc):</label>
+                        <input type="file" id="papyrus-file" accept=".psc" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);">
+                    </div>
+                    <button type="button" id="papyrus-analyze-btn" class="primary-button">🔍 Analyze Script</button>
+                    <div id="papyrus-results" style="padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm);">
+                        <p style="color: var(--text-secondary);">Upload a .psc file to analyze for common issues, optimization opportunities, and best practices...</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Mod Compatibility Checker -->
             <div style="background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-xl); margin-bottom: var(--space-xl);">
                 <h3 style="margin-bottom: var(--space-md);">⚔️ Mod Compatibility Checker</h3>
                 <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
                     Test your mod against popular mods. Find conflicts before your users do.
                 </p>
-                
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Your Mod:</label>
@@ -46,7 +64,7 @@
                         </select>
                     </div>
                 </div>
-                
+
                 <div style="margin-top: var(--space-md);">
                     <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Test Against:</label>
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-xs); max-height: 300px; overflow-y: auto; padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm);">
@@ -73,7 +91,7 @@
                         🔍 Check Compatibility
                     </button>
                 </div>
-                
+
                 <div id="compat-results" style="margin-top: var(--space-md); padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm);">
                     <p style="color: var(--text-secondary); text-align: center;">Select your mod and test against popular mods to see compatibility results...</p>
                 </div>
@@ -85,22 +103,22 @@
                 <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
                     Where should your mod load? Get LOOT-based recommendations for optimal placement.
                 </p>
-                
+
                 <div style="display: grid; gap: var(--space-md);">
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Your Mod:</label>
                         <input type="text" id="loadorder-mod" placeholder="YourMod.esp" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: monospace;">
                     </div>
-                    
+
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Test Load Order (one mod per line, top to bottom):</label>
                         <textarea id="loadorder-list" rows="8" placeholder="USSEP.esp&#10;SkyUI.esp&#10;YourMod.esp&#10;Ordinator - Perks of Skyrim.esp" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: monospace; font-size: 0.9rem;"></textarea>
                     </div>
-                    
+
                     <button type="button" id="loadorder-validate-btn" class="primary-button">
                         📊 Validate Load Order
                     </button>
-                    
+
                     <div id="loadorder-results" style="padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm);">
                         <p style="color: var(--text-secondary);">Results will show load order violations, suggested moves, and compatibility notes...</p>
                     </div>
@@ -113,23 +131,23 @@
                 <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
                     Validate your mod's requirements. Ensure users have what they need.
                 </p>
-                
+
                 <div style="display: grid; gap: var(--space-md);">
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Your Mod Name:</label>
                         <input type="text" id="req-your-mod" placeholder="YourMod" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);">
                     </div>
-                    
+
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Listed Requirements (one per line):</label>
                         <textarea id="req-list" rows="6" placeholder="USSEP&#10;SkyUI&#10;Address Library for SKSE Plugins" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: monospace; font-size: 0.9rem;"></textarea>
                         <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: var(--space-xs);">Enter the requirements you list on your mod page</p>
                     </div>
-                    
+
                     <button type="button" id="req-validate-btn" class="primary-button">
                         ✅ Validate Requirements
                     </button>
-                    
+
                     <div id="req-results" style="padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm);">
                         <p style="color: var(--text-secondary);">Validation results will show missing requirements, incorrect names, and suggestions...</p>
                     </div>
@@ -142,7 +160,7 @@
                 <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
                     Find existing compatibility patches for your mod. Know what patches users need.
                 </p>
-                
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Your Mod:</label>
@@ -156,11 +174,11 @@
                         </select>
                     </div>
                 </div>
-                
+
                 <button type="button" id="patch-search-btn" class="primary-button" style="margin-top: var(--space-md);">
                     🔍 Search for Patches
                 </button>
-                
+
                 <div id="patch-results" style="margin-top: var(--space-md); padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm);">
                     <p style="color: var(--text-secondary);">Search results will show available patches, their authors, and download links...</p>
                 </div>
@@ -172,17 +190,17 @@
                 <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
                     See what issues users are reporting with your mod. Aggregate feedback from the community.
                 </p>
-                
+
                 <div style="display: grid; gap: var(--space-md);">
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Your Mod Name:</label>
                         <input type="text" id="issue-mod" placeholder="YourMod" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);">
                     </div>
-                    
+
                     <button type="button" id="issue-search-btn" class="primary-button">
                         📊 Search User Reports
                     </button>
-                    
+
                     <div id="issue-results" style="padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm); max-height: 400px; overflow-y: auto;">
                         <p style="color: var(--text-secondary);">User-reported issues will appear here, categorized by type (CTD, conflict, bug, etc.)...</p>
                     </div>
@@ -190,12 +208,12 @@
             </div>
 
             <!-- Mod Metadata Generator -->
-            <div style="background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-xl);">
+            <div style="background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-xl); margin-bottom: var(--space-xl);">
                 <h3 style="margin-bottom: var(--space-md);">📝 Mod Metadata Generator</h3>
                 <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
                     Generate LOOT-compatible metadata for your mod. Help users with automatic load order.
                 </p>
-                
+
                 <div style="display: grid; gap: var(--space-md);">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
                         <div>
@@ -207,32 +225,57 @@
                             <input type="text" id="meta-author" placeholder="Your Name" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);">
                         </div>
                     </div>
-                    
+
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Requirements (comma-separated):</label>
                         <input type="text" id="meta-reqs" placeholder="USSEP, SkyUI, Address Library" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);">
                     </div>
-                    
+
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Load After (comma-separated):</label>
                         <input type="text" id="meta-load-after" placeholder="USSEP, SkyUI" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);">
                     </div>
-                    
+
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Tags (comma-separated):</label>
                         <input type="text" id="meta-tags" placeholder="Gameplay, Quest, NPC" style="width: 100%; padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);">
                     </div>
-                    
+
                     <button type="button" id="meta-generate-btn" class="primary-button">
                         📝 Generate Metadata
                     </button>
-                    
+
                     <div>
                         <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Generated YAML (for LOOT masterlist):</label>
                         <textarea id="meta-output" rows="12" readonly style="width: 100%; padding: var(--space-sm); background: var(--bg-dark); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: monospace; font-size: 0.9rem;"></textarea>
                         <button type="button" id="meta-copy-btn" class="secondary-button" style="margin-top: var(--space-sm);">
                             📋 Copy to Clipboard
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mod Author Community & Resources -->
+            <div style="background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-xl);">
+                <h3 style="margin-bottom: var(--space-md);">💬 Mod Author Community</h3>
+                <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">Connect with fellow mod creators, share resources, and collaborate.</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-md);">
+                    <div style="padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm);">
+                        <h4 style="margin-bottom: var(--space-sm);">📚 Resources</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: var(--space-xs);">
+                            <a href="https://creationkit.com/" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">Creation Kit Wiki</a>
+                            <a href="https://papyrus.skyrimmods.org/" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">Papyrus Reference</a>
+                            <a href="https://www.youtube.com/results?search_query=skyrim+modding+tutorial" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">Video Tutorials</a>
+                        </div>
+                    </div>
+                    <div style="padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm);">
+                        <h4 style="margin-bottom: var(--space-sm);">💬 Communities</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: var(--space-xs);">
+                            <a href="https://forums.nexusmods.com/" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">Nexus Forums</a>
+                            <a href="https://discord.gg/skyrimmods" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">Skyrim Mods Discord</a>
+                            <a href="https://www.reddit.com/r/skyrimmods/" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">r/skyrimmods</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -243,30 +286,70 @@
 <script>
 // Mod Author Tools JavaScript
 document.addEventListener('DOMContentLoaded', function() {
+    // Papyrus Script Analysis
+    document.getElementById('papyrus-analyze-btn')?.addEventListener('click', async function() {
+        const fileInput = document.getElementById('papyrus-file');
+        const resultsEl = document.getElementById('papyrus-results');
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+            resultsEl.innerHTML = '<p style="color: var(--error);">Please select a .psc file</p>';
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('script', file);
+
+        resultsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Analyzing script...</p>';
+
+        try {
+            const response = await fetch('/api/analyze/papyrus', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.issues && data.issues.length > 0) {
+                resultsEl.innerHTML = '<h4 style="margin-bottom: var(--space-sm);">Analysis Results:</h4>' +
+                    data.issues.map(issue => `
+                        <div style="padding: var(--space-sm); background: var(--bg-dark); border-left: 3px solid var(--${issue.severity === 'error' ? 'error' : issue.severity === 'warning' ? 'warning' : 'info'}); border-radius: var(--radius-sm); margin-bottom: var(--space-sm);">
+                            <div style="font-weight: 600; color: var(--${issue.severity === 'error' ? 'error' : issue.severity === 'warning' ? 'warning' : 'info'});">${issue.severity.toUpperCase()}: ${issue.rule}</div>
+                            <div style="font-size: 0.9rem; margin-top: var(--space-xs);">${issue.message}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: var(--space-xs);">Line ${issue.line}: <code>${issue.code}</code></div>
+                        </div>
+                    `).join('');
+            } else {
+                resultsEl.innerHTML = '<p style="color: var(--success); text-align: center; padding: var(--space-xl);">✅ No issues found! Your script looks clean.</p>';
+            }
+        } catch (e) {
+            resultsEl.innerHTML = `<p style="color: var(--error); text-align: center; padding: var(--space-xl);">Error: ${e.message}</p>`;
+        }
+    });
+
     // Compatibility Checker
     document.getElementById('compat-check-btn')?.addEventListener('click', async function() {
         const yourMod = document.getElementById('compat-your-mod').value;
         const game = document.getElementById('compat-game').value;
         const resultsEl = document.getElementById('compat-results');
-        
+
         if (!yourMod) {
             resultsEl.innerHTML = '<p style="color: var(--error);">Please enter your mod name</p>';
             return;
         }
-        
+
         // Get selected mods to test against
         const testMods = Array.from(document.querySelectorAll('.compat-mod:checked')).map(cb => cb.value);
-        
+
         if (testMods.length === 0) {
             resultsEl.innerHTML = '<p style="color: var(--error);">Select at least one mod to test against</p>';
             return;
         }
-        
+
         resultsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Testing compatibility...</p>';
-        
+
         // Build test mod list
         const modList = [yourMod, ...testMods].join('\n');
-        
+
         try {
             const response = await fetch('/api/analyze', {
                 method: 'POST',
@@ -274,12 +357,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ mod_list: modList, game: game })
             });
             const data = await response.json();
-            
+
             if (data.conflicts && data.conflicts.length > 0) {
-                const yourModConflicts = data.conflicts.filter(c => 
+                const yourModConflicts = data.conflicts.filter(c =>
                     c.affected_mod?.toLowerCase().includes(yourMod.toLowerCase())
                 );
-                
+
                 if (yourModConflicts.length > 0) {
                     resultsEl.innerHTML = `<h4 style="margin-bottom: var(--space-sm); color: var(--error);">⚠️ Found ${yourModConflicts.length} conflicts with your mod:</h4>` +
                         yourModConflicts.map(c => `
@@ -299,20 +382,20 @@ document.addEventListener('DOMContentLoaded', function() {
             resultsEl.innerHTML = `<p style="color: var(--error); text-align: center; padding: var(--space-xl);">Error: ${e.message}</p>`;
         }
     });
-    
+
     // Load Order Validator
     document.getElementById('loadorder-validate-btn')?.addEventListener('click', async function() {
         const mod = document.getElementById('loadorder-mod').value;
         const modList = document.getElementById('loadorder-list').value;
         const resultsEl = document.getElementById('loadorder-results');
-        
+
         if (!mod || !modList) {
             resultsEl.innerHTML = '<p style="color: var(--error);">Please enter your mod name and load order</p>';
             return;
         }
-        
+
         resultsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Analyzing load order...</p>';
-        
+
         try {
             const response = await fetch('/api/analyze', {
                 method: 'POST',
@@ -320,10 +403,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ mod_list: modList, game: 'skyrimse' })
             });
             const data = await response.json();
-            
+
             if (data.conflicts && data.conflicts.length > 0) {
                 const loadOrderIssues = data.conflicts.filter(c => c.type === 'load_order_violation');
-                
+
                 if (loadOrderIssues.length > 0) {
                     resultsEl.innerHTML = `<h4 style="margin-bottom: var(--space-sm); color: var(--warning);">⚠️ Found ${loadOrderIssues.length} load order issues:</h4>` +
                         loadOrderIssues.map(c => `
@@ -339,11 +422,121 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultsEl.innerHTML = '<p style="color: var(--success); text-align: center; padding: var(--space-xl);">✅ Load order looks good! No violations detected.</p>';
             }
         } catch (e) {
-            resultsEl.innerHTML = `<p style="color: var(--error);">Error: ${e.message}</p>`;
+            resultsEl.innerHTML = `<p style="color: var(--error); text-align: center; padding: var(--space-xl);">Error: ${e.message}</p>`;
         }
     });
-    
-    // Metadata Generator
+
+    // Requirements Validator
+    document.getElementById('req-validate-btn')?.addEventListener('click', async function() {
+        const modName = document.getElementById('req-your-mod').value;
+        const requirements = document.getElementById('req-list').value;
+        const resultsEl = document.getElementById('req-results');
+
+        if (!modName || !requirements) {
+            resultsEl.innerHTML = '<p style="color: var(--error);">Please enter your mod name and requirements</p>';
+            return;
+        }
+
+        resultsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Validating requirements...</p>';
+
+        try {
+            const response = await fetch('/api/validate/requirements', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mod_name: modName, requirements: requirements.split('\n').filter(r => r.trim()) })
+            });
+            const data = await response.json();
+
+            if (data.validation && data.validation.length > 0) {
+                resultsEl.innerHTML = '<h4 style="margin-bottom: var(--space-sm);">Validation Results:</h4>' +
+                    data.validation.map(v => `
+                        <div style="padding: var(--space-sm); background: var(--bg-dark); border-left: 3px solid var(--${v.status === 'error' ? 'error' : v.status === 'warning' ? 'warning' : 'success'}); border-radius: var(--radius-sm); margin-bottom: var(--space-sm);">
+                            <div style="font-weight: 600; color: var(--${v.status === 'error' ? 'error' : v.status === 'warning' ? 'warning' : 'success'});">${v.requirement}</div>
+                            <div style="font-size: 0.9rem; margin-top: var(--space-xs);">${v.message}</div>
+                        </div>
+                    `).join('');
+            } else {
+                resultsEl.innerHTML = '<p style="color: var(--success); text-align: center; padding: var(--space-xl);">✅ All requirements validated successfully!</p>';
+            }
+        } catch (e) {
+            resultsEl.innerHTML = `<p style="color: var(--error); text-align: center; padding: var(--space-xl);">Error: ${e.message}</p>`;
+        }
+    });
+
+    // Patch Finder
+    document.getElementById('patch-search-btn')?.addEventListener('click', async function() {
+        const modName = document.getElementById('patch-your-mod').value;
+        const game = document.getElementById('patch-game').value;
+        const resultsEl = document.getElementById('patch-results');
+
+        if (!modName) {
+            resultsEl.innerHTML = '<p style="color: var(--error);">Please enter your mod name</p>';
+            return;
+        }
+
+        resultsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Searching for patches...</p>';
+
+        try {
+            const response = await fetch(`/api/patches?mod=${encodeURIComponent(modName)}&game=${game}`);
+            const data = await response.json();
+
+            if (data.patches && data.patches.length > 0) {
+                resultsEl.innerHTML = '<h4 style="margin-bottom: var(--space-sm);">Available Patches:</h4>' +
+                    data.patches.map(p => `
+                        <div style="padding: var(--space-sm); background: var(--bg-dark); border-radius: var(--radius-sm); margin-bottom: var(--space-sm);">
+                            <div style="font-weight: 600;">${p.name}</div>
+                            <div style="font-size: 0.9rem; color: var(--text-secondary); margin-top: var(--space-xs);">${p.description}</div>
+                            <div style="margin-top: var(--space-xs);">
+                                <a href="${p.url}" target="_blank" rel="noopener" class="secondary-button" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm);">Download</a>
+                                <span style="font-size: 0.85rem; color: var(--text-secondary); margin-left: var(--space-sm);">by ${p.author}</span>
+                            </div>
+                        </div>
+                    `).join('');
+            } else {
+                resultsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: var(--space-xl);">No patches found. Your mod might not need any, or patches haven\'t been created yet.</p>';
+            }
+        } catch (e) {
+            resultsEl.innerHTML = `<p style="color: var(--error); text-align: center; padding: var(--space-xl);">Error: ${e.message}</p>`;
+        }
+    });
+
+    // User Issue Tracker
+    document.getElementById('issue-search-btn')?.addEventListener('click', async function() {
+        const modName = document.getElementById('issue-mod').value;
+        const resultsEl = document.getElementById('issue-results');
+
+        if (!modName) {
+            resultsEl.innerHTML = '<p style="color: var(--error);">Please enter your mod name</p>';
+            return;
+        }
+
+        resultsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Searching user reports...</p>';
+
+        try {
+            const response = await fetch(`/api/issues?mod=${encodeURIComponent(modName)}`);
+            const data = await response.json();
+
+            if (data.issues && data.issues.length > 0) {
+                resultsEl.innerHTML = '<h4 style="margin-bottom: var(--space-sm);">User Reports:</h4>' +
+                    data.issues.map(issue => `
+                        <div style="padding: var(--space-sm); background: var(--bg-dark); border-radius: var(--radius-sm); margin-bottom: var(--space-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-weight: 600;">${issue.type}</div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">${issue.date}</div>
+                            </div>
+                            <div style="font-size: 0.9rem; margin-top: var(--space-xs);">${issue.description}</div>
+                            ${issue.status ? `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: var(--space-xs);">Status: ${issue.status}</div>` : ''}
+                        </div>
+                    `).join('');
+            } else {
+                resultsEl.innerHTML = '<p style="color: var(--success); text-align: center; padding: var(--space-xl);">✅ No user reports found. Your mod appears to be working well!</p>';
+            }
+        } catch (e) {
+            resultsEl.innerHTML = `<p style="color: var(--error); text-align: center; padding: var(--space-xl);">Error: ${e.message}</p>`;
+        }
+    });
+
+    // Mod Metadata Generator
     document.getElementById('meta-generate-btn')?.addEventListener('click', function() {
         const modName = document.getElementById('meta-mod-name').value;
         const author = document.getElementById('meta-author').value;
@@ -351,48 +544,41 @@ document.addEventListener('DOMContentLoaded', function() {
         const loadAfter = document.getElementById('meta-load-after').value;
         const tags = document.getElementById('meta-tags').value;
         const outputEl = document.getElementById('meta-output');
-        
+
         if (!modName) {
-            outputEl.value = 'Please enter your mod name';
+            alert('Please enter your mod name');
             return;
         }
-        
-        // Generate LOOT-compatible YAML
-        let yaml = `- name: "${modName}"\n`;
-        
-        if (author) {
-            yaml += `  author: "${author}"\n`;
-        }
+
+        // Generate YAML
+        let yaml = `- name: ${modName}\n`;
+        if (author) yaml += `  author: ${author}\n`;
         
         if (reqs) {
-            const reqList = reqs.split(',').map(r => r.trim()).filter(r => r);
-            yaml += `  req:\n`;
-            reqList.forEach(req => {
-                yaml += `    - name: "${req}"\n`;
+            yaml += `  requirements:\n`;
+            reqs.split(',').forEach(req => {
+                yaml += `    - ${req.trim()}\n`;
             });
         }
         
         if (loadAfter) {
-            const loadAfterList = loadAfter.split(',').map(l => l.trim()).filter(l => l);
-            yaml += `  after:\n`;
-            loadAfterList.forEach(l => {
-                yaml += `    - name: "${l}"\n`;
+            yaml += `  loadAfter:\n`;
+            loadAfter.split(',').forEach(mod => {
+                yaml += `    - ${mod.trim()}\n`;
             });
         }
         
         if (tags) {
-            const tagList = tags.split(',').map(t => t.trim()).filter(t => t);
-            yaml += `  tag:\n`;
-            tagList.forEach(tag => {
-                yaml += `    - ${tag}\n`;
+            yaml += `  tags:\n`;
+            tags.split(',').forEach(tag => {
+                yaml += `    - ${tag.trim()}\n`;
             });
         }
-        
-        yaml += `\n# Generated by SkyModderAI Mod Author Tools\n# Submit this to LOOT masterlist for inclusion`;
-        
-        outputEl.value = yaml;
+
+        outputEl.value = yaml.trim();
     });
-    
+
+    // Copy metadata to clipboard
     document.getElementById('meta-copy-btn')?.addEventListener('click', function() {
         const outputEl = document.getElementById('meta-output');
         outputEl.select();
@@ -403,13 +589,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             this.textContent = originalText;
         }, 2000);
-    });
-    
-    // Placeholder for other tools (would need backend implementation)
-    ['patch-search-btn', 'issue-search-btn', 'req-validate-btn'].forEach(id => {
-        document.getElementById(id)?.addEventListener('click', function() {
-            alert('This feature requires backend implementation. The UI is ready - connect to your preferred API (Nexus Mods API, community database, etc.)');
-        });
     });
 });
 </script>
