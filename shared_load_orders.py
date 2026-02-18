@@ -6,7 +6,7 @@ Allows users to create and share links to their mod lists and analysis results.
 import json
 import secrets
 import string
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
 from flask import current_app as app
@@ -47,7 +47,7 @@ def create_shared_load_order(
         Share ID if successful, None otherwise
     """
     share_id = generate_share_id()
-    expires_at = datetime.utcnow() + timedelta(days=days_until_expiry)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=days_until_expiry)
 
     try:
         db = get_db()
@@ -92,7 +92,7 @@ def get_shared_load_order(share_id: str, increment_view: bool = True) -> Optiona
         db = get_db()
 
         # First, check if the share exists and is not expired
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         row = db.execute(
             """
             SELECT * FROM shared_load_orders
@@ -139,7 +139,7 @@ def get_user_shared_load_orders(user_email: str) -> List[Dict[str, Any]]:
     """
     try:
         db = get_db()
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         rows = db.execute(
             """
@@ -168,7 +168,7 @@ def delete_expired_shared_load_orders() -> int:
     try:
         db = get_db()
         result = db.execute(
-            "DELETE FROM shared_load_orders WHERE expires_at <= ?", (datetime.utcnow(),)
+            "DELETE FROM shared_load_orders WHERE expires_at <= ?", (datetime.now(timezone.utc),)
         )
         db.commit()
         return result.rowcount

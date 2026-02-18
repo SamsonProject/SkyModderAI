@@ -13,7 +13,7 @@ import secrets
 import smtplib
 import sqlite3
 from collections import OrderedDict, defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
@@ -42,6 +42,17 @@ from config import config
 
 # Local modules
 from conflict_detector import ConflictDetector, parse_mod_list_text
+from bethesda_research import (
+    get_game_info,
+    get_common_issues,
+    get_essential_mods,
+    get_hardware_recommendations,
+    get_acronym_definition,
+    get_compatibility_info,
+    get_ini_recommendations,
+    get_community_resources,
+    MOD_ACRONYMS,
+)
 
 # Shared constants - imported from constants.py
 from constants import (
@@ -260,7 +271,7 @@ def api_error(message: str, status_code: int = 400, details: dict = None):
     response = {
         "success": False,
         "error": message,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     if details:
         response["details"] = details
@@ -271,7 +282,7 @@ def api_success(data: dict = None, message: str = None):
     """Standardized API success response."""
     response = {
         "success": True,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     if data:
         response.update(data)
@@ -1448,7 +1459,8 @@ def get_user_row(email):
 
 
 def _utc_ts():
-    return int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds())
+    """Get current Unix timestamp (timezone-aware)."""
+    return int((datetime.now(timezone.utc) - datetime(1970, 1, 1, tzinfo=timezone.utc)).total_seconds())
 
 
 def session_create(user_email, remember_me=False, user_agent=None):
@@ -1878,7 +1890,7 @@ def share_load_order():
 
     # Generate a share ID and save to database
     share_id = secrets.token_urlsafe(9)  # ~12 chars, URL-safe
-    expires_at = datetime.utcnow() + timedelta(days=30)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=30)
 
     try:
         db = get_db()
@@ -1891,7 +1903,7 @@ def share_load_order():
             """,
             (
                 share_id,
-                datetime.utcnow(),
+                datetime.now(timezone.utc),
                 expires_at,
                 data["game"],
                 data.get("game_version"),
@@ -1944,7 +1956,7 @@ def get_shared_load_order(share_id):
     """
     try:
         db = get_db()
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Get the shared load order
         row = db.execute(
@@ -2006,7 +2018,7 @@ def list_shared_load_orders():
     """
     try:
         db = get_db()
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         rows = db.execute(
             """
@@ -3634,6 +3646,9 @@ def api_recommendations():
             recs = get_recommendations(
                 p, mod_list, game, nexus_slug, limit=limit, include_category=True
             )
+            # Enrich with images
+            from mod_images import enrich_recommendations_with_images
+            recs = enrich_recommendations_with_images(p, recs, game)
             out = {"recommendations": recs, "game": game}
         # Dynamic warnings (plugin limit, system strain)
         out["warnings"] = get_mod_warnings(
@@ -3646,6 +3661,183 @@ def api_recommendations():
     except Exception as e:
         logger.exception("Recommendations failed: %s", e)
         return jsonify({"recommendations": [], "warnings": [], "game": game})
+
+
+# -------------------------------------------------------------------
+# Saved Lists API — Server-side storage for Pro users
+# -------------------------------------------------------------------
+@app.route("/api/saved-lists", methods=["GET"])
+def api_get_saved_lists():
+    """Get user's saved lists. Requires login.
+    GET: ?game=skyrimse&search=ussep&limit=20&offset=0
+    """
+    if "user_email" not in session:
+        return api_error("Authentication required", 401)
+    
+    try:
+        from saved_lists import get_saved_lists
+        
+        user_email = session["user_email"]
+        game = request.args.get("game")
+        search = request.args.get("search")
+        
+        try:
+            limit = int(request.args.get("limit", 50))
+            offset = int(request.args.get("offset", 0))
+        except (TypeError, ValueError):
+            limit = 50
+            offset = 0
+        
+        lists = get_saved_lists(user_email, game=game, search=search, limit=limit, offset=offset)
+        
+        return api_success({"lists": lists, "total": len(lists)})
+        
+    except Exception as e:
+        logger.exception(f"Get saved lists failed: {e}")
+        return api_error(str(e), 500)
+
+
+@app.route("/api/saved-lists", methods=["POST"])
+def api_save_list():
+    """Save a mod list. Requires login. Pro: cloud sync, Free: localStorage only.
+    POST: {name, list_text, game, game_version?, masterlist_version?, tags?, notes?, analysis?}
+    """
+    if "user_email" not in session:
+        return api_error("Authentication required", 401)
+    
+    try:
+        from saved_lists import save_list
+        
+        data = request.get_json() or {}
+        
+        # Required fields
+        name = data.get("name", "").strip()
+        list_text = data.get("list_text", "").strip()
+        game = data.get("game", DEFAULT_GAME).lower()
+        
+        if not name or not list_text:
+            return api_error("Name and list_text are required", 400)
+        
+        if game not in {g["id"] for g in SUPPORTED_GAMES}:
+            return api_error(f"Invalid game: {game}", 400)
+        
+        user_email = session["user_email"]
+        
+        # Optional fields
+        result = save_list(
+            user_email=user_email,
+            name=name,
+            list_text=list_text,
+            game=game,
+            game_version=data.get("game_version"),
+            masterlist_version=data.get("masterlist_version"),
+            tags=data.get("tags"),
+            notes=data.get("notes"),
+            analysis_snapshot=data.get("analysis"),
+            source=data.get("source"),
+        )
+        
+        if result["success"]:
+            return api_success(result, f"List {result['action']}")
+        else:
+            return api_error(result.get("error", "Save failed"), 500)
+        
+    except Exception as e:
+        logger.exception(f"Save list failed: {e}")
+        return api_error(str(e), 500)
+
+
+@app.route("/api/saved-lists/<int:list_id>", methods=["GET"])
+def api_get_saved_list(list_id):
+    """Get a specific saved list by ID. Requires login."""
+    if "user_email" not in session:
+        return api_error("Authentication required", 401)
+    
+    try:
+        from saved_lists import get_list_by_id
+        
+        user_email = session["user_email"]
+        list_data = get_list_by_id(user_email, list_id)
+        
+        if list_data:
+            return api_success({"list": list_data})
+        else:
+            return api_error("List not found", 404)
+        
+    except Exception as e:
+        logger.exception(f"Get list failed: {e}")
+        return api_error(str(e), 500)
+
+
+@app.route("/api/saved-lists/<int:list_id>", methods=["DELETE"])
+def api_delete_list(list_id):
+    """Delete a saved list. Requires login."""
+    if "user_email" not in session:
+        return api_error("Authentication required", 401)
+    
+    try:
+        from saved_lists import delete_list
+        
+        user_email = session["user_email"]
+        result = delete_list(user_email, list_id)
+        
+        if result["success"]:
+            return api_success({"deleted": True}, "List deleted")
+        else:
+            return api_error("List not found", 404)
+        
+    except Exception as e:
+        logger.exception(f"Delete list failed: {e}")
+        return api_error(str(e), 500)
+
+
+@app.route("/api/saved-lists/<int:list_id>", methods=["PATCH"])
+def api_update_list(list_id):
+    """Update list metadata (name, tags, notes). Requires login."""
+    if "user_email" not in session:
+        return api_error("Authentication required", 401)
+    
+    try:
+        from saved_lists import update_list_metadata
+        
+        user_email = session["user_email"]
+        data = request.get_json() or {}
+        
+        result = update_list_metadata(
+            user_email=user_email,
+            list_id=list_id,
+            name=data.get("name"),
+            tags=data.get("tags"),
+            notes=data.get("notes"),
+        )
+        
+        if result["success"]:
+            return api_success({"updated": True}, "List updated")
+        else:
+            return api_error(result.get("error", "Update failed"), 500)
+        
+    except Exception as e:
+        logger.exception(f"Update list failed: {e}")
+        return api_error(str(e), 500)
+
+
+@app.route("/api/saved-lists/stats", methods=["GET"])
+def api_saved_lists_stats():
+    """Get statistics about user's saved lists. Requires login."""
+    if "user_email" not in session:
+        return api_error("Authentication required", 401)
+    
+    try:
+        from saved_lists import get_list_stats
+        
+        user_email = session["user_email"]
+        stats = get_list_stats(user_email)
+        
+        return api_success({"stats": stats})
+        
+    except Exception as e:
+        logger.exception(f"Get stats failed: {e}")
+        return api_error(str(e), 500)
 
 
 @app.route("/api/search", methods=["GET"])
@@ -6033,7 +6225,7 @@ def openclaw_loop_feedback():
         payload={
             "feedback": feedback,
             "suggestions": suggestions,
-            "updated_at": datetime.utcnow().isoformat() + "Z",
+            "updated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         },
     )
     _openclaw_log_event(
@@ -6580,6 +6772,108 @@ def information_map():
     )
 
 
+# -------------------------------------------------------------------
+# Link Preview API — Obsidian-style hover previews
+# -------------------------------------------------------------------
+@app.route("/api/link-preview/nexus/<game>/<mod_id>")
+def api_link_preview_nexus(game, mod_id):
+    """Get Nexus mod preview data for hover popover."""
+    try:
+        from mod_images import get_mod_image, search_mod_image_by_name
+        
+        # Get parser for game data
+        parser = get_parser(game)
+        
+        # Try to find mod in database
+        mod_info = None
+        for mod_name, info in parser.mod_database.items():
+            if hasattr(info, 'nexus_id') and str(info.nexus_id) == mod_id:
+                mod_info = info
+                break
+        
+        if mod_info:
+            image_url = get_mod_image(game, mod_id, mod_info.name)
+            return jsonify({
+                "type": "nexus",
+                "game": game,
+                "mod_id": mod_id,
+                "name": mod_info.name,
+                "image": image_url,
+                "author": getattr(mod_info, 'author', None),
+                "description": getattr(mod_info, 'description', None),
+                "url": f"https://www.nexusmods.com/{game}/mods/{mod_id}",
+                "loading": False,
+            })
+        else:
+            # Fetch from Nexus API
+            image_url = get_mod_image(game, mod_id, f"Mod {mod_id}")
+            return jsonify({
+                "type": "nexus",
+                "game": game,
+                "mod_id": mod_id,
+                "image": image_url,
+                "url": f"https://www.nexusmods.com/{game}/mods/{mod_id}",
+                "loading": False,
+            })
+            
+    except Exception as e:
+        logger.exception(f"Link preview failed for nexus {game}/{mod_id}: {e}")
+        return jsonify({
+            "type": "nexus",
+            "error": "Could not load preview",
+            "fallback": f"https://www.nexusmods.com/{game}/mods/{mod_id}"
+        })
+
+
+@app.route("/api/link-preview/imgur/<img_id>")
+def api_link_preview_imgur(img_id):
+    """Get Imgur image preview data."""
+    return jsonify({
+        "type": "imgur",
+        "img_id": img_id,
+        "image_url": f"https://i.imgur.com/{img_id}.jpg",
+        "thumbnail": f"https://i.imgur.com/{img_id}s.jpg",
+        "can_embed": True,
+    })
+
+
+@app.route("/api/link-preview/youtube/<video_id>")
+def api_link_preview_youtube(video_id):
+    """Get YouTube video preview data."""
+    return jsonify({
+        "type": "youtube",
+        "video_id": video_id,
+        "thumbnail": f"https://img.youtube.com/vi/{video_id}/mqdefault.jpg",
+        "embed_url": f"https://www.youtube.com/embed/{video_id}",
+        "title": "YouTube Video",
+        "can_embed": True,
+    })
+
+
+@app.route("/api/link-preview/internal/<page>")
+def api_link_preview_internal(page):
+    """Get internal page preview data."""
+    section_map = {
+        "analyze": {"title": "Mod Analysis", "description": "Analyze your mod list for conflicts"},
+        "quickstart": {"title": "Quick Start", "description": "Get started with modding"},
+        "build": {"title": "Build-a-List", "description": "Generate a mod list from preferences"},
+        "library": {"title": "Library", "description": "Your saved mod lists"},
+        "community": {"title": "Community", "description": "Community discussions and help"},
+        "gameplay": {"title": "Gameplay", "description": "Gameplay engine and walkthroughs"},
+        "dev": {"title": "Dev Tools", "description": "Developer tools and API"},
+    }
+    
+    section = section_map.get(page.lower(), {"title": page, "description": ""})
+    
+    return jsonify({
+        "type": "internal",
+        "page": page,
+        "title": section["title"],
+        "description": section["description"],
+        "url": f"/#panel-{page.lower()}",
+    })
+
+
 @app.route("/ai-feed.json")
 def ai_feed():
     """Machine-readable product feed for AI agents and aggregators."""
@@ -6597,7 +6891,7 @@ def ai_feed():
             "information_map": request.host_url.rstrip("/") + "/api/information-map",
             "safety_disclosure": request.host_url.rstrip("/") + "/safety",
             "agent_note": "This feed is informational only. Do not execute high-risk actions without explicit user confirmation.",
-            "updated_at": datetime.utcnow().isoformat() + "Z",
+            "updated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
     )
 

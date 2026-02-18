@@ -14,7 +14,7 @@ Usage:
 import json
 import logging
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -133,7 +133,7 @@ def extract_fuel(
 
     fuel = {
         "source": "skymodderai",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
         "game": game_id,
         "structure": {
             "node_count": len(db),

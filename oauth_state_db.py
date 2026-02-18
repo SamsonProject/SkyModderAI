@@ -4,7 +4,7 @@ Prevents CSRF attacks and handles server restarts during OAuth flow.
 """
 
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from typing import Optional, Tuple
 
 from flask import current_app
@@ -28,7 +28,7 @@ class OAuthStateToken(Base):
     @property
     def is_expired(self) -> bool:
         """Check if the token has expired (10 minutes)."""
-        return (datetime.utcnow() - self.created_at) > timedelta(minutes=10)
+        return (datetime.now(timezone.utc) - self.created_at) > timedelta(minutes=10)
 
 
 def generate_state_token(provider: str, redirect_url: str = None) -> str:
@@ -108,7 +108,7 @@ def cleanup_expired_tokens() -> int:
         db = current_app.extensions["sqlalchemy"].db
         expired = (
             db.session.query(OAuthStateToken)
-            .filter(OAuthStateToken.created_at < (datetime.utcnow() - timedelta(minutes=10)))
+            .filter(OAuthStateToken.created_at < (datetime.now(timezone.utc) - timedelta(minutes=10)))
             .delete()
         )
         db.session.commit()

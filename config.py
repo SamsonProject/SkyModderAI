@@ -53,12 +53,25 @@ class Config:
     GITHUB_OAUTH_ENABLED = bool(GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET)
 
     # Stripe
-    STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
-    STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+    # Support both production and test mode keys
+    STRIPE_TEST_MODE = os.getenv("STRIPE_TEST_MODE", "false").lower() == "true"
+    
+    if STRIPE_TEST_MODE:
+        STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY_TEST_MODE")
+        STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY_TEST_MODE")
+    else:
+        STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+        STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+    
     STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
     STRIPE_PRO_PRICE_ID = os.getenv("STRIPE_PRO_PRICE_ID")
     STRIPE_OPENCLAW_PRICE_ID = os.getenv("STRIPE_OPENCLAW_PRICE_ID")
-    PAYMENTS_ENABLED = bool(STRIPE_SECRET_KEY and STRIPE_SECRET_KEY.startswith("sk_"))
+    
+    # Payments enabled if we have a valid secret key (live or test)
+    PAYMENTS_ENABLED = bool(
+        STRIPE_SECRET_KEY and 
+        (STRIPE_SECRET_KEY.startswith("sk_live_") or STRIPE_SECRET_KEY.startswith("sk_test_"))
+    )
 
     # Rate Limiting
     RATE_LIMIT_DEFAULT = os.getenv("RATE_LIMIT_DEFAULT", "100/1minute")
@@ -94,7 +107,7 @@ class Config:
 
     @classmethod
     def validate_config(cls):
-        """Validate required configuration and raise exceptions for critical issues in production."""
+        """Validate configuration and raise exceptions for critical issues in production."""
         logger = logging.getLogger(__name__)
 
         # Check required production settings
@@ -103,10 +116,11 @@ class Config:
             if not cls.SECRET_KEY or len(cls.SECRET_KEY) < 32:
                 raise ValueError("SECRET_KEY is too short (min 32 chars) or not set in production!")
 
-            # Email settings (warn only)
+            # Email settings (warn only - not critical for OAuth to work)
             if not all([cls.MAIL_SERVER, cls.MAIL_USERNAME, cls.MAIL_PASSWORD]):
                 logger.warning(
-                    "Email configuration is incomplete. Email features will be disabled."
+                    "Email configuration is incomplete. Email verification will be disabled. "
+                    "Set MAIL_PASSWORD and MAIL_DEFAULT_SENDER in .env"
                 )
 
             # Payment settings (warn only)
@@ -117,20 +131,24 @@ class Config:
                     "Stripe configuration is incomplete. Payment features will be disabled."
                 )
 
-            # OAuth configurations (required in production)
+            # OAuth configurations (optional - email/password login is fallback)
             if cls.GOOGLE_OAUTH_ENABLED and not all(
                 [cls.GOOGLE_CLIENT_ID, cls.GOOGLE_CLIENT_SECRET]
             ):
-                raise ValueError(
-                    "Google OAuth is enabled but configuration is incomplete. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET."
+                logger.warning(
+                    "Google OAuth configuration is incomplete. Google login will be disabled. "
+                    "Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env"
                 )
+                cls.GOOGLE_OAUTH_ENABLED = False
 
             if cls.GITHUB_OAUTH_ENABLED and not all(
                 [cls.GITHUB_CLIENT_ID, cls.GITHUB_CLIENT_SECRET]
             ):
-                raise ValueError(
-                    "GitHub OAuth is enabled but configuration is incomplete. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET."
+                logger.warning(
+                    "GitHub OAuth configuration is incomplete. GitHub login will be disabled. "
+                    "Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in .env"
                 )
+                cls.GITHUB_OAUTH_ENABLED = False
 
             # Validate BASE_URL in production
             if not cls.BASE_URL or cls.BASE_URL == "http://localhost:5000":

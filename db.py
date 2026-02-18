@@ -5,7 +5,7 @@ This module provides core database operations used across the application.
 
 import logging
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 from werkzeug.security import generate_password_hash
@@ -83,7 +83,7 @@ def get_user_row(email: str):
 
 def _utc_ts() -> int:
     """Return current UTC timestamp as integer."""
-    return int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds())
+    return int((datetime.now(timezone.utc) - datetime(1970, 1, 1, tzinfo=timezone.utc)).total_seconds())
 
 
 def session_create(

@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-        content="The ultimate modding toolkit for Bethesda games. Instant conflict detection, load order optimization, and AI-powered recommendations. Stop CTDs and enjoy your Skyrim, Fallout, and Starfield mods.">
+        content="SkyModderAI: The ultimate modding powerhouse for Bethesda games. AI-powered conflict detection, load order optimization, community-driven insights, and intelligent recommendations for Skyrim, Fallout, and Starfield. Built on LOOT data, enhanced with machine learning. 100% free and open source.">
     <meta name="theme-color" content="#050810">
-    <meta property="og:title" content="SkyModderAI — Your Ultimate Modding Toolkit">
+    <meta property="og:title" content="SkyModderAI — Your Modding Powerhouse">
     <meta property="og:description"
-        content="Instant conflict detection, load order optimization, and AI-powered recommendations for Skyrim, Fallout, and Starfield. Stop CTDs and master your mods.">
+        content="AI-powered conflict detection, load order optimization, and community-driven insights for Skyrim, Fallout, and Starfield. Built on LOOT data, enhanced with machine learning. 100% free.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://i.imgur.com/MGVsgjM.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -17,14 +17,16 @@
     <link rel="canonical" href="/">
     <meta name="ai-discovery" content="SkyModderAI feed at /ai-feed.json">
     <link rel="alternate" type="application/json" href="/ai-feed.json" title="SkyModderAI AI Feed">
-    <title>SkyModderAI — Ultimate Modding Toolkit for Bethesda Games</title>
+    <title>SkyModderAI — Your Modding Powerhouse for Bethesda Games</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.modern.svg">
     <link rel="manifest" href="/manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.modern.css">
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
     <script type="application/ld+json">
     {
@@ -59,7 +61,7 @@
                 <span class="logo-icon logo-icon-rotate" role="img" aria-hidden="true"></span>
                 <div class="logo-text">
                     <h1 class="logo-title">SkyModderAI</h1>
-                    <p class="tagline">Paste your load order. Get answers.</p>
+                    <p class="tagline">Built by modders, for modders.</p>
                 </div>
             </a>
             <button type="button" class="header-search" id="command-palette-trigger" title="Quick actions (⌘K)"
@@ -95,9 +97,13 @@
         <!-- Hero Section -->
         <section class="hero">
             <div class="hero-glow"></div>
-            <h2 class="hero-title">Stop guessing. Paste. Get answers.</h2>
-            <p class="hero-subtitle">Instant conflict detection, load order optimization, and compatibility insights for
-                Skyrim, Fallout, and Starfield. Powered by LOOT data.</p>
+            <div class="hero-badges">
+                <span class="pro-badge">✨ AI-Powered</span>
+                <span class="pro-badge" style="background: linear-gradient(135deg, #10b981, #059669);">✓ 100% Free</span>
+                <span class="pro-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🔥 Community-Driven</span>
+            </div>
+            <h2 class="hero-title">Your modding powerhouse</h2>
+            <p class="hero-subtitle">AI-powered conflict detection, intelligent load order optimization, and community-driven insights for Skyrim, Fallout, and Starfield. Built on LOOT data, enhanced with machine learning.</p>
         </section>
 
         <!-- Main Tool -->
@@ -122,9 +128,8 @@
             <section class="tool-section tab-panel active" id="panel-analyze" role="tabpanel" aria-hidden="false">
                 <div class="input-panel">
                     <form id="analyze-form" action="#" method="post" novalidate>
-                        <h3 class="input-panel-title">Paste your load order</h3>
-                        <p class="input-panel-subtitle">Stop crashes before they happen. Get instant conflict detection,
-                            load order fixes, and compatibility insights for your mods.</p>
+                        <h3 class="input-panel-title">Analyze your mod list</h3>
+                        <p class="input-panel-subtitle">Get AI-powered conflict detection, load order optimization, and compatibility insights. Our engine combines LOOT data with machine learning and community knowledge.</p>
                         <div class="game-select-wrap">
                             <label for="game-select" class="game-label">Game:</label>
                             <select id="game-select" title="Select game for LOOT masterlist">
@@ -182,12 +187,19 @@
                             </div>
                             <div id="mod-search-results" class="mod-search-results hidden"></div>
                         </div>
-                        <textarea id="mod-list-input" placeholder="Paste your plugins.txt or Mod Organizer 2 load order here.
+                        <textarea id="mod-list-input" placeholder="Paste your mod list here (plugins.txt, Mod Organizer 2 load order, or any ESP/ESM list).
+
 Examples:
 *Skyrim.esm
 *Update.esm
 +Unofficial Skyrim Special Edition Patch.esp
--Dawnguard.esm (disabled)" rows="10"></textarea>
+-Dawnguard.esm (disabled)
+
+Supports:
+• plugins.txt format
+• Mod Organizer 2 load orders
+• Vortex exports
+• Plain text lists" rows="10"></textarea>
                         <p class="hint shortcut-hint">Ctrl+Enter to analyze</p>
                         <div class="input-actions">
                             <div class="input-actions-import">
@@ -849,7 +861,8 @@ Examples:
             <p>I've been modding since 2012. Hundreds of mods, one crash, no idea why. This is the tool I built so we
                 don't have to guess anymore. For everyone who keeps coming back to Skyrim, Fallout, Starfield—and the
                 worlds we make our own.</p>
-            <p>Powered by LOOT. <a href="https://github.com/SamsonProject/SkyModderAI" target="_blank"
+            <p>Built on LOOT data, enhanced with AI and community knowledge. 
+                <a href="https://github.com/SamsonProject/SkyModderAI" target="_blank"
                     rel="noopener noreferrer">Open source on GitHub</a>. Not affiliated with Bethesda or LOOT.</p>
             <div class="footer-resources">
                 <span class="footer-resources-label">Community &amp; tools:</span>
@@ -948,6 +961,8 @@ Examples:
     </div>
     <script src="/static/icons/logo-icons.js"></script>
     <script src="/static/js/walkthrough.js"></script>
+    <script src="/static/js/modern-ui.js"></script>
+    <script src="/static/js/link-architecture.js"></script>
     <script src="/static/js/app.js"></script>
     </body>
 
