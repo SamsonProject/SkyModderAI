@@ -5154,9 +5154,9 @@ function initDonationUI() {
 function initAgentWindow() {
     const style = document.createElement('style');
     style.textContent = `
-        #agent-toggle { position: fixed; bottom: 24px; left: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: var(--accent-text); border: none; cursor: pointer; box-shadow: var(--shadow-md); z-index: 10001; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; padding: 0; overflow: hidden; }
+        #agent-toggle { position: fixed; bottom: 24px; left: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: var(--accent-text); border: none; cursor: pointer; box-shadow: var(--shadow-md); z-index: 10001; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; padding: 8px; overflow: hidden; }
         #agent-toggle:hover { transform: scale(1.05); }
-        #agent-toggle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; pointer-events: none; }
+        #agent-toggle img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
         #agent-window { position: fixed; bottom: 96px; left: 24px; width: 380px; height: 600px; max-height: 80vh; background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); z-index: 10000; display: flex; flex-direction: column; transform: translateY(20px); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden; }
         #agent-window.active { transform: translateY(0); opacity: 1; pointer-events: all; }
         .agent-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-panel); }
