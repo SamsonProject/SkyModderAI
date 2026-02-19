@@ -8,6 +8,8 @@ Adds:
 - sponsor_votes: Community voting
 
 Run: python3 migrations/add_sponsor_tables.py
+
+PostgreSQL compatible.
 """
 
 import os
@@ -27,17 +29,25 @@ def migrate():
     print("Starting sponsor tables migration...")
     print(f"Database: {DATABASE_URL}")
 
-    # Create engine
+    # Create engine with PostgreSQL-compatible settings
     engine = create_engine(DATABASE_URL, echo=True)
 
     # Create tables
     print("\nCreating sponsor tables...")
     with engine.connect() as conn:
+        # Check if PostgreSQL
+        is_postgresql = engine.dialect.name == "postgresql"
+        serial_type = "SERIAL" if is_postgresql else "INTEGER"
+        auto_increment = "" if is_postgresql else "AUTOINCREMENT"
+        boolean_type = "BOOLEAN" if is_postgresql else "INTEGER"
+        true_value = "TRUE" if is_postgresql else "1"
+        false_value = "FALSE" if is_postgresql else "0"
+
         # Sponsors table
         conn.execute(
-            text("""
+            text(f"""
             CREATE TABLE IF NOT EXISTS sponsors (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {serial_type} {auto_increment} PRIMARY KEY,
                 sponsor_id TEXT UNIQUE NOT NULL,
                 name TEXT NOT NULL,
                 website TEXT NOT NULL,
@@ -51,20 +61,20 @@ def migrate():
                 -- Pricing
                 pricing_model TEXT DEFAULT 'pay_per_click',
                 cpm_rate REAL DEFAULT 5.00,
-                plan_clicks INTEGER DEFAULT 10000,
+                plan_clicks {serial_type} {auto_increment} DEFAULT 10000,
                 plan_price REAL DEFAULT 50.00,
-                click_credits INTEGER DEFAULT 0,
+                click_credits {serial_type} {auto_increment} DEFAULT 0,
 
                 -- Performance
-                impressions INTEGER DEFAULT 0,
-                clicks INTEGER DEFAULT 0,
+                impressions {serial_type} {auto_increment} DEFAULT 0,
+                clicks {serial_type} {auto_increment} DEFAULT 0,
                 ctr REAL DEFAULT 0.0,
                 monthly_spend REAL DEFAULT 0.0,
-                billable_clicks INTEGER DEFAULT 0,
+                billable_clicks {serial_type} {auto_increment} DEFAULT 0,
 
                 -- Community score (separate from CTR)
                 community_score REAL DEFAULT 0.0,
-                community_votes INTEGER DEFAULT 0,
+                community_votes {serial_type} {auto_increment} DEFAULT 0,
 
                 -- Ranking score (computed: community * 0.6 + normalized_ctr * 0.4)
                 ranking_score REAL DEFAULT 0.0,
@@ -85,9 +95,9 @@ def migrate():
 
         # Sponsor creatives table (multiple ads per sponsor)
         conn.execute(
-            text("""
+            text(f"""
             CREATE TABLE IF NOT EXISTS sponsor_creatives (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {serial_type} {auto_increment} PRIMARY KEY,
                 creative_id TEXT UNIQUE NOT NULL,
                 sponsor_id TEXT NOT NULL,
                 name TEXT,
@@ -96,8 +106,8 @@ def migrate():
                 body_copy TEXT,
                 landing_url TEXT,
                 status TEXT DEFAULT 'active',
-                impressions INTEGER DEFAULT 0,
-                clicks INTEGER DEFAULT 0,
+                impressions {serial_type} {auto_increment} DEFAULT 0,
+                clicks {serial_type} {auto_increment} DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 paused_at TIMESTAMP,
 
@@ -116,14 +126,14 @@ def migrate():
 
         # Sponsor clicks table (billing audit trail)
         conn.execute(
-            text("""
+            text(f"""
             CREATE TABLE IF NOT EXISTS sponsor_clicks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {serial_type} {auto_increment} PRIMARY KEY,
                 sponsor_id TEXT NOT NULL,
                 creative_id TEXT,
                 user_id TEXT,
                 fingerprint_hash TEXT NOT NULL,
-                billable BOOLEAN DEFAULT 0,
+                billable {boolean_type} DEFAULT {false_value},
                 rejection_reason TEXT,
                 timestamp REAL NOT NULL,
 
@@ -151,7 +161,7 @@ def migrate():
 
         # Sponsor votes table (community ranking)
         conn.execute(
-            text("""
+            text(f"""
             CREATE TABLE IF NOT EXISTS sponsor_votes (
                 user_id TEXT NOT NULL,
                 sponsor_id TEXT NOT NULL,

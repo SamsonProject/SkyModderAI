@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Add Product - SkyModderAI{% endblock %}
+
+{% block content %}
+<div class="add-product-container">
+    <h1>📦 List a Product</h1>
+
+    <div class="business-info">
+        <p>Selling as: <strong>{{ business.name }}</strong></p>
+        {% if not business.verified %}
+        <div class="warning-box">
+            ⚠️ Your business is not yet verified. Products require verification before they can be listed.
+        </div>
+        {% endif %}
+    </div>
+
+    <form method="POST" action="{{ url_for('shopping.add_product') }}" class="product-form">
+        <div class="form-group">
+            <label for="name">Product Name *</label>
+            <input type="text" id="name" name="name" required maxlength="255" placeholder="e.g., Dragon Armor Gaming Mouse">
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="5" placeholder="Describe your product..."></textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="price">Price (USD) *</label>
+                <input type="number" id="price" name="price" required step="0.01" min="0.01" placeholder="29.99">
+            </div>
+
+            <div class="form-group">
+                <label for="stock">Stock Quantity</label>
+                <input type="number" id="stock" name="stock" min="0" placeholder="100">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="category">Category *</label>
+                <select id="category" name="category" required>
+                    <option value="general">General</option>
+                    <option value="hardware">Gaming Hardware</option>
+                    <option value="mods">Custom Mods</option>
+                    <option value="apparel">Apparel & Merchandise</option>
+                    <option value="digital">Digital Products</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="image_url">Image URL</label>
+                <input type="url" id="image_url" name="image_url" placeholder="https://example.com/image.jpg">
+            </div>
+        </div>
+
+        <div class="form-note">
+            <p>📋 <strong>Note:</strong> Your product will be reviewed by our team before it appears in the marketplace. This helps maintain quality and trust.</p>
+            <p>💰 <strong>Platform Fee:</strong> A 5% fee is charged on each sale to support SkyModderAI's free services.</p>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('shopping.my_products') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-success">Submit Product for Review</button>
+        </div>
+    </form>
+</div>
+
+<style>
+.add-product-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.add-product-container h1 {
+    margin-bottom: 1.5rem;
+    color: var(--color-primary);
+}
+
+.business-info {
+    background: var(--color-bg-secondary);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+}
+
+.warning-box {
+    background: var(--color-warning-bg);
+    color: var(--color-warning);
+    padding: 0.75rem;
+    border-radius: var(--border-radius-sm);
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.product-form {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-note {
+    background: var(--color-bg-secondary);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.form-note p {
+    margin-bottom: 0.5rem;
+    color: var(--color-text-muted);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

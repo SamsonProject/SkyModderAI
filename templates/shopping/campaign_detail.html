@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}{{ campaign.name }} - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .campaign-detail-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: #94a3b8;
+        border: 1px solid #334155;
+    }
+
+    .btn-secondary:hover {
+        border-color: #3b82f6;
+        color: #fff;
+    }
+
+    .btn-success {
+        background: #22c55e;
+        color: #000;
+    }
+
+    .btn-success:hover {
+        background: #16a34a;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .stat-card h3 {
+        font-size: 0.875rem;
+        color: #94a3b8;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card .value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    /* Campaign Info Card */
+    .info-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-item .label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+    }
+
+    .info-item .value {
+        font-size: 1rem;
+        color: #fff;
+        font-weight: 500;
+    }
+
+    /* Creatives Section */
+    .creatives-section {
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .creatives-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .creative-card {
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .creative-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .creative-header h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .creative-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-active {
+        background: #22c55e;
+        color: #000;
+    }
+
+    .status-paused {
+        background: #f59e0b;
+        color: #000;
+    }
+
+    .status-draft {
+        background: #64748b;
+        color: #fff;
+    }
+
+    .creative-preview {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .creative-preview-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .creative-preview-item .label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-bottom: 0.25rem;
+    }
+
+    .creative-preview-item .value {
+        font-size: 0.875rem;
+        color: #e2e8f0;
+    }
+
+    .creative-stats {
+        display: flex;
+        gap: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #334155;
+    }
+
+    .creative-stat {
+        text-align: center;
+    }
+
+    .creative-stat .value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .creative-stat .label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+    }
+
+    .creative-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+    }
+
+    .empty-state h3 {
+        font-size: 1.125rem;
+        margin-bottom: 0.5rem;
+        color: #94a3b8;
+    }
+
+    .empty-state p {
+        color: #64748b;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="campaign-detail-page">
+    <div class="page-header">
+        <h1>{{ campaign.name }}</h1>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{{ url_for('shopping.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+            <a href="{{ url_for('shopping.create_creative', campaign_id=campaign.id) }}" class="btn btn-success">
+                + New Creative
+            </a>
+        </div>
+    </div>
+
+    <!-- Campaign Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Click Credits</h3>
+            <div class="value">{{ campaign.click_credits|int }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Impressions</h3>
+            <div class="value">{{ stats.impressions|int }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Clicks</h3>
+            <div class="value">{{ stats.clicks|int }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>CTR</h3>
+            <div class="value">{% if stats.impressions > 0 %}{{ "%.1f"|format((stats.clicks / stats.impressions) * 100) }}%{% else %}—{% endif %}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Total Spent</h3>
+            <div class="value">${{ "%.2f"|format(campaign.spent_amount) }}</div>
+        </div>
+    </div>
+
+    <!-- Campaign Info -->
+    <div class="info-card">
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="label">Status</span>
+                <span class="value">{{ campaign.status|title }}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Budget Type</span>
+                <span class="value">{{ campaign.budget_type|title }}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Budget</span>
+                <span class="value">${{ "%.2f"|format(campaign.budget_amount) }}</span>
+            </div>
+            {% if campaign.first_month_free %}
+            <div class="info-item">
+                <span class="label">First Month Free</span>
+                <span class="value" style="color: #22c55e;">Yes</span>
+            </div>
+            {% if campaign.first_month_end %}
+            <div class="info-item">
+                <span class="label">Free Period Ends</span>
+                <span class="value">{{ campaign.first_month_end.strftime('%b %d, %Y') }}</span>
+            </div>
+            {% endif %}
+            {% endif %}
+            <div class="info-item">
+                <span class="label">Created</span>
+                <span class="value">{{ campaign.created_at.strftime('%b %d, %Y') if campaign.created_at else 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Creatives Section -->
+    <div class="creatives-section">
+        <div class="section-header">
+            <h2>Ad Creatives</h2>
+        </div>
+
+        {% if creatives %}
+        <div class="creatives-list">
+            {% for creative in creatives %}
+            <div class="creative-card">
+                <div class="creative-header">
+                    <h3>{{ creative.name }}</h3>
+                    <span class="creative-status status-{{ creative.status }}">{{ creative.status }}</span>
+                </div>
+
+                <div class="creative-preview">
+                    <div class="creative-preview-item">
+                        <span class="label">Headline</span>
+                        <span class="value">{{ creative.headline }}</span>
+                    </div>
+                    {% if creative.body_copy %}
+                    <div class="creative-preview-item">
+                        <span class="label">Body Copy</span>
+                        <span class="value">{{ creative.body_copy[:50] }}{% if creative.body_copy|length > 50 %}...{% endif %}</span>
+                    </div>
+                    {% endif %}
+                    <div class="creative-preview-item">
+                        <span class="label">CTA Text</span>
+                        <span class="value">{{ creative.cta_text }}</span>
+                    </div>
+                    <div class="creative-preview-item">
+                        <span class="label">Landing URL</span>
+                        <span class="value">{{ creative.landing_url[:40] }}{% if creative.landing_url|length > 40 %}...{% endif %}</span>
+                    </div>
+                </div>
+
+                <div class="creative-stats">
+                    <div class="creative-stat">
+                        <div class="value">{{ creative.impressions|int }}</div>
+                        <div class="label">Impressions</div>
+                    </div>
+                    <div class="creative-stat">
+                        <div class="value">{{ creative.clicks|int }}</div>
+                        <div class="label">Clicks</div>
+                    </div>
+                    <div class="creative-stat">
+                        <div class="value">{% if creative.impressions > 0 %}{{ "%.1f"|format((creative.clicks / creative.impressions) * 100) }}%{% else %}—{% endif %}</div>
+                        <div class="label">CTR</div>
+                    </div>
+                </div>
+
+                <div class="creative-actions">
+                    {% if creative.status == 'active' %}
+                    <button class="btn btn-secondary btn-sm" onclick="toggleCreative({{ creative.id }}, 'pause')">Pause</button>
+                    {% elif creative.status == 'paused' %}
+                    <button class="btn btn-success btn-sm" onclick="toggleCreative({{ creative.id }}, 'activate')">Activate</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No Creatives Yet</h3>
+            <p>Create your first ad creative to start showing your campaign.</p>
+            <a href="{{ url_for('shopping.create_creative', campaign_id=campaign.id) }}" class="btn btn-success">
+                Create Creative
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+async function toggleCreative(creativeId, action) {
+    const endpoint = action === 'pause' 
+        ? `/shopping/creative/${creativeId}/pause`
+        : `/shopping/creative/${creativeId}/activate`;
+    
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('Failed to ' + action + ' creative');
+        }
+    } catch (e) {
+        alert('Failed to ' + action + ' creative');
+    }
+}
+</script>
+{% endblock %}

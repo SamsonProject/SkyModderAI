@@ -210,17 +210,20 @@ def get_request_context() -> dict[str, Any]:
 class RequestLoggingMiddleware:
     """
     Middleware to log all requests with structured context.
+    
+    This middleware wraps a WSGI app and registers Flask hooks for request logging.
     """
 
     def __init__(self, app: Flask, logger: Optional[logging.Logger] = None) -> None:
-        self.app = app
+        self.flask_app = app
+        self.wsgi_app = app.wsgi_app
         self.logger = logger or logging.getLogger(__name__)
         self._setup_middleware()
 
     def _setup_middleware(self) -> None:
         """Set up before/after request hooks."""
 
-        @self.app.before_request
+        @self.flask_app.before_request
         def log_request_start() -> None:
             """Log the start of a request."""
             import time
@@ -229,7 +232,7 @@ class RequestLoggingMiddleware:
             ctx = get_request_context()
             self.logger.info(f"Request started: {request.method} {request.path}", extra=ctx)
 
-        @self.app.after_request
+        @self.flask_app.after_request
         def log_request_end(response: Any) -> Any:
             """Log the end of a request."""
             import time
@@ -255,6 +258,10 @@ class RequestLoggingMiddleware:
             )
 
             return response
+
+    def __call__(self, environ: dict, start_response: callable) -> Any:
+        """WSGI call handler."""
+        return self.wsgi_app(environ, start_response)
 
 
 # =============================================================================

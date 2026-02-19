@@ -1,168 +1,457 @@
-{% extends "business/layout.html" %}
+{% extends "base.html" %}
 
-{% block title %}{{ category_info.label if category_info else category }} | Education Hub{% endblock %}
+{% block title %}{{ category | replace('_', ' ') | title }} - Business Hub{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/design-system.css">
+<style>
+    .hub-category-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-header .subtitle {
+        color: #94a3b8;
+        font-size: 1.125rem;
+    }
+
+    .game-analogy-banner {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid #334155;
+        border-left: 4px solid #3b82f6;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .game-analogy-banner h3 {
+        font-size: 1rem;
+        color: #3b82f6;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .game-analogy-banner p {
+        color: #94a3b8;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .difficulty-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-left: 0.5rem;
+    }
+
+    .difficulty-beginner {
+        background: #22c55e;
+        color: #000;
+    }
+
+    .difficulty-intermediate {
+        background: #f59e0b;
+        color: #000;
+    }
+
+    .difficulty-advanced {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    .difficulty-all {
+        background: #8b5cf6;
+        color: #fff;
+    }
+
+    .resources-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .resource-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.15s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .resource-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 100%);
+    }
+
+    .resource-card:hover {
+        border-color: #3b82f6;
+        transform: translateX(4px);
+    }
+
+    .resource-card.free {
+        border-color: #22c55e;
+    }
+
+    .resource-card.free::before {
+        background: #22c55e;
+    }
+
+    .resource-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .resource-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin: 0;
+    }
+
+    .resource-meta {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .free-badge {
+        background: #22c55e;
+        color: #000;
+        padding: 0.125rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.625rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .resource-description {
+        color: #94a3b8;
+        font-size: 0.9375rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .resource-analogy {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .resource-analogy h4 {
+        font-size: 0.75rem;
+        color: #3b82f6;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .resource-analogy p {
+        color: #94a3b8;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .resource-game-ref {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-top: 0.5rem;
+        font-style: italic;
+    }
+
+    .resource-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: #94a3b8;
+        border: 1px solid #334155;
+    }
+
+    .btn-secondary:hover {
+        border-color: #3b82f6;
+        color: #fff;
+    }
+
+    .progress-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #334155;
+    }
+
+    .progress-nav a {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .progress-nav a:hover {
+        text-decoration: underline;
+    }
+
+    .category-nav {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+    }
+
+    .category-nav a {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        text-decoration: none;
+        color: #94a3b8;
+        border: 1px solid #334155;
+        transition: all 0.15s;
+    }
+
+    .category-nav a:hover,
+    .category-nav a.active {
+        background: #3b82f6;
+        color: #fff;
+        border-color: #3b82f6;
+    }
+
+    @media (max-width: 768px) {
+        .hub-category-page {
+            padding: 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .resource-header {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="hub-category-page" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem;">
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb" style="margin-bottom: 2rem; font-size: 0.9rem;">
-        <a href="{{ url_for('business.hub_landing') }}" style="color: var(--primary-color); text-decoration: none;">
-            ← Education Hub
-        </a>
-    </nav>
-
-    <!-- Category Header -->
-    <div class="category-header" style="margin-bottom: 3rem; text-align: center;">
-        {% if category_info %}
-            <div style="font-size: 3rem; margin-bottom: 1rem;">{{ category_info.icon }}</div>
-            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">{{ category_info.label }}</h1>
-            <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
-                {{ category_info.description }}
-            </p>
-        {% else %}
-            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">{{ category | replace('_', ' ') | title }}</h1>
-        {% endif %}
+<div class="hub-category-page">
+    <div class="page-header">
+        <h1>
+            {% if category == 'getting_started' %}
+                🌱 Getting Started
+            {% elif category == 'building_community' %}
+                🤝 Building Community
+            {% elif category == 'metrics' %}
+                📊 Metrics That Matter
+            {% elif category == 'advanced_strategy' %}
+                🔬 Advanced Strategy
+            {% elif category == 'external_resources' %}
+                🔗 External Resources
+            {% else %}
+                {{ category | replace('_', ' ') | title }}
+            {% endif %}
+            <span class="difficulty-badge difficulty-{{ category_info.difficulty_level if category_info else 'all' }}">
+                {{ category_info.difficulty_level if category_info else 'All Levels' }}
+            </span>
+        </h1>
+        <p class="subtitle">{{ category_info.description if category_info else 'Level up your business venture' }}</p>
     </div>
 
-    <!-- Resources Grid -->
-    {% if resources %}
-        <div class="resources-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
-            {% for resource in resources %}
-                <div class="resource-card" style="
-                    padding: 1.5rem;
-                    border-radius: 8px;
-                    background: var(--bg-color-light);
-                    border: 1px solid var(--border-color);
-                    transition: transform 0.2s, box-shadow 0.2s;
-                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';"
-                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                        <span class="resource-type" style="
-                            padding: 0.25rem 0.75rem;
-                            border-radius: 20px;
-                            font-size: 0.75rem;
-                            font-weight: 600;
-                            text-transform: uppercase;
-                            background: {% if resource.resource_type == 'video' %}#ffe4e6{% elif resource.resource_type == 'tool' %}#dbeafe{% else %}#f0fdf4{% endif %};
-                            color: {% if resource.resource_type == 'video' %}#e11d48{% elif resource.resource_type == 'tool' %}#2563eb{% else %}#16a34a{% endif %};
-                        ">
-                            {{ resource.resource_type }}
-                        </span>
-                        {% if resource.contributed_by_business_id %}
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">
-                                🏢 Business Contribution
-                            </span>
-                        {% endif %}
-                    </div>
+    <!-- Category Navigation -->
+    <div class="category-nav">
+        <a href="{{ url_for('business.hub_category', category='getting_started') }}" class="{{ 'active' if category == 'getting_started' else '' }}">
+            🌱 Getting Started
+        </a>
+        <a href="{{ url_for('business.hub_category', category='building_community') }}" class="{{ 'active' if category == 'building_community' else '' }}">
+            🤝 Building Community
+        </a>
+        <a href="{{ url_for('business.hub_category', category='metrics') }}" class="{{ 'active' if category == 'metrics' else '' }}">
+            📊 Metrics
+        </a>
+        <a href="{{ url_for('business.hub_category', category='advanced_strategy') }}" class="{{ 'active' if category == 'advanced_strategy' else '' }}">
+            🔬 Advanced
+        </a>
+        <a href="{{ url_for('business.hub_category', category='external_resources') }}" class="{{ 'active' if category == 'external_resources' else '' }}">
+            🔗 Resources
+        </a>
+    </div>
 
-                    <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">{{ resource.title }}</h3>
-                    
-                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.6;">
-                        {{ resource.description[:150] }}{% if resource.description|length > 150 %}...{% endif %}
-                    </p>
-
-                    {% if resource.content %}
-                        <div style="margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 4px; font-size: 0.9rem;">
-                            {{ resource.content[:200] }}{% if resource.content|length > 200 %}...{% endif %}
-                        </div>
-                    {% endif %}
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">
-                            {% if resource.author %}By {{ resource.author }}{% else %}Community{% endif %}
-                        </span>
-                        {% if resource.upvotes and resource.upvotes > 0 %}
-                            <span style="font-size: 0.85rem; color: var(--primary-color);">
-                                👍 {{ resource.upvotes }} upvotes
-                            </span>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="no-resources" style="text-align: center; padding: 4rem 2rem; background: var(--bg-color-light); border-radius: 8px;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">📚</div>
-            <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">No resources yet</h3>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
-                Be the first to contribute a resource to this category!
-            </p>
-            {% if session.get('user_email') %}
-                <a href="{{ url_for('business.submit_resource', category=category) }}" 
-                   class="primary-button" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--primary-color); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
-                    Submit Resource
-                </a>
+    <!-- Game Analogy Banner -->
+    <div class="game-analogy-banner">
+        <h3>
+            <span>🎮</span>
+            {% if category == 'getting_started' %}
+                Survival Mode – Punch Trees, Gather Basics
+            {% elif category == 'building_community' %}
+                Build Phase – Expand Your Base
+            {% elif category == 'metrics' %}
+                Optimization – Analyze Your Load Order
+            {% elif category == 'advanced_strategy' %}
+                Conquer & Legacy – Endgame Content
+            {% elif category == 'external_resources' %}
+                Bonus Mod Packs – Expansions & Add-ons
             {% else %}
-                <p style="font-size: 0.9rem; color: var(--text-muted);">
-                    <a href="{{ url_for('auth.login') }}" style="color: var(--primary-color);">Log in</a> to submit resources
-                </p>
+                Game Guide
             {% endif %}
-        </div>
-    {% endif %}
+        </h3>
+        <p>
+            {% if category == 'getting_started' %}
+                Like starting a new Fallout save with scavenged junk—bootstrap from zero using modder smarts. 
+                Survey the wasteland before building your empire.
+            {% elif category == 'building_community' %}
+                Like growing a Factorio factory—automate connections for sustainable growth. 
+                Build your reputation like farming faction standing.
+            {% elif category == 'metrics' %}
+                Like analyzing Skyrim load orders—track what drives real progress. 
+                Monitor your power consumption like a megabase engineer.
+            {% elif category == 'advanced_strategy' %}
+                Like modding epic quests—scale to impose positive will on the world. 
+                Build alliances for massive multiplayer projects.
+            {% elif category == 'external_resources' %}
+                Curated add-ons from the wider wasteland—free tools for deeper dives. 
+                Install these mod packs to enhance your playthrough.
+            {% else %}
+                Game-inspired steps to level up your venture.
+            {% endif %}
+        </p>
+    </div>
 
-    <!-- Learning Tracks from Config -->
-    {% if category_info and category_info.tracks %}
-        <div class="learning-tracks" style="margin-top: 3rem;">
-            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center;">Learning Tracks</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
-                {% for track in category_info.tracks %}
-                    <div style="
-                        padding: 1rem 1.25rem;
-                        background: white;
-                        border-radius: 6px;
-                        border: 1px solid var(--border-color);
-                        display: flex;
-                        align-items: center;
-                        gap: 0.75rem;
-                    ">
-                        <span style="color: var(--primary-color); font-size: 1.25rem;">✓</span>
-                        <span style="font-size: 0.95rem;">{{ track }}</span>
-                    </div>
-                {% endfor %}
+    <!-- Resources List -->
+    {% if resources %}
+    <div class="resources-list">
+        {% for resource in resources %}
+        <div class="resource-card {% if resource.is_free %}free{% endif %}">
+            <div class="resource-header">
+                <h3 class="resource-title">
+                    {{ resource.title }}
+                    {% if resource.difficulty_level %}
+                    <span class="difficulty-badge difficulty-{{ resource.difficulty_level }}">
+                        {{ resource.difficulty_level }}
+                    </span>
+                    {% endif %}
+                </h3>
+                <div class="resource-meta">
+                    {% if resource.is_free %}
+                    <span class="free-badge">FREE</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <p class="resource-description">{{ resource.description }}</p>
+
+            {% if resource.analogy %}
+            <div class="resource-analogy">
+                <h4>🎯 Game Analogy</h4>
+                <p>{{ resource.analogy }}</p>
+                {% if resource.game_reference %}
+                <p class="resource-game-ref">📖 {{ resource.game_reference }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="resource-actions">
+                <a href="{{ resource.url }}" target="_blank" rel="noopener" class="btn btn-primary">
+                    Dive In →
+                </a>
+                {% if resource.resource_type == 'article' %}
+                <a href="#" class="btn btn-secondary">
+                    📖 Read
+                </a>
+                {% endif %}
             </div>
         </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 4rem 2rem; color: #64748b;">
+        <h3>No resources yet</h3>
+        <p>Check back soon for new content!</p>
+    </div>
     {% endif %}
 
-    <!-- Featured Businesses -->
-    {% if featured %}
-        <div class="featured-businesses" style="margin-top: 4rem; padding-top: 3rem; border-top: 1px solid var(--border-color);">
-            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center;">Trusted Businesses in This Space</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
-                {% for business in featured %}
-                    <a href="{{ url_for('business.profile', slug=business.slug) }}" style="
-                        padding: 1.25rem;
-                        background: white;
-                        border-radius: 8px;
-                        border: 1px solid var(--border-color);
-                        text-decoration: none;
-                        color: inherit;
-                        transition: transform 0.2s, box-shadow 0.2s;
-                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';"
-                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                        
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-                            {% if business.logo_url %}
-                                <img src="{{ business.logo_url }}" alt="{{ business.name }}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
-                            {% else %}
-                                <div style="width: 40px; height: 40px; border-radius: 4px; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-weight: 600; color: var(--primary-color);">
-                                    {{ business.name[0] | upper }}
-                                </div>
-                            {% endif %}
-                            <h3 style="font-size: 1rem; margin: 0;">{{ business.name }}</h3>
-                        </div>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-                            {{ business.tagline[:80] }}{% if business.tagline|length > 80 %}...{% endif %}
-                        </p>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span style="font-size: 0.75rem; padding: 0.2rem 0.5rem; background: #f0fdf4; color: #16a34a; border-radius: 3px; font-weight: 600;">
-                                {{ business.trust_tier | default('trusted') | title }}
-                            </span>
-                        </div>
-                    </a>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
+    <!-- Progress Navigation -->
+    <div class="progress-nav">
+        {% if category == 'getting_started' %}
+        <a href="{{ url_for('business.hub_landing') }}">← Back to Hub</a>
+        <a href="{{ url_for('business.hub_category', category='building_community') }}">Next: Building Community →</a>
+        {% elif category == 'building_community' %}
+        <a href="{{ url_for('business.hub_category', category='getting_started') }}">← Getting Started</a>
+        <a href="{{ url_for('business.hub_category', category='metrics') }}">Next: Metrics →</a>
+        {% elif category == 'metrics' %}
+        <a href="{{ url_for('business.hub_category', category='building_community') }}">← Building Community</a>
+        <a href="{{ url_for('business.hub_category', category='advanced_strategy') }}">Next: Advanced Strategy →</a>
+        {% elif category == 'advanced_strategy' %}
+        <a href="{{ url_for('business.hub_category', category='metrics') }}">← Metrics</a>
+        <a href="{{ url_for('business.hub_category', category='external_resources') }}">Next: External Resources →</a>
+        {% elif category == 'external_resources' %}
+        <a href="{{ url_for('business.hub_category', category='advanced_strategy') }}">← Advanced Strategy</a>
+        <a href="{{ url_for('business.directory') }}">Browse Directory →</a>
+        {% else %}
+        <a href="{{ url_for('business.hub_landing') }}">← Back to Hub</a>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

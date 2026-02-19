@@ -29,7 +29,13 @@
     <link rel="stylesheet" href="/static/css/style.modern.css">
     <link rel="stylesheet" href="/static/css/centering-fixes.css">
     <link rel="stylesheet" href="/static/css/style.phase1-additions.css">
+    <link rel="stylesheet" href="/static/css/mobile-accessibility.css">
+    <link rel="stylesheet" href="/static/css/design-system.css">
     <style>
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 100px;
+        }
         /* Analysis Header Components */
         .analysis-header {
             display: flex;
@@ -147,6 +153,138 @@
                 flex-wrap: wrap;
             }
         }
+        
+        /* Promo Section - Business & Donation */
+        .promo-section {
+            margin: 3rem 0;
+            padding: 2rem;
+        }
+        
+        .promo-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .promo-card {
+            background: var(--bg-card, rgba(15, 23, 42, 0.6));
+            border: 1px solid var(--border, rgba(51, 65, 85, 0.5));
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .promo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .promo-icon {
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+        
+        .promo-content {
+            flex: 1;
+        }
+        
+        .promo-content h3 {
+            margin: 0 0 0.75rem 0;
+            font-size: 1.5rem;
+            color: var(--text-primary, #f8fafc);
+        }
+        
+        .promo-content p {
+            color: var(--text-secondary, #94a3b8);
+            margin: 0 0 1rem 0;
+            line-height: 1.6;
+        }
+        
+        .promo-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .promo-features span {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success, #10b981);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        /* Donation Progress */
+        .donation-progress {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .progress-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary, #94a3b8);
+            font-weight: 500;
+        }
+        
+        .progress-amount {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--accent-primary, #06b6d4);
+        }
+        
+        .progress-bar {
+            height: 12px;
+            background: rgba(51, 65, 85, 0.5);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary, #06b6d4), var(--accent-secondary, #a855f7));
+            border-radius: 9999px;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-sub {
+            font-size: 0.875rem;
+            color: var(--text-muted, #64748b);
+            margin: 0;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .promo-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .promo-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .promo-features {
+                justify-content: center;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
     <script type="application/ld+json">
@@ -194,6 +332,7 @@
             </button>
             <nav class="header-nav">
                 <a href="#panel-community" class="nav-link" style="color: #f59e0b; font-weight: 700;">🔥 Community</a>
+                <a href="/shopping/" class="nav-link">Shopping</a>
                 <a href="/business" class="nav-link">Business</a>
                 {% if session.get('user_email') %}
                 <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
@@ -868,6 +1007,66 @@ Supports:
             {% include "includes/dev_panel.html" %}
 
         </main>
+        
+        <!-- Business Community Teaser & Donation -->
+        <section class="promo-section" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+            <div class="page-header" style="margin-bottom: 2rem;">
+                <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">Community & Support</h2>
+                <p style="color: #94a3b8; font-size: 1.125rem;">Join the modding community and support free tools</p>
+            </div>
+            
+            <div class="pricing-section" style="margin-bottom: 0;">
+                <!-- Business Teaser -->
+                <div class="pricing-card">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🏢</div>
+                    <h3>Business Community</h3>
+                    <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1.5rem;">Join verified businesses selling gaming gear, custom mods, and more</p>
+                    <ul>
+                        <li>Free directory listing</li>
+                        <li>Verified trust scores</li>
+                        <li>Targeted modder audience</li>
+                        <li>Optional promoted ads</li>
+                    </ul>
+                    <a href="{{ url_for('business.hub_landing') }}" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;">Learn More</a>
+                </div>
+
+                <!-- Donation -->
+                <div class="pricing-card featured" id="donate">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🍺</div>
+                    <h3>Support SkyModderAI</h3>
+                    <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1.5rem;">100% free forever. No paywalls, no premium tiers.</p>
+                    <ul>
+                        <li>Free access to all features</li>
+                        <li>Community-funded development</li>
+                        <li>Server & API costs covered</li>
+                        <li>Support ongoing improvements</li>
+                    </ul>
+                    <a href="#donate" class="btn btn-success" style="margin-top: 1.5rem; width: 100%;">🍺 Buy Me a Mead</a>
+                </div>
+
+                <!-- Community CTA -->
+                <div class="pricing-card">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔥</div>
+                    <h3>Join Community</h3>
+                    <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1.5rem;">Share tips, get help, celebrate wins with fellow modders</p>
+                    <ul>
+                        <li>Share modding tips</li>
+                        <li>Get help with issues</li>
+                        <li>Celebrate your builds</li>
+                        <li>Connect with creators</li>
+                    </ul>
+                    <a href="#panel-community" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;">View Community</a>
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="cta-section">
+                <h2>Ready to Start Modding?</h2>
+                <p>AI-powered conflict detection, load order optimization, and community insights. Free forever, built for modders by modders.</p>
+                <button type="button" class="btn" onclick="document.querySelector('[data-tab=analyze]').click()" style="background: #fff; color: #3b82f6; font-size: 1rem; padding: 0.875rem 2rem;">Start Analyzing →</button>
+            </div>
+        </section>
+
         <!-- Footer -->
         <footer>
             <div class="footer-content">

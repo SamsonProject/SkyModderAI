@@ -550,6 +550,48 @@ class TrashBinItem(Base):
 
 
 # =============================================================================
+# Business & Shopping Models
+# =============================================================================
+
+
+class Product(Base):
+    """Product model for shopping marketplace."""
+
+    __tablename__ = "products"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    business_id = Column(String(255), nullable=False)  # Links to businesses.id
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    price = Column(Float, nullable=False)
+    image_url = Column(String(500), nullable=True)
+    category = Column(String(100), nullable=False, default="general")  # Hardware, Mods, Apparel, etc.
+    stock = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "id": self.id,
+            "business_id": self.business_id,
+            "name": self.name,
+            "description": self.description,
+            "price": self.price,
+            "image_url": self.image_url,
+            "category": self.category,
+            "stock": self.stock,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# =============================================================================
 # Database Engine
 # =============================================================================
 

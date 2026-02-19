@@ -45,6 +45,9 @@ class RateLimiter:
     def _clean_old_requests(self, identifier: str, window: int) -> None:
         """Remove requests older than the window."""
         now = time.time()
+        # Ensure window is an integer (might be passed as string from decorator)
+        if isinstance(window, str):
+            window = int(window)
         cutoff = now - window
         self._requests[identifier] = [
             (ts, count) for ts, count in self._requests[identifier] if ts > cutoff
@@ -96,6 +99,7 @@ _rate_limiter = RateLimiter()
 
 def rate_limit(
     limit: int = RATE_LIMIT_DEFAULT,
+    key_prefix: str = "api",
     window: int = RATE_LIMIT_WINDOW,
     key_func: Optional[Callable[[], str]] = None,
 ) -> Callable:
@@ -104,6 +108,7 @@ def rate_limit(
 
     Args:
         limit: Maximum requests allowed
+        key_prefix: Prefix for the rate limit key
         window: Time window in seconds
         key_func: Function to get the rate limit key (default: remote address)
 
@@ -120,16 +125,24 @@ def rate_limit(
             if key_func:
                 identifier = key_func()
             else:
-                identifier = request.remote_addr or "unknown"
+                # Use X-Forwarded-For for reverse proxy support
+                identifier = (
+                    request.headers.get("X-Forwarded-For", request.remote_addr or "unknown")
+                    .split(",")[0]
+                    .strip()
+                )
+
+            # Create full key with prefix
+            full_key = f"{key_prefix}:{identifier}"
 
             # Check rate limit
-            if _rate_limiter.is_rate_limited(identifier, limit, window):
-                retry_after = _rate_limiter.get_retry_after(identifier, window)
+            if _rate_limiter.is_rate_limited(full_key, limit, window):
+                retry_after = _rate_limiter.get_retry_after(full_key, window)
                 response = make_response(
                     jsonify(
                         {
                             "success": False,
-                            "error": "Rate limit exceeded. Please try again later.",
+                            "error": "Too many requests. Please slow down.",
                         }
                     ),
                     429,

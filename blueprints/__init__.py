@@ -12,6 +12,7 @@ from .community import community_bp
 from .export import export_bp
 from .feedback import feedback_bp
 from .openclaw import openclaw_bp
+from .shopping import shopping_bp
 from .sponsors import sponsors_bp
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     "export_bp",
     "sponsors_bp",
     "business_bp",
+    "shopping_bp",
 ]

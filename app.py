@@ -46,13 +46,47 @@ from conflict_detector import ConflictDetector, parse_mod_list_text
 # Shared constants - imported from constants.py
 from constants import (
     MAX_INPUT_SIZE,
+    MAX_MOD_LIST_SIZE,
+    MAX_SEARCH_QUERY_LENGTH,
     PLUGIN_LIMIT,
     PLUGIN_LIMIT_WARN_THRESHOLD,
     RATE_LIMIT_ANALYZE,
     RATE_LIMIT_API,
+    RATE_LIMIT_AUTH,
+    RATE_LIMIT_DEFAULT,
     RATE_LIMIT_SEARCH,
     RATE_LIMIT_WINDOW,
 )
+
+# Security utilities
+from security_utils import (
+    RateLimiter,
+    constant_time_compare,
+    generate_secure_token,
+    get_client_ip,
+    get_key_prefix,
+    hash_api_key,
+    rate_limit,
+    validate_email,
+    validate_game_id,
+    validate_list_name,
+    validate_mod_list,
+    validate_password,
+    validate_search_query,
+)
+
+# Logging utilities
+from logging_utils import (
+    RequestLoggingMiddleware,
+    SensitiveDataFilter,
+    StructuredFormatter,
+    get_request_id,
+    log_with_context,
+    redact_api_key,
+    redact_email,
+    setup_logging,
+)
+
 from deterministic_analysis import (
     analyze_load_order_deterministic,
     generate_bespoke_setups_deterministic,
@@ -141,10 +175,20 @@ def _redact_email(email):
 # -------------------------------------------------------------------
 # Configuration and logging
 # -------------------------------------------------------------------
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Setup enhanced logging with PII redaction and structured formatting
+logger = setup_logging(
+    level=logging.INFO,
+    log_file=os.getenv("LOG_FILE", "app.log"),
+    enable_structured=config.FLASK_ENV == "production",
 )
-logger = logging.getLogger(__name__)
+
+logger.info("SkyModderAI starting up...")
+logger.info(f"Environment: {config.FLASK_ENV}")
+logger.info(f"Database: {'PostgreSQL' if config.SQLALCHEMY_DATABASE_URI.startswith('postgresql') else 'SQLite'}")
+
+# Initialize global rate limiter
+_app_rate_limiter = RateLimiter()
 
 # Stripe integration
 STRIPE_AVAILABLE = False
@@ -301,6 +345,12 @@ def api_success(data: dict = None, message: str = None):
 
 
 app = Flask(__name__)
+
+# Add request logging middleware for structured request tracing (BEFORE ProxyFix)
+request_logging = RequestLoggingMiddleware(app, logger=logger)
+app.wsgi_app = request_logging
+
+# ProxyFix must be applied AFTER other middleware
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)  # Trust reverse proxy headers
 
 # Gzip compression for faster responses (2025 best practice)
@@ -310,6 +360,10 @@ try:
     Compress(app)
 except ImportError:
     pass  # Graceful fallback if Flask-Compress not installed
+
+# Add sensitive data filter to all log handlers
+for handler in logger.handlers:
+    handler.addFilter(SensitiveDataFilter())
 
 # Security settings
 app.config.update(
@@ -1742,45 +1796,10 @@ def load_session_from_cookie():
 
 
 # -------------------------------------------------------------------
-# Rate limiting (in-memory, per-worker; use Redis for multi-worker prod)
+# Rate limiting
 # -------------------------------------------------------------------
-_rate_limit_store = defaultdict(list)
-
-
-def _rate_limit_key():
-    return (
-        request.headers.get("X-Forwarded-For", request.remote_addr or "unknown")
-        .split(",")[0]
-        .strip()
-    )
-
-
-def _check_rate_limit(limit: int, key_prefix: str = "default") -> bool:
-    """Return True if under limit, False if rate limited."""
-    if not _in_production:
-        return True
-    key = f"{key_prefix}:{_rate_limit_key()}"
-    now = _time()
-    window_start = now - RATE_LIMIT_WINDOW
-    store = _rate_limit_store[key]
-    store[:] = [t for t in store if t > window_start]
-    if len(store) >= limit:
-        return False
-    store.append(now)
-    return True
-
-
-def rate_limit(limit: int, key_prefix: str = "api"):
-    def decorator(f):
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            if not _check_rate_limit(limit, key_prefix):
-                return api_error("Too many requests. Please slow down.", 429)
-            return f(*args, **kwargs)
-
-        return wrapped
-
-    return decorator
+# Using security_utils.RateLimiter for centralized rate limiting
+# The @rate_limit decorator is imported from security_utils
 
 
 # -------------------------------------------------------------------
@@ -7503,6 +7522,7 @@ from blueprints import (
     export_bp,
     feedback_bp,
     openclaw_bp,
+    shopping_bp,
     sponsors_bp,
 )
 
@@ -7516,6 +7536,7 @@ app.register_blueprint(feedback_bp)
 app.register_blueprint(export_bp)
 app.register_blueprint(sponsors_bp)
 app.register_blueprint(business_bp)
+app.register_blueprint(shopping_bp)
 
 logger.info("All blueprints registered")
 

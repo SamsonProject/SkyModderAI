@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .shopping-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .shopping-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .shopping-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .shopping-header p {
+        color: #94a3b8;
+        font-size: 1.125rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Pricing Section */
+    .pricing-section {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid #334155;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+
+    .pricing-card {
+        text-align: center;
+        padding: 1.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid #334155;
+        border-radius: 12px;
+    }
+
+    .pricing-card.featured {
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.1);
+    }
+
+    .pricing-card h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .pricing-card .price {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #22c55e;
+        margin: 1rem 0;
+    }
+
+    .pricing-card .price span {
+        font-size: 1rem;
+        color: #94a3b8;
+    }
+
+    .pricing-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0 0 0;
+        text-align: left;
+    }
+
+    .pricing-card li {
+        padding: 0.5rem 0;
+        color: #94a3b8;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .pricing-card li::before {
+        content: "✓";
+        color: #22c55e;
+        font-weight: bold;
+    }
+
+    .pricing-card.featured li::before {
+        content: "🎁";
+    }
+
+    /* Featured Ads Section */
+    .featured-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .ads-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .ad-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.15s;
+        position: relative;
+    }
+
+    .ad-card:hover {
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+    }
+
+    .ad-card.free-month {
+        border-color: #22c55e;
+    }
+
+    .ad-card.free-month::before {
+        content: "FIRST MONTH FREE";
+        position: absolute;
+        top: -10px;
+        right: 1rem;
+        background: #22c55e;
+        color: #000;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.625rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .ad-card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .ad-business-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        background: #334155;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .ad-business-info h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .ad-campaign-name {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+
+    .ad-headline {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 0.5rem;
+    }
+
+    .ad-body {
+        color: #94a3b8;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .ad-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: #94a3b8;
+        border: 1px solid #334155;
+    }
+
+    .btn-secondary:hover {
+        border-color: #3b82f6;
+        color: #fff;
+    }
+
+    .btn-success {
+        background: #22c55e;
+        color: #000;
+    }
+
+    .btn-success:hover {
+        background: #16a34a;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #64748b;
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #94a3b8;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border-radius: 16px;
+        padding: 3rem;
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    .cta-section h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .cta-section p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.125rem;
+        margin-bottom: 2rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .cta-section .btn {
+        background: #fff;
+        color: #3b82f6;
+        font-size: 1rem;
+        padding: 0.875rem 2rem;
+    }
+
+    .cta-section .btn:hover {
+        background: #f1f5f9;
+    }
+
+    @media (max-width: 768px) {
+        .shopping-page {
+            padding: 1rem;
+        }
+
+        .shopping-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .pricing-section {
+            grid-template-columns: 1fr;
+        }
+
+        .ads-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="shopping-page">
+    <!-- Header -->
+    <div class="shopping-header">
+        <h1>🛒 Business Advertising</h1>
+        <p>Reach thousands of modders in the SkyModderAI community. Pay only for actual clicks.</p>
+    </div>
+
+    <!-- Pricing Section -->
+    <div class="pricing-section">
+        <div class="pricing-card featured">
+            <h3>🎁 First Month</h3>
+            <div class="price">{{ pricing.first_month }}</div>
+            <p style="color: #94a3b8; font-size: 0.875rem;">For new businesses</p>
+            <ul>
+                <li>Free to join business directory</li>
+                <li>First month of advertising FREE</li>
+                <li>Up to 10,000 clicks at no cost</li>
+                <li>Automatic ad placement</li>
+                <li>Fraud protection included</li>
+            </ul>
+        </div>
+
+        <div class="pricing-card">
+            <h3>💰 Pay-Per-Click</h3>
+            <div class="price">${{ "%.2f"|format(pricing.cpm_rate) }} <span>/ 1000 clicks</span></div>
+            <p style="color: #94a3b8; font-size: 0.875rem;">After first month</p>
+            <ul>
+                <li>${{ "%.3f"|format(pricing.cost_per_click) }} per click</li>
+                <li>$50 = 10,000 clicks prepaid</li>
+                <li>No monthly caps or hidden fees</li>
+                <li>Server-side fraud protection</li>
+                <li>24h click deduplication</li>
+            </ul>
+        </div>
+
+        <div class="pricing-card">
+            <h3>📊 Bulk Plan</h3>
+            <div class="price">${{ "%.2f"|format(pricing.plan_price) }} <span>/ {{ pricing.plan_clicks|int // 1000 }}k clicks</span></div>
+            <p style="color: #94a3b8; font-size: 0.875rem;">Best value</p>
+            <ul>
+                <li>10,000 clicks prepaid</li>
+                <li>Lowest cost per click</li>
+                <li>Credits never expire</li>
+                <li>Add more anytime</li>
+                <li>Detailed analytics</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Featured Ads Section -->
+    <div class="featured-section">
+        <div class="section-header">
+            <h2>🔥 Featured Businesses</h2>
+            <a href="{{ url_for('shopping.ads_directory') }}" class="btn btn-secondary">View All Ads</a>
+        </div>
+
+        {% if featured_ads %}
+        <div class="ads-grid">
+            {% for ad in featured_ads %}
+            <div class="ad-card {% if ad.first_month_free %}free-month{% endif %}">
+                <div class="ad-card-header">
+                    <div class="ad-business-logo">
+                        {{ ad.business_name[0]|upper }}
+                    </div>
+                    <div class="ad-business-info">
+                        <h3>{{ ad.business_name }}</h3>
+                        <span class="ad-campaign-name">{{ ad.campaign_name }}</span>
+                    </div>
+                </div>
+
+                <div class="ad-headline">{{ ad.headline }}</div>
+
+                {% if ad.body_copy %}
+                <p class="ad-body">{{ ad.body_copy[:150] }}{% if ad.body_copy|length > 150 %}...{% endif %}</p>
+                {% endif %}
+
+                <div class="ad-actions">
+                    <a href="{{ url_for('shopping.track_click', creative_id=ad.creative_id) }}" class="btn btn-primary">
+                        {{ ad.cta_text }}
+                    </a>
+                    <a href="{{ url_for('business.profile', slug=ad.business_slug) }}" class="btn btn-secondary">
+                        View Profile
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No Featured Ads Yet</h3>
+            <p>Be the first to advertise and reach our community!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-section">
+        <h2>Ready to Reach Modders?</h2>
+        <p>Join the business directory for free and get your first month of advertising on us. No risk, no hidden fees.</p>
+        <a href="{{ url_for('business.join') }}" class="btn">Join Business Directory</a>
+    </div>
+</div>
+{% endblock %}

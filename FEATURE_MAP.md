@@ -23,7 +23,7 @@
 
 ---
 
-## 💰 Business Model: Free + Donations
+## 💰 Business Model: Free + Donations + Business Ads over 1K clicks
 
 **Everything is free. Forever. No catches.**
 

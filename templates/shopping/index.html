@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping - SkyModderAI{% endblock %}
+
+{% block content %}
+<div class="shopping-container">
+    <!-- Header -->
+    <div class="shopping-header">
+        <h1>🛒 Shopping Marketplace</h1>
+        <p class="subtitle">Mod-related products from verified businesses</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="shopping-filters">
+        <form method="GET" action="{{ url_for('shopping.index') }}" class="filter-form">
+            <div class="filter-group">
+                <label for="category">Category:</label>
+                <select name="category" id="category" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if current_category == cat %}selected{% endif %}>{{ cat|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="search">Search:</label>
+                <input type="text" name="search" id="search" value="{{ current_search }}" placeholder="Search products...">
+            </div>
+
+            <div class="filter-group">
+                <label for="sort">Sort:</label>
+                <select name="sort" id="sort" onchange="this.form.submit()">
+                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                    <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name A-Z</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+
+        {% if session.get('user_email') %}
+        <div class="shopping-actions">
+            <a href="{{ url_for('shopping.add_product') }}" class="btn btn-success">+ Sell Product</a>
+            <a href="{{ url_for('shopping.my_products') }}" class="btn btn-secondary">My Products</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Cart Summary -->
+    {% if session.get('cart') and session.cart|length > 0 %}
+    <div class="cart-summary">
+        <a href="{{ url_for('shopping.cart') }}" class="cart-link">
+            🛒 Cart: {{ session.cart|length }} item(s)
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Products Grid -->
+    {% if products %}
+    <div class="products-grid">
+        {% for item in products %}
+        <div class="product-card">
+            <div class="product-image">
+                {% if item.image_url %}
+                <img src="{{ item.image_url }}" alt="{{ item.name }}" onerror="this.src='/static/images/placeholder-product.png'">
+                {% else %}
+                <div class="product-image-placeholder">📦</div>
+                {% endif %}
+            </div>
+
+            <div class="product-info">
+                <h3 class="product-name">{{ item.name }}</h3>
+                <p class="product-business">
+                    by <a href="{{ url_for('business.profile', slug=item.business.slug if item.business else '') }}">
+                        {{ item.business.name if item.business else 'Unknown' }}
+                    </a>
+                    {% if item.business and item.business.verified %}
+                    <span class="verified-badge" title="Verified Business">✓</span>
+                    {% endif %}
+                </p>
+
+                <p class="product-description">{{ item.description[:100] }}{% if item.description|length > 100 %}...{% endif %}</p>
+
+                <div class="product-meta">
+                    <span class="product-category">{{ item.category|title }}</span>
+                    {% if item.stock > 0 %}
+                    <span class="product-stock in-stock">In Stock ({{ item.stock }})</span>
+                    {% else %}
+                    <span class="product-stock out-of-stock">Out of Stock</span>
+                    {% endif %}
+                </div>
+
+                <div class="product-footer">
+                    <span class="product-price">${{ "%.2f"|format(item.price) }}</span>
+                    <div class="product-actions">
+                        <a href="{{ url_for('shopping.product_detail', product_id=item.id) }}" class="btn btn-sm btn-secondary">View</a>
+                        {% if item.stock > 0 %}
+                        <form action="{{ url_for('shopping.add_to_cart', product_id=item.id) }}" method="POST" class="inline-form">
+                            <button type="submit" class="btn btn-sm btn-primary">Add to Cart</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🛒</div>
+        <h3>No products found</h3>
+        <p>Check back later or become a verified business to list products!</p>
+        <a href="{{ url_for('business.join') }}" class="btn btn-primary">Join Business Directory</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.shopping-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.shopping-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.shopping-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-primary);
+}
+
+.subtitle {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+}
+
+.shopping-filters {
+    background: var(--color-bg-secondary);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.filter-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.filter-group label {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-bg);
+    color: var(--color-text);
+    min-width: 150px;
+}
+
+.shopping-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.cart-summary {
+    background: var(--color-success-bg);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.cart-link {
+    color: var(--color-success);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.product-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.product-image {
+    height: 200px;
+    background: var(--color-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-image-placeholder {
+    font-size: 4rem;
+    opacity: 0.5;
+}
+
+.product-info {
+    padding: 1.5rem;
+}
+
+.product-name {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+}
+
+.product-business {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.product-business a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.product-description {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.product-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+}
+
+.product-category {
+    background: var(--color-bg-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+}
+
+.product-stock {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+}
+
+.product-stock.in-stock {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+}
+
+.product-stock.out-of-stock {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+}
+
+.product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.product-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.product-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.inline-form {
+    display: inline;
+}
+
+.verified-badge {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: var(--color-success);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 0.7rem;
+    margin-left: 0.25rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .shopping-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-form {
+        flex-direction: column;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        width: 100%;
+    }
+
+    .shopping-actions {
+        justify-content: center;
+    }
+
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

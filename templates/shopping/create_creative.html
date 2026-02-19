@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}Create Ad Creative - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .create-creative-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .breadcrumb {
+        color: #94a3b8;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+
+    .breadcrumb a {
+        color: #3b82f6;
+        text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    .form-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #e2e8f0;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: #fff;
+        font-size: 0.875rem;
+        transition: border-color 0.15s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+    }
+
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-help {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-top: 0.25rem;
+    }
+
+    .creative-preview {
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .creative-preview h4 {
+        font-size: 0.875rem;
+        color: #94a3b8;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+    }
+
+    .preview-headline {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 0.5rem;
+    }
+
+    .preview-body {
+        color: #94a3b8;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .preview-cta {
+        display: inline-block;
+        background: #3b82f6;
+        color: #fff;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: #94a3b8;
+        border: 1px solid #334155;
+    }
+
+    .btn-secondary:hover {
+        border-color: #3b82f6;
+        color: #fff;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-creative-page">
+    <div class="page-header">
+        <div class="breadcrumb">
+            <a href="{{ url_for('shopping.dashboard') }}">Dashboard</a>
+            → <a href="{{ url_for('shopping.view_campaign', campaign_id=campaign.id) }}">{{ campaign.name }}</a>
+            → New Creative
+        </div>
+        <h1>📝 Create Ad Creative</h1>
+        <p style="color: #94a3b8;">Design your ad that will be shown to modders</p>
+    </div>
+
+    <form method="POST" class="form-card">
+        <div class="form-group">
+            <label for="creative_name">Creative Name *</label>
+            <input type="text" id="creative_name" name="creative_name" 
+                   placeholder="e.g., Homepage Banner" required>
+            <span class="form-help">Internal name for this creative</span>
+        </div>
+
+        <div class="form-group">
+            <label for="headline">Headline *</label>
+            <input type="text" id="headline" name="headline" 
+                   placeholder="Catchy headline for your ad" 
+                   maxlength="60" required
+                   oninput="updatePreview()">
+            <span class="form-help">Max 60 characters</span>
+        </div>
+
+        <div class="form-group">
+            <label for="body_copy">Body Copy</label>
+            <textarea id="body_copy" name="body_copy" 
+                      placeholder="Describe your product or service..."
+                      maxlength="200"
+                      oninput="updatePreview()"></textarea>
+            <span class="form-help">Max 200 characters. Optional.</span>
+        </div>
+
+        <div class="form-group">
+            <label for="cta_text">Call-to-Action Button</label>
+            <select id="cta_text" name="cta_text" onchange="updatePreview()">
+                <option value="Learn More">Learn More</option>
+                <option value="Visit Website">Visit Website</option>
+                <option value="Shop Now">Shop Now</option>
+                <option value="Get Started">Get Started</option>
+                <option value="Download">Download</option>
+                <option value="Sign Up">Sign Up</option>
+                <option value="View Details">View Details</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="landing_url">Landing URL *</label>
+            <input type="url" id="landing_url" name="landing_url" 
+                   value="{{ business.website }}" required>
+            <span class="form-help">Where users go after clicking your ad</span>
+        </div>
+
+        <div class="form-group">
+            <label for="image_url">Image URL (optional)</label>
+            <input type="url" id="image_url" name="image_url" 
+                   placeholder="https://example.com/image.png">
+            <span class="form-help">Optional ad image. If not provided, text-only ad will be shown.</span>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="creative-preview">
+            <h4>Ad Preview</h4>
+            <div class="preview-headline" id="previewHeadline">Your headline here</div>
+            <div class="preview-body" id="previewBody">Your body copy will appear here...</div>
+            <span class="preview-cta" id="previewCta">Learn More</span>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('shopping.view_campaign', campaign_id=campaign.id) }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Create Creative</button>
+        </div>
+    </form>
+</div>
+
+<script>
+function updatePreview() {
+    const headline = document.getElementById('headline').value || 'Your headline here';
+    const bodyCopy = document.getElementById('body_copy').value || 'Your body copy will appear here...';
+    const ctaText = document.getElementById('cta_text').value;
+
+    document.getElementById('previewHeadline').textContent = headline;
+    document.getElementById('previewBody').textContent = bodyCopy;
+    document.getElementById('previewCta').textContent = ctaText;
+}
+
+// Initialize preview
+updatePreview();
+</script>
+{% endblock %}

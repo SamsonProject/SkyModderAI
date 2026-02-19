@@ -387,30 +387,29 @@ class BusinessService:
             category: Category ID to filter by
 
         Returns:
-            List of resources with category info
+            List of resources with game analogies and metadata
         """
         try:
             db = get_db()
             if category:
                 resources = db.execute(
                     """
-                    SELECT id, title, description, category as category_id, resource_type,
-                           content, author, contributed_by_business_id, upvotes, status,
-                           created_at
+                    SELECT id, title, description, category, resource_type,
+                           url, analogy, game_reference, difficulty_level, order_index,
+                           is_free, created_at
                     FROM hub_resources
-                    WHERE category = ? AND status = 'active'
-                    ORDER BY upvotes DESC, created_at DESC
+                    WHERE category = ?
+                    ORDER BY order_index ASC, difficulty_level ASC
                 """,
                     (category,),
                 ).fetchall()
             else:
                 resources = db.execute("""
-                    SELECT id, title, description, category as category_id, resource_type,
-                           content, author, contributed_by_business_id, upvotes, status,
-                           created_at
+                    SELECT id, title, description, category, resource_type,
+                           url, analogy, game_reference, difficulty_level, order_index,
+                           is_free, created_at
                     FROM hub_resources
-                    WHERE status = 'active'
-                    ORDER BY category, upvotes DESC, created_at DESC
+                    ORDER BY category, order_index ASC
                 """).fetchall()
 
             return [dict(row) for row in resources]

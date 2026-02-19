@@ -64,8 +64,17 @@ def directory():
         "approved", []
     )
 
+    # Get featured shopping ads
+    from shopping_service import get_shopping_service
+    shopping_service = get_shopping_service()
+    featured_ads = shopping_service.get_featured_ads(limit=3)
+
     return render_template(
-        "business/directory.html", businesses=businesses, categories=categories, filters=filters
+        "business/directory.html", 
+        businesses=businesses, 
+        categories=categories, 
+        filters=filters,
+        featured_ads=featured_ads,
     )
 
 

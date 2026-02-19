@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Create Campaign - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .create-campaign-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #e2e8f0;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: #fff;
+        font-size: 0.875rem;
+        transition: border-color 0.15s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+    }
+
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-help {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-top: 0.25rem;
+    }
+
+    .free-month-notice {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid #22c55e;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .free-month-notice h3 {
+        color: #22c55e;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .free-month-notice p {
+        color: #94a3b8;
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: #94a3b8;
+        border: 1px solid #334155;
+    }
+
+    .btn-secondary:hover {
+        border-color: #3b82f6;
+        color: #fff;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-campaign-page">
+    <div class="page-header">
+        <h1>🚀 Create Ad Campaign</h1>
+        <p style="color: #94a3b8;">Set up your advertising campaign to reach modders</p>
+    </div>
+
+    {% if first_month_free %}
+    <div class="free-month-notice">
+        <h3>🎁 First Month FREE!</h3>
+        <p>Your first campaign gets up to 10,000 clicks at no cost. No credit card required.</p>
+    </div>
+    {% endif %}
+
+    <form method="POST" class="form-card">
+        <div class="form-group">
+            <label for="campaign_name">Campaign Name *</label>
+            <input type="text" id="campaign_name" name="campaign_name" 
+                   value="{{ business.name }} Campaign" required>
+            <span class="form-help">Internal name for your campaign</span>
+        </div>
+
+        <div class="form-group">
+            <label>Budget Type</label>
+            <select id="budget_type" name="budget_type" disabled>
+                <option value="prepaid" selected>Prepaid Pay-Per-Click</option>
+            </select>
+            <span class="form-help">$5 per 1,000 clicks ($0.005 per click)</span>
+        </div>
+
+        {% if not first_month_free %}
+        <div class="form-group">
+            <label for="budget_amount">Initial Budget</label>
+            <input type="number" id="budget_amount" name="budget_amount" 
+                   value="50" min="10" step="10">
+            <span class="form-help">$50 = 10,000 clicks. Minimum $10.</span>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <a href="{{ url_for('shopping.dashboard') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                {% if first_month_free %}Start Free Campaign{% else %}Create Campaign{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

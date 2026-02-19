@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Advertising Dashboard - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+    }
+
+    .btn-success {
+        background: #22c55e;
+        color: #000;
+    }
+
+    .btn-success:hover {
+        background: #16a34a;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .stat-card h3 {
+        font-size: 0.875rem;
+        color: #94a3b8;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card .value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    /* Campaigns List */
+    .campaigns-section {
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .campaigns-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .campaign-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .campaign-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .campaign-header h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .campaign-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-active {
+        background: #22c55e;
+        color: #000;
+    }
+
+    .status-paused {
+        background: #f59e0b;
+        color: #000;
+    }
+
+    .status-draft {
+        background: #64748b;
+        color: #fff;
+    }
+
+    .status-ended {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    .campaign-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .campaign-stat {
+        text-align: center;
+    }
+
+    .campaign-stat .label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+    }
+
+    .campaign-stat .value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .campaign-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: #94a3b8;
+        border: 1px solid #334155;
+    }
+
+    .btn-secondary:hover {
+        border-color: #3b82f6;
+        color: #fff;
+    }
+
+    /* Free Month Badge */
+    .free-month-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid #22c55e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #22c55e;
+        margin-left: 0.5rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #94a3b8;
+    }
+
+    .empty-state p {
+        color: #64748b;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <div class="page-header">
+        <h1>📊 Advertising Dashboard</h1>
+        <a href="{{ url_for('shopping.create_campaign') }}" class="btn btn-success">
+            + New Campaign
+        </a>
+    </div>
+
+    <!-- Business Info -->
+    <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.125rem; margin-bottom: 0.5rem;">{{ business.name }}</h2>
+        <p style="color: #94a3b8; font-size: 0.875rem;">{{ business.website }}</p>
+    </div>
+
+    <!-- Campaigns Section -->
+    <div class="campaigns-section">
+        <div class="section-header">
+            <h2>Your Campaigns</h2>
+        </div>
+
+        {% if campaigns %}
+        <div class="campaigns-list">
+            {% for campaign in campaigns %}
+            <div class="campaign-card">
+                <div class="campaign-header">
+                    <div>
+                        <h3>
+                            {{ campaign.name }}
+                            {% if campaign.first_month_free and campaign.first_month_end %}
+                            <span class="free-month-badge">
+                                🎁 First Month Free
+                                {% if campaign.first_month_end %}
+                                (until {{ campaign.first_month_end.strftime('%b %d') }})
+                                {% endif %}
+                                </span>
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <span class="campaign-status status-{{ campaign.status }}">
+                        {{ campaign.status }}
+                    </span>
+                </div>
+
+                <div class="campaign-stats">
+                    <div class="campaign-stat">
+                        <div class="label">Credits</div>
+                        <div class="value">{{ campaign.click_credits|int }}</div>
+                    </div>
+                    <div class="campaign-stat">
+                        <div class="label">Impressions</div>
+                        <div class="value">{{ campaign.total_impressions|int }}</div>
+                    </div>
+                    <div class="campaign-stat">
+                        <div class="label">Clicks</div>
+                        <div class="value">{{ campaign.total_clicks|int }}</div>
+                    </div>
+                    <div class="campaign-stat">
+                        <div class="label">CTR</div>
+                        <div class="value">{{ "%.1f"|format(campaign.ctr) }}%</div>
+                    </div>
+                    <div class="campaign-stat">
+                        <div class="label">Spent</div>
+                        <div class="value">${{ "%.2f"|format(campaign.spent_amount) }}</div>
+                    </div>
+                </div>
+
+                <div class="campaign-actions">
+                    <a href="{{ url_for('shopping.view_campaign', campaign_id=campaign.id) }}" class="btn btn-secondary btn-sm">
+                        View Details
+                    </a>
+                    {% if campaign.status == 'active' %}
+                    <button class="btn btn-secondary btn-sm" onclick="toggleCampaign({{ campaign.id }}, 'pause')">
+                        Pause
+                    </button>
+                    {% elif campaign.status == 'paused' %}
+                    <button class="btn btn-success btn-sm" onclick="toggleCampaign({{ campaign.id }}, 'activate')">
+                        Activate
+                    </button>
+                    {% endif %}
+                    <button class="btn btn-primary btn-sm" onclick="addCredits({{ campaign.id }})">
+                        Add Credits
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No Campaigns Yet</h3>
+            <p>Create your first campaign and start reaching modders today!</p>
+            <a href="{{ url_for('shopping.create_campaign') }}" class="btn btn-success">
+                Create Campaign
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+async function toggleCampaign(campaignId, action) {
+    const endpoint = action === 'pause' 
+        ? `/shopping/campaign/${campaignId}/pause`
+        : `/shopping/campaign/${campaignId}/activate`;
+    
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('Failed to ' + action + ' campaign');
+        }
+    } catch (e) {
+        alert('Failed to ' + action + ' campaign');
+    }
+}
+
+async function addCredits(campaignId) {
+    const amount = prompt('Enter amount to add ($50 = 10,000 clicks):', '50');
+    if (!amount) return;
+    
+    const parsed = parseFloat(amount);
+    if (isNaN(parsed) || parsed <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/shopping/campaign/${campaignId}/add_credits`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: parsed })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            location.reload();
+        } else {
+            alert('Failed to add credits');
+        }
+    } catch (e) {
+        alert('Failed to add credits');
+    }
+}
+</script>
+{% endblock %}

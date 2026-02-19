@@ -10,6 +10,8 @@ Adds:
 - hub_resources: Education hub resources
 
 Run: python3 migrations/add_business_tables.py
+
+PostgreSQL compatible.
 """
 
 import os
@@ -30,14 +32,22 @@ def migrate():
     print("Starting business tables migration...")
     print(f"Database: {DATABASE_URL}")
 
-    # Create engine
+    # Create engine with PostgreSQL-compatible settings
     engine = create_engine(DATABASE_URL, echo=True)
 
     print("\nCreating business tables...")
     with engine.connect() as conn:
+        # Check if PostgreSQL
+        is_postgresql = engine.dialect.name == "postgresql"
+        serial_type = "SERIAL" if is_postgresql else "INTEGER"
+        auto_increment = "" if is_postgresql else "AUTOINCREMENT"
+        boolean_type = "BOOLEAN" if is_postgresql else "INTEGER"
+        true_value = "TRUE" if is_postgresql else "1"
+        false_value = "FALSE" if is_postgresql else "0"
+
         # Businesses table
         conn.execute(
-            text("""
+            text(f"""
             CREATE TABLE IF NOT EXISTS businesses (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -53,7 +63,7 @@ def migrate():
                 secondary_categories TEXT,
                 relevant_games TEXT,
                 status TEXT DEFAULT 'pending',
-                verified INTEGER DEFAULT 0,
+                verified {boolean_type} DEFAULT {false_value},
                 verified_at TIMESTAMP,
                 owner_email TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -66,7 +76,7 @@ def migrate():
 
         # Business trust scores table
         conn.execute(
-            text("""
+            text(f"""
             CREATE TABLE IF NOT EXISTS business_trust_scores (
                 business_id TEXT PRIMARY KEY,
                 community_vote_score REAL DEFAULT 0.0,
@@ -76,13 +86,13 @@ def migrate():
                 flag_penalty REAL DEFAULT 0.0,
                 trust_score REAL DEFAULT 0.0,
                 trust_tier TEXT DEFAULT 'new',
-                total_votes INTEGER DEFAULT 0,
-                positive_votes INTEGER DEFAULT 0,
-                total_flags INTEGER DEFAULT 0,
-                resolved_flags INTEGER DEFAULT 0,
-                ama_count INTEGER DEFAULT 0,
-                hub_contributions INTEGER DEFAULT 0,
-                months_active INTEGER DEFAULT 0,
+                total_votes {serial_type} {auto_increment} DEFAULT 0,
+                positive_votes {serial_type} {auto_increment} DEFAULT 0,
+                total_flags {serial_type} {auto_increment} DEFAULT 0,
+                resolved_flags {serial_type} {auto_increment} DEFAULT 0,
+                ama_count {serial_type} {auto_increment} DEFAULT 0,
+                hub_contributions {serial_type} {auto_increment} DEFAULT 0,
+                months_active {serial_type} {auto_increment} DEFAULT 0,
                 last_calculated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (business_id) REFERENCES businesses(id)
             )
@@ -91,9 +101,9 @@ def migrate():
 
         # Business votes table
         conn.execute(
-            text("""
+            text(f"""
             CREATE TABLE IF NOT EXISTS business_votes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {serial_type} {auto_increment} PRIMARY KEY,
                 business_id TEXT NOT NULL,
                 voter_user_id TEXT NOT NULL,
                 score INTEGER NOT NULL CHECK(score >= 1 AND score <= 5),
@@ -107,9 +117,9 @@ def migrate():
 
         # Business flags table
         conn.execute(
-            text("""
+            text(f"""
             CREATE TABLE IF NOT EXISTS business_flags (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {serial_type} {auto_increment} PRIMARY KEY,
                 business_id TEXT NOT NULL,
                 reporter_user_id TEXT NOT NULL,
                 reason TEXT NOT NULL,
@@ -125,9 +135,9 @@ def migrate():
 
         # Business connections table
         conn.execute(
-            text("""
+            text(f"""
             CREATE TABLE IF NOT EXISTS business_connections (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {serial_type} {auto_increment} PRIMARY KEY,
                 requester_id TEXT NOT NULL,
                 target_id TEXT NOT NULL,
                 message TEXT,
@@ -143,7 +153,7 @@ def migrate():
 
         # Hub resources table
         conn.execute(
-            text("""
+            text(f"""
             CREATE TABLE IF NOT EXISTS hub_resources (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
@@ -153,7 +163,7 @@ def migrate():
                 content TEXT,
                 author TEXT,
                 contributed_by_business_id TEXT,
-                upvotes INTEGER DEFAULT 0,
+                upvotes {serial_type} {auto_increment} DEFAULT 0,
                 status TEXT DEFAULT 'active',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (contributed_by_business_id) REFERENCES businesses(id)
@@ -212,7 +222,7 @@ def migrate():
                 "name": "LOOT",
                 "slug": "loot",
                 "tagline": "Load Order Optimisation Tool",
-                "description": "A plugin load order optimiser for games made by Bethesda.",
+                "description": "LOOT is a plugin load order optimiser for games made by Bethesda.",
                 "website": "https://loot.github.io/",
                 "logo_url": "/static/icons/loot.svg",
                 "contact_email": "loot@github.com",
@@ -246,13 +256,14 @@ def migrate():
         for biz in sample_businesses:
             conn.execute(
                 text("""
-                INSERT OR IGNORE INTO businesses 
-                (id, name, slug, tagline, description, website, logo_url, contact_email, 
-                 public_contact_method, public_contact_value, primary_category, 
+                INSERT INTO businesses
+                (id, name, slug, tagline, description, website, logo_url, contact_email,
+                 public_contact_method, public_contact_value, primary_category,
                  secondary_categories, relevant_games, status, verified)
-                VALUES (:id, :name, :slug, :tagline, :description, :website, :logo_url, 
-                        :contact_email, :public_contact_method, :public_contact_value, 
+                VALUES (:id, :name, :slug, :tagline, :description, :website, :logo_url,
+                        :contact_email, :public_contact_method, :public_contact_value,
                         :primary_category, :secondary_categories, :relevant_games, :status, :verified)
+                ON CONFLICT (id) DO NOTHING
             """),
                 {
                     **biz,
@@ -263,8 +274,9 @@ def migrate():
             # Create trust score for each business
             conn.execute(
                 text("""
-                INSERT OR IGNORE INTO business_trust_scores (business_id, trust_score, trust_tier, total_votes, positive_votes)
+                INSERT INTO business_trust_scores (business_id, trust_score, trust_tier, total_votes, positive_votes)
                 VALUES (:id, 85.0, 'trusted', 50, 48)
+                ON CONFLICT (business_id) DO NOTHING
             """),
                 {"id": biz["id"]},
             )

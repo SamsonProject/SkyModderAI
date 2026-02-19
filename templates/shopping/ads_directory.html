@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Ad Directory - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ads-directory-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+        color: #94a3b8;
+    }
+
+    .ads-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .ad-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.15s;
+    }
+
+    .ad-card:hover {
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+    }
+
+    .ad-card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .ad-business-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        background: #334155;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .ad-business-info h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .ad-headline {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 0.5rem;
+    }
+
+    .ad-body {
+        color: #94a3b8;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .ad-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #64748b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ads-directory-page">
+    <div class="page-header">
+        <h1>📢 Ad Directory</h1>
+        <p>Discover businesses serving the modding community</p>
+    </div>
+
+    {% if ads %}
+    <div class="ads-grid">
+        {% for ad in ads %}
+        <div class="ad-card">
+            <div class="ad-card-header">
+                <div class="ad-business-logo">
+                    {{ ad.business_name[0]|upper }}
+                </div>
+                <div class="ad-business-info">
+                    <h3>{{ ad.business_name }}</h3>
+                </div>
+            </div>
+
+            <div class="ad-headline">{{ ad.headline }}</div>
+
+            {% if ad.body_copy %}
+            <p class="ad-body">{{ ad.body_copy[:120] }}{% if ad.body_copy|length > 120 %}...{% endif %}</p>
+            {% endif %}
+
+            <div class="ad-actions">
+                <a href="{{ url_for('shopping.track_click', creative_id=ad.creative_id) }}" class="btn btn-primary">
+                    {{ ad.cta_text }}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No Ads Currently</h3>
+        <p>Check back soon for new businesses!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
