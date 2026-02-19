@@ -9,15 +9,15 @@ Provides:
 
 Usage:
     from cache_service import get_cache, cached
-    
+
     cache = get_cache()
-    
+
     # Manual caching
     result = cache.get("search:skyrimse:texture mods")
     if result is None:
         result = do_expensive_search()
         cache.set("search:skyrimse:texture mods", result, ttl=3600)
-    
+
     # Decorator caching
     @cached("search:{game}:{query}", ttl=3600)
     def search_game(query, game):
@@ -29,13 +29,14 @@ import json
 import logging
 import os
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 # Redis availability check
 try:
     import redis
+
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -53,6 +54,7 @@ class MemoryCache:
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache."""
         import time
+
         if key in self._expiry and time.time() > self._expiry[key]:
             del self._cache[key]
             del self._expiry[key]
@@ -68,10 +70,11 @@ class MemoryCache:
     def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
         """Set value in cache with TTL (seconds)."""
         import time
+
         self._cache[key] = value
         self._expiry[key] = time.time() + ttl
         return True
-    
+
     def delete(self, key: str) -> bool:
         """Delete key from cache."""
         if key in self._cache:
@@ -80,15 +83,16 @@ class MemoryCache:
                 del self._expiry[key]
             return True
         return False
-    
+
     def exists(self, key: str) -> bool:
         """Check if key exists in cache."""
         return self.get(key) is not None
-    
+
     def clear_pattern(self, pattern: str) -> int:
         """Clear all keys matching pattern (simple prefix match)."""
         import re
-        regex = re.compile(pattern.replace('*', '.*'))
+
+        regex = re.compile(pattern.replace("*", ".*"))
         keys_to_delete = [k for k in self._cache.keys() if regex.match(k)]
         for key in keys_to_delete:
             self.delete(key)
@@ -98,7 +102,9 @@ class MemoryCache:
 class RedisCache:
     """Redis-backed cache with serialization."""
 
-    def __init__(self, host: str = 'localhost', port: int = 6379, db: int = 0, password: Optional[str] = None):
+    def __init__(
+        self, host: str = "localhost", port: int = 6379, db: int = 0, password: Optional[str] = None
+    ):
         """Initialize Redis connection."""
         self._client = redis.Redis(
             host=host,
@@ -107,7 +113,7 @@ class RedisCache:
             password=password,
             decode_responses=True,
             socket_connect_timeout=5,
-            socket_timeout=5
+            socket_timeout=5,
         )
         self._stats = {"hits": 0, "misses": 0}
         self._test_connection()
@@ -143,7 +149,7 @@ class RedisCache:
         except Exception as e:
             logger.debug(f"Cache set error for {key}: {e}")
             return False
-    
+
     def delete(self, key: str) -> bool:
         """Delete key from cache."""
         try:
@@ -151,7 +157,7 @@ class RedisCache:
         except Exception as e:
             logger.debug(f"Cache delete error for {key}: {e}")
             return False
-    
+
     def exists(self, key: str) -> bool:
         """Check if key exists in cache."""
         try:
@@ -159,7 +165,7 @@ class RedisCache:
         except Exception as e:
             logger.debug(f"Cache exists error for {key}: {e}")
             return False
-    
+
     def clear_pattern(self, pattern: str) -> int:
         """Clear all keys matching pattern (Redis glob pattern)."""
         try:
@@ -170,7 +176,7 @@ class RedisCache:
         except Exception as e:
             logger.debug(f"Cache clear_pattern error for {pattern}: {e}")
             return 0
-    
+
     def increment(self, key: str, amount: int = 1) -> int:
         """Increment counter atomically."""
         try:
@@ -178,7 +184,7 @@ class RedisCache:
         except Exception as e:
             logger.debug(f"Cache increment error for {key}: {e}")
             return 0
-    
+
     def expire(self, key: str, ttl: int) -> bool:
         """Set expiration on existing key."""
         try:
@@ -190,84 +196,82 @@ class RedisCache:
 
 class CacheService:
     """Unified cache service with automatic fallback."""
-    
+
     def __init__(self):
         """Initialize cache with Redis or memory fallback."""
         self._cache = None
-        
+
         # Try Redis first
         if REDIS_AVAILABLE:
-            redis_host = os.getenv('REDIS_HOST', 'localhost')
-            redis_port = int(os.getenv('REDIS_PORT', 6379))
-            redis_password = os.getenv('REDIS_PASSWORD')
-            
+            redis_host = os.getenv("REDIS_HOST", "localhost")
+            redis_port = int(os.getenv("REDIS_PORT", 6379))
+            redis_password = os.getenv("REDIS_PASSWORD")
+
             try:
-                self._cache = RedisCache(
-                    host=redis_host,
-                    port=redis_port,
-                    password=redis_password
-                )
+                self._cache = RedisCache(host=redis_host, port=redis_port, password=redis_password)
                 logger.info("Using Redis cache backend")
                 return
             except Exception:
                 pass
-        
+
         # Fallback to memory cache
         self._cache = MemoryCache()
         logger.info("Using in-memory cache backend")
-    
+
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache."""
         return self._cache.get(key)
-    
+
     def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
         """Set value in cache with TTL (seconds)."""
         return self._cache.set(key, value, ttl)
-    
+
     def delete(self, key: str) -> bool:
         """Delete key from cache."""
         return self._cache.delete(key)
-    
+
     def exists(self, key: str) -> bool:
         """Check if key exists in cache."""
         return self._cache.exists(key)
-    
+
     def clear_pattern(self, pattern: str) -> int:
         """Clear all keys matching pattern."""
         return self._cache.clear_pattern(pattern)
-    
+
     # Convenience methods for common cache operations
-    
+
     def cache_search(self, game: str, query: str) -> Optional[Dict[str, Any]]:
         """Get cached search result."""
         key = f"search:{game}:{self._hash_query(query)}"
         return self.get(key)
-    
-    def set_search(self, game: str, query: str, results: List[Dict[str, Any]], ttl: int = 3600) -> bool:
+
+    def set_search(
+        self, game: str, query: str, results: List[Dict[str, Any]], ttl: int = 3600
+    ) -> bool:
         """Cache search result."""
         key = f"search:{game}:{self._hash_query(query)}"
         return self.set(key, results, ttl)
-    
+
     def cache_lookup(self, lookup_type: str, **kwargs) -> Optional[Any]:
         """Get cached lookup result."""
         key_parts = [lookup_type] + [f"{k}={v}" for k, v in sorted(kwargs.items())]
         key = f"lookup:{':'.join(key_parts)}"
         return self.get(key)
-    
+
     def set_lookup(self, lookup_type: str, value: Any, ttl: int = 86400, **kwargs) -> bool:
         """Cache lookup result (default 24h TTL for lookups)."""
         key_parts = [lookup_type] + [f"{k}={v}" for k, v in sorted(kwargs.items())]
         key = f"lookup:{':'.join(key_parts)}"
         return self.set(key, value, ttl)
-    
+
     def cache_user(self, user_email: str, key: str) -> Optional[Any]:
         """Get cached user data."""
         return self.get(f"user:{user_email}:{key}")
-    
+
     def set_user(self, user_email: str, key: str, value: Any, ttl: int = 1800) -> bool:
         """Cache user data (default 30min TTL)."""
         return self.set(f"user:{user_email}:{key}", value, ttl)
-    
+
     def rate_limit(self, key: str, limit: int, window: int) -> tuple:
         """
         Check and update rate limit counter.
@@ -276,6 +280,7 @@ class CacheService:
             (allowed: bool, current_count: int, reset_time: int)
         """
         import time
+
         current_time = int(time.time())
         window_key = f"ratelimit:{key}:{current_time // window}"
 
@@ -290,20 +295,20 @@ class CacheService:
     def reset_stats(self) -> None:
         """Reset cache statistics."""
         self._cache._stats = {"hits": 0, "misses": 0}
-        
+
         allowed = current <= limit
         reset_time = ((current_time // window) + 1) * window - current_time
-        
+
         return allowed, current, reset_time
-    
+
     def invalidate_search(self, game: str) -> int:
         """Invalidate all cached searches for a game."""
         return self.clear_pattern(f"search:{game}:*")
-    
+
     def invalidate_all(self) -> int:
         """Invalidate all cached data (use with caution)."""
         return self.clear_pattern("*")
-    
+
     @staticmethod
     def _hash_query(query: str) -> str:
         """Create short hash of query for cache key."""
@@ -325,49 +330,54 @@ def get_cache() -> CacheService:
 def cached(key_pattern: str, ttl: int = 3600):
     """
     Decorator for caching function results.
-    
+
     Usage:
         @cached("search:{game}:{query}", ttl=3600)
         def search_game(query, game):
             return expensive_search(query, game)
-    
+
     Args:
         key_pattern: Cache key pattern with {arg_name} placeholders
         ttl: Cache TTL in seconds
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
             # Get function argument names
             import inspect
+
             sig = inspect.signature(func)
             bound = sig.bind(*args, **kwargs)
             bound.apply_defaults()
-            
+
             # Build cache key from pattern
             key = key_pattern
             for arg_name, arg_value in bound.arguments.items():
                 key = key.replace(f"{{{arg_name}}}", str(arg_value))
-            
+
             # Try cache
             cache = get_cache()
             cached_result = cache.get(key)
             if cached_result is not None:
                 logger.debug(f"Cache hit for {key}")
                 return cached_result
-            
+
             # Call function and cache result
             result = func(*args, **kwargs)
             cache.set(key, result, ttl)
             logger.debug(f"Cache miss for {key}, cached result")
             return result
-        
+
         return wrapper
+
     return decorator
 
 
 # Convenience functions for direct import
-def cache_search_results(game: str, query: str, results: List[Dict[str, Any]], ttl: int = 3600) -> bool:
+def cache_search_results(
+    game: str, query: str, results: List[Dict[str, Any]], ttl: int = 3600
+) -> bool:
     """Cache search results."""
     return get_cache().set_search(game, query, results, ttl)
 

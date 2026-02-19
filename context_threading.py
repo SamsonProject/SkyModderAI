@@ -23,16 +23,16 @@ Architecture:
 
 Usage:
   from context_threading import ContextThread, InformationPipeline
-  
+
   # Start a thread
   thread = ContextThread(goal="Fix CTD on startup")
-  
+
   # Branch off for exploration
   branch = thread.branch("Check SKSE version", return_when="version_found")
-  
+
   # Compress with intention
   compressed = pipeline.compress(context, intention=thread.intention)
-  
+
   # Auto-merge when return condition met
   if thread.should_merge(branch):
       merged = thread.merge(branch)
@@ -50,6 +50,7 @@ logger = logging.getLogger(__name__)
 
 class BranchStatus(Enum):
     """Status of a context branch."""
+
     ACTIVE = "active"
     MERGED = "merged"
     ABANDONED = "abandoned"
@@ -58,6 +59,7 @@ class BranchStatus(Enum):
 
 class CompressionLevel(Enum):
     """How aggressively to compress information."""
+
     NONE = "none"  # Keep everything
     LIGHT = "light"  # Remove redundancy only
     MODERATE = "moderate"  # Remove tangential info
@@ -68,9 +70,10 @@ class CompressionLevel(Enum):
 class Bookmark:
     """
     A lightweight bookmark marking a point in the information flow.
-    
+
     Not a separate system — integrates with existing context management.
     """
+
     id: str
     thread_id: str
     branch_id: Optional[str]
@@ -99,18 +102,19 @@ class Bookmark:
 class ContextThread:
     """
     Main thread of execution with branching support.
-    
+
     Tracks the main goal and all branches that diverge from it.
     """
+
     id: str
     goal: str  # Primary intention
     created_at: float = field(default_factory=lambda: time.time())
-    branches: Dict[str, 'ContextBranch'] = field(default_factory=dict)
+    branches: Dict[str, "ContextBranch"] = field(default_factory=dict)
     current_branch: Optional[str] = None
     bookmarks: List[Bookmark] = field(default_factory=list)
     compression_history: List[Dict] = field(default_factory=list)
 
-    def branch(self, intention: str, return_when: Optional[str] = None) -> 'ContextBranch':
+    def branch(self, intention: str, return_when: Optional[str] = None) -> "ContextBranch":
         """Create a new branch for exploration."""
         branch_id = f"branch_{len(self.branches) + 1}_{int(time.time())}"
         branch = ContextBranch(
@@ -238,9 +242,10 @@ class ContextThread:
 class ContextBranch:
     """
     A branch diverging from the main thread.
-    
+
     Tracks its own intention and when to return to main thread.
     """
+
     id: str
     thread_id: str
     intention: str
@@ -266,7 +271,7 @@ class ContextBranch:
 class InformationPipeline:
     """
     Optimized information flow with intentional compression.
-    
+
     Stages:
     1. Input → Extract intention
     2. Compress → Remove non-essential info
@@ -292,12 +297,12 @@ class InformationPipeline:
     ) -> Tuple[str, Dict]:
         """
         Compress context with intention.
-        
+
         Args:
             context: Raw context to compress
             intention: What we're trying to achieve (preserves goal-relevant info)
             level: Compression aggressiveness
-        
+
         Returns:
             (compressed_context, stats)
         """
@@ -324,14 +329,16 @@ class InformationPipeline:
         saved = original_len - compressed_len
 
         # Track compression
-        self.thread.compression_history.append({
-            "timestamp": time.time(),
-            "original": original_len,
-            "compressed": compressed_len,
-            "saved": saved,
-            "level": level.value,
-            "intention": intention[:100],
-        })
+        self.thread.compression_history.append(
+            {
+                "timestamp": time.time(),
+                "original": original_len,
+                "compressed": compressed_len,
+                "saved": saved,
+                "level": level.value,
+                "intention": intention[:100],
+            }
+        )
 
         self.compression_stats["total_processed"] += 1
         self.compression_stats["total_saved_chars"] += saved

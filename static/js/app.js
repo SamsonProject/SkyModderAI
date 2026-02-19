@@ -5255,7 +5255,7 @@ function initDonationUI() {
     header.innerHTML = `
         <span>SkyModderAI is free & open source.</span>
         <a href="#" onclick="upgradeToPro(); return false;" class="donation-link">
-            <span>☕</span> Buy me a coffee
+            <span>🍯</span> Buy me a mead
         </a>
     `;
     document.body.insertBefore(header, document.body.firstChild);

@@ -136,7 +136,8 @@ def save_list(
 
     try:
         # Try to update existing
-        result = db.execute("""
+        result = db.execute(
+            """
             UPDATE user_saved_lists
             SET list_text = ?,
                 game = ?,
@@ -149,11 +150,20 @@ def save_list(
                 updated_at = CURRENT_TIMESTAMP
             WHERE user_email = ? AND name = ?
             RETURNING id
-        """, (
-            list_text, game, game_version, masterlist_version,
-            tags_str, notes, analysis_json, source,
-            user_email, name
-        ))
+        """,
+            (
+                list_text,
+                game,
+                game_version,
+                masterlist_version,
+                tags_str,
+                notes,
+                analysis_json,
+                source,
+                user_email,
+                name,
+            ),
+        )
 
         row = result.fetchone()
 
@@ -163,16 +173,27 @@ def save_list(
             action = "updated"
         else:
             # Insert new
-            result = db.execute("""
+            result = db.execute(
+                """
                 INSERT INTO user_saved_lists (
                     user_email, name, game, game_version, masterlist_version,
                     tags, notes, source, list_text, analysis_snapshot
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING id
-            """, (
-                user_email, name, game, game_version, masterlist_version,
-                tags_str, notes, source, list_text, analysis_json
-            ))
+            """,
+                (
+                    user_email,
+                    name,
+                    game,
+                    game_version,
+                    masterlist_version,
+                    tags_str,
+                    notes,
+                    source,
+                    list_text,
+                    analysis_json,
+                ),
+            )
 
             row = result.fetchone()
             list_id = row["id"]
@@ -200,10 +221,13 @@ def delete_list(user_email: str, list_id: int) -> Dict[str, Any]:
     """Delete a saved list."""
     db = get_db()
 
-    result = db.execute("""
+    result = db.execute(
+        """
         DELETE FROM user_saved_lists
         WHERE id = ? AND user_email = ?
-    """, (list_id, user_email))
+    """,
+        (list_id, user_email),
+    )
 
     db.commit()
 
@@ -217,10 +241,13 @@ def get_list_by_id(user_email: str, list_id: int) -> Optional[Dict[str, Any]]:
     """Get a specific saved list by ID."""
     db = get_db()
 
-    row = db.execute("""
+    row = db.execute(
+        """
         SELECT * FROM user_saved_lists
         WHERE id = ? AND user_email = ?
-    """, (list_id, user_email)).fetchone()
+    """,
+        (list_id, user_email),
+    ).fetchone()
 
     if not row:
         return None
@@ -283,7 +310,7 @@ def update_list_metadata(
 
     query = f"""
         UPDATE user_saved_lists
-        SET {', '.join(updates)}
+        SET {", ".join(updates)}
         WHERE id = ? AND user_email = ?
     """
 
@@ -307,30 +334,39 @@ def get_list_stats(user_email: str) -> Dict[str, Any]:
     db = get_db()
 
     # Total count
-    total = db.execute("""
+    total = db.execute(
+        """
         SELECT COUNT(*) as count
         FROM user_saved_lists
         WHERE user_email = ?
-    """, (user_email,)).fetchone()["count"]
+    """,
+        (user_email,),
+    ).fetchone()["count"]
 
     # Count by game
-    by_game = db.execute("""
+    by_game = db.execute(
+        """
         SELECT game, COUNT(*) as count
         FROM user_saved_lists
         WHERE user_email = ?
         GROUP BY game
-    """, (user_email,))
+    """,
+        (user_email,),
+    )
 
     game_counts = {row["game"]: row["count"] for row in by_game}
 
     # Recently updated
-    recent = db.execute("""
+    recent = db.execute(
+        """
         SELECT name, game, updated_at
         FROM user_saved_lists
         WHERE user_email = ?
         ORDER BY updated_at DESC
         LIMIT 5
-    """, (user_email,))
+    """,
+        (user_email,),
+    )
 
     recent_lists = [
         {"name": row["name"], "game": row["game"], "updated_at": row["updated_at"]}

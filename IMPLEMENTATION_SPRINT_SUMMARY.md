@@ -130,7 +130,7 @@
    - Update pricing section
 
 2. **Add donation placeholders**
-   - Buy Me a Coffee link (placeholder until you have URL)
+   - Buy Me a Mead link (placeholder until you have URL)
    - Patreon placeholder
    - GitHub Sponsors placeholder
 
@@ -176,7 +176,7 @@
 - [ ] Seed database (`python3 scripts/seed_database.py`)
 - [ ] Test all flows manually
 - [ ] Security check (review .env.example)
-- [ ] Set up Buy Me a Coffee account
+- [ ] Set up Buy Me a Mead account
 - [ ] Add BMC link to donation placeholders
 
 ### **Launch**
@@ -299,7 +299,7 @@
 
 | Feature | Decision Needed | Impact |
 |---------|-----------------|--------|
-| Donation links | Need your Buy Me a Coffee URL | Low (can use placeholder) |
+| Donation links | Need your Buy Me a Mead URL | Low (can use placeholder) |
 | Sponsor system | OK to start curated-only? | Medium (can delay) |
 | Community builds | OK to start with 10-20 curated? | Medium (can delay) |
 | PostgreSQL | Migrate now or later? | Low (can use SQLite) |
@@ -359,7 +359,7 @@
 - [ ] Add donation placeholders
 - [ ] OAuth banners
 - [ ] Test all flows manually
-- [ ] Set up Buy Me a Coffee
+- [ ] Set up Buy Me a Mead
 - [ ] Deploy to production
 
 ### **Post-Launch**

@@ -5,23 +5,6 @@ Tests for security and logging utilities.
 import pytest
 from flask import Flask
 
-from security_utils import (
-    RateLimiter,
-    constant_time_compare,
-    generate_secure_token,
-    get_client_ip,
-    get_key_prefix,
-    hash_api_key,
-    mask_sensitive_data,
-    rate_limit,
-    sanitize_user_agent,
-    validate_email,
-    validate_game_id,
-    validate_list_name,
-    validate_mod_list,
-    validate_password,
-    validate_search_query,
-)
 from logging_utils import (
     SensitiveDataFilter,
     redact_api_key,
@@ -29,7 +12,21 @@ from logging_utils import (
     redact_email,
     redact_password,
 )
-
+from security_utils import (
+    RateLimiter,
+    constant_time_compare,
+    generate_secure_token,
+    get_key_prefix,
+    hash_api_key,
+    mask_sensitive_data,
+    rate_limit,
+    sanitize_user_agent,
+    validate_email,
+    validate_game_id,
+    validate_mod_list,
+    validate_password,
+    validate_search_query,
+)
 
 # =============================================================================
 # Rate Limiter Tests

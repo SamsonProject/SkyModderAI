@@ -3,6 +3,7 @@ SkyModderAI - Sentry Integration
 
 Production error tracking and performance monitoring.
 """
+
 from __future__ import annotations
 
 import logging
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def init_sentry(app: Optional["Flask"] = None) -> bool:
+def init_sentry(app: Optional[Flask] = None) -> bool:
     """
     Initialize Sentry SDK for error tracking.
 
@@ -97,7 +98,7 @@ def _get_profiles_sample_rate() -> float:
         return 0.0  # Disable profiling in development
 
 
-def _configure_flask_app(app: "Flask") -> None:
+def _configure_flask_app(app: Flask) -> None:
     """Configure Flask-specific Sentry settings."""
 
     @app.before_request
@@ -111,7 +112,6 @@ def _configure_flask_app(app: "Flask") -> None:
     @app.after_request
     def sentry_after_request(response: Any) -> Any:
         """Add Sentry trace header to response."""
-        from flask import request
 
         # Get trace IDs for correlation
         trace_id = sentry_sdk.get_current_span().trace_id

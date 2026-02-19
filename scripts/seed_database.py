@@ -13,8 +13,6 @@ Run with: python scripts/seed_database.py
 import json
 import os
 import sys
-from datetime import datetime
-from typing import Any, Dict, List
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,9 +22,9 @@ def seed_knowledge_sources():
     """Seed curated knowledge sources."""
     from db import get_db_session
     from models import KnowledgeSource, SourceCredibility
-    
+
     session = get_db_session()
-    
+
     # Curated knowledge entries
     knowledge_entries = [
         {
@@ -41,7 +39,7 @@ def seed_knowledge_sources():
             "credibility_score": 0.98,
             "is_standard_approach": True,
             "requires": json.dumps([]),
-            "conflicts_with": json.dumps([])
+            "conflicts_with": json.dumps([]),
         },
         {
             "source_url": "https://www.nexusmods.com/skyrimspecialedition/mods/164",
@@ -55,7 +53,7 @@ def seed_knowledge_sources():
             "credibility_score": 0.99,
             "is_standard_approach": True,
             "requires": json.dumps([]),
-            "conflicts_with": json.dumps([])
+            "conflicts_with": json.dumps([]),
         },
         {
             "source_url": "https://skse.silverlock.org/",
@@ -69,7 +67,7 @@ def seed_knowledge_sources():
             "credibility_score": 1.0,
             "is_standard_approach": True,
             "requires": json.dumps([]),
-            "conflicts_with": json.dumps([])
+            "conflicts_with": json.dumps([]),
         },
         {
             "source_url": "https://www.nexusmods.com/skyrimspecialedition/mods/12604",
@@ -83,7 +81,7 @@ def seed_knowledge_sources():
             "credibility_score": 0.95,
             "is_standard_approach": True,
             "requires": json.dumps(["Address Library for SKSE"]),
-            "conflicts_with": json.dumps(["Vokrii", "APCO"])
+            "conflicts_with": json.dumps(["Vokrii", "APCO"]),
         },
         {
             "source_url": "https://www.nexusmods.com/skyrimspecialedition/mods/30100",
@@ -97,7 +95,7 @@ def seed_knowledge_sources():
             "credibility_score": 0.97,
             "is_standard_approach": True,
             "requires": json.dumps(["SKSE64"]),
-            "conflicts_with": json.dumps([])
+            "conflicts_with": json.dumps([]),
         },
         {
             "source_url": "https://www.nexusmods.com/skyrimspecialedition/mods/23401",
@@ -111,7 +109,7 @@ def seed_knowledge_sources():
             "credibility_score": 0.96,
             "is_standard_approach": True,
             "requires": json.dumps(["SKSE64"]),
-            "conflicts_with": json.dumps([])
+            "conflicts_with": json.dumps([]),
         },
         {
             "source_url": "https://www.nexusmods.com/skyrimspecialedition/mods/17230",
@@ -125,7 +123,7 @@ def seed_knowledge_sources():
             "credibility_score": 0.92,
             "is_standard_approach": True,
             "requires": json.dumps([]),
-            "conflicts_with": json.dumps(["Obsidian Weathers", "True Storms"])
+            "conflicts_with": json.dumps(["Obsidian Weathers", "True Storms"]),
         },
         {
             "source_url": "https://www.nexusmods.com/skyrimspecialedition/mods/20071",
@@ -139,20 +137,22 @@ def seed_knowledge_sources():
             "credibility_score": 0.97,
             "is_standard_approach": True,
             "requires": json.dumps(["SKSE64"]),
-            "conflicts_with": json.dumps([])
-        }
+            "conflicts_with": json.dumps([]),
+        },
     ]
-    
+
     added = 0
     for entry in knowledge_entries:
         # Check if exists
-        existing = session.query(KnowledgeSource).filter(
-            KnowledgeSource.source_url == entry["source_url"]
-        ).first()
-        
+        existing = (
+            session.query(KnowledgeSource)
+            .filter(KnowledgeSource.source_url == entry["source_url"])
+            .first()
+        )
+
         if existing:
             continue
-        
+
         # Create credibility record
         credibility = SourceCredibility(
             source_url=entry["source_url"],
@@ -164,17 +164,18 @@ def seed_knowledge_sources():
             technical_accuracy=entry["credibility_score"],
             author_reputation=entry["credibility_score"],
             confidence=0.95,
-            flags=json.dumps(["highly_reliable", "verified"])
+            flags=json.dumps(["highly_reliable", "verified"]),
         )
         session.add(credibility)
         session.flush()
-        
+
         # Create knowledge source
         import hashlib
+
         content_hash = hashlib.sha256(
             f"{entry['title']}|{entry['summary']}|{entry['game']}".encode()
         ).hexdigest()
-        
+
         source = KnowledgeSource(
             source_url=entry["source_url"],
             title=entry["title"],
@@ -189,11 +190,11 @@ def seed_knowledge_sources():
             requires=entry.get("requires"),
             conflicts_with=entry.get("conflicts_with"),
             is_standard_approach=entry["is_standard_approach"],
-            status="active"
+            status="active",
         )
         session.add(source)
         added += 1
-    
+
     session.commit()
     return added
 
@@ -202,9 +203,9 @@ def seed_conflict_rules():
     """Seed common conflict resolution rules."""
     from db import get_db_session
     from models import KnowledgeSource
-    
+
     session = get_db_session()
-    
+
     # Common conflict rules
     conflict_rules = [
         {
@@ -212,41 +213,43 @@ def seed_conflict_rules():
             "mod_b": "Vokrii - Minimalistic Perks of Skyrim.esp",
             "conflict_type": "incompatible",
             "resolution": "Choose one perk overhaul. Ordinator for complexity, Vokrii for simplicity.",
-            "priority": "high"
+            "priority": "high",
         },
         {
             "mod_a": "Cathedral Weathers.esp",
             "mod_b": "Obsidian Weathers.esp",
             "conflict_type": "incompatible",
             "resolution": "Choose one weather overhaul. Use Cathedral Weathers + Cathedral Snow for best performance.",
-            "priority": "high"
+            "priority": "high",
         },
         {
             "mod_a": "SkyUI.esp",
             "mod_b": "Classic Skyrim Interface.esp",
             "conflict_type": "load_order",
             "resolution": "Load SkyUI after Classic Skyrim Interface if using both.",
-            "priority": "medium"
+            "priority": "medium",
         },
         {
             "mod_a": "USSEP.esm",
             "mod_b": "any",
             "conflict_type": "load_order",
             "resolution": "USSEP should always be loaded first (after game master files).",
-            "priority": "high"
-        }
+            "priority": "high",
+        },
     ]
-    
+
     added = 0
     for rule in conflict_rules:
         # Check if exists
-        existing = session.query(KnowledgeSource).filter(
-            KnowledgeSource.title == f"Conflict: {rule['mod_a']} vs {rule['mod_b']}"
-        ).first()
-        
+        existing = (
+            session.query(KnowledgeSource)
+            .filter(KnowledgeSource.title == f"Conflict: {rule['mod_a']} vs {rule['mod_b']}")
+            .first()
+        )
+
         if existing:
             continue
-        
+
         source = KnowledgeSource(
             source_url=f"internal:conflict:{rule['mod_a']}:{rule['mod_b']}",
             title=f"Conflict: {rule['mod_a']} vs {rule['mod_b']}",
@@ -256,11 +259,11 @@ def seed_conflict_rules():
             summary=rule["resolution"],
             conflicts_with=json.dumps([rule["mod_b"] if rule["mod_b"] != "any" else "*"]),
             is_standard_approach=True,
-            status="active"
+            status="active",
         )
         session.add(source)
         added += 1
-    
+
     session.commit()
     return added
 
@@ -268,12 +271,12 @@ def seed_conflict_rules():
 def seed_version_data():
     """Seed game version compatibility data."""
     from db import get_db_session
-    
+
     session = get_db_session()
-    
+
     # This would typically update existing mod entries with version info
     # For now, just log that this step completed
-    
+
     print("  Version data seeding: SKIPPED (requires existing mod database)")
     return 0
 
@@ -284,42 +287,41 @@ def run_seeding():
     print("SkyModderAI Database Seeding")
     print("=" * 70)
     print()
-    
+
     print("Seeding knowledge sources...")
     knowledge_added = seed_knowledge_sources()
     print(f"  Added {knowledge_added} knowledge sources")
-    
+
     print("\nSeeding conflict rules...")
     conflicts_added = seed_conflict_rules()
     print(f"  Added {conflicts_added} conflict rules")
-    
+
     print("\nSeeding version data...")
     version_added = seed_version_data()
-    
+
     print("\n" + "=" * 70)
-    print(f"Seeding complete!")
+    print("Seeding complete!")
     print(f"  Knowledge sources: {knowledge_added}")
     print(f"  Conflict rules: {conflicts_added}")
     print(f"  Version data: {version_added}")
     print("=" * 70)
-    
+
     return {
         "knowledge_sources": knowledge_added,
         "conflict_rules": conflicts_added,
-        "version_data": version_added
+        "version_data": version_added,
     }
 
 
 if __name__ == "__main__":
     results = run_seeding()
-    
+
     # Save results
     results_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "seeding_report.json"
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "seeding_report.json"
     )
-    
+
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
-    
+
     print(f"\nReport saved to: {results_path}")

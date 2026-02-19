@@ -3,12 +3,12 @@ SkyModderAI - Authentication Blueprint
 
 Handles user authentication, registration, email verification, and session management.
 """
+
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable
 
 from flask import (
     Blueprint,
@@ -22,7 +22,7 @@ from flask import (
     url_for,
 )
 
-from auth_utils import generate_verification_token, verify_verification_token
+from auth_utils import verify_verification_token
 from config import config
 from db import get_user_by_email, save_user_session
 from exceptions import (
@@ -45,7 +45,7 @@ from oauth_utils import (
 from security_utils import validate_email, validate_password
 
 if TYPE_CHECKING:
-    from sqlite3 import Connection
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -379,14 +379,17 @@ def refresh_session() -> Any:
 # Password Reset
 # =============================================================================
 
+
 @auth_bp.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     """Request password reset email."""
-    from constants import PASSWORD_RESET_TOKEN_MAX_AGE
-    from db import create_password_reset_token, get_user_by_email
-    from itsdangerous import URLSafeTimedSerializer
     import secrets
     import time
+
+    from itsdangerous import URLSafeTimedSerializer
+
+    from constants import PASSWORD_RESET_TOKEN_MAX_AGE
+    from db import create_password_reset_token, get_user_by_email
 
     if request.method == "POST":
         data = request.get_json(silent=True) or request.form
@@ -403,7 +406,9 @@ def forgot_password():
         if not user:
             # Don't reveal if email exists - show success either way
             if request.is_json:
-                return jsonify({"success": True, "message": "If that email exists, we've sent a reset link."})
+                return jsonify(
+                    {"success": True, "message": "If that email exists, we've sent a reset link."}
+                )
             flash("If that email exists, we've sent a password reset link.", "info")
             return render_template("forgot-password-sent.html")
 
@@ -427,7 +432,9 @@ def forgot_password():
             logger.error(f"Failed to create reset link: {e}")
 
         if request.is_json:
-            return jsonify({"success": True, "message": "If that email exists, we've sent a reset link."})
+            return jsonify(
+                {"success": True, "message": "If that email exists, we've sent a reset link."}
+            )
         flash("If that email exists, we've sent a password reset link.", "info")
         return render_template("forgot-password-sent.html")
 
@@ -438,9 +445,10 @@ def forgot_password():
 @auth_bp.route("/reset-password", methods=["GET", "POST"])
 def reset_password():
     """Reset password with token from email."""
+    from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+
     from constants import PASSWORD_RESET_TOKEN_MAX_AGE
     from db import get_password_reset_token, reset_user_password, use_password_reset_token
-    from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
     token = request.args.get("token", "")
     if not token:
@@ -501,4 +509,3 @@ def reset_password():
 
     # GET - show form
     return render_template("reset-password.html", token=token, email=email)
-

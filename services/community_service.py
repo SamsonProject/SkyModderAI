@@ -3,6 +3,7 @@ SkyModderAI - Community Service
 
 Handles community posts, replies, voting, and reports.
 """
+
 from __future__ import annotations
 
 import logging
@@ -16,7 +17,7 @@ from db import (
     get_community_stats,
     vote_community_post,
 )
-from exceptions import AuthenticationError, ValidationError
+from exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 

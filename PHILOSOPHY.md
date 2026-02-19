@@ -21,7 +21,7 @@ Tools should not be barriers. That is why SkyModderAI is free. We trust that if 
 We operate on a simple, honest model:
 
 - **Everything is Free**: No tiers, no limits.
-- **Donation Supported**: If you love the tool, buy us a coffee. It's that simple.
+- **Donation Supported**: If you love the tool, buy us a mead. It's that simple.
 - **Open Source**: The code belongs to the community.
 
 ## Join Us

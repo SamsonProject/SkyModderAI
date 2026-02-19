@@ -137,10 +137,10 @@ def get_user_row(email: str) -> Optional[sqlite3.Row]:
 def get_user_by_email(email: str) -> Optional[dict]:
     """
     Get user by email address.
-    
+
     Args:
         email: User email address
-        
+
     Returns:
         User dict if exists, None otherwise
     """
@@ -170,10 +170,11 @@ def save_user_session(
     try:
         # Use existing session_create function which handles all the logic
         token, _ = session_create(email, remember_me=remember, user_agent=user_agent)
-        
+
         if token:
             # Store token in Flask session for immediate use
             from flask import session
+
             session["session_token"] = token
             return True
         return False
@@ -201,7 +202,7 @@ def create_password_reset_token(email: str, token: str, expires_at: int) -> bool
         # Create new token
         db.execute(
             "INSERT INTO password_reset_tokens (email, token, expires_at) VALUES (?, ?, ?)",
-            (email.lower(), token, expires_at)
+            (email.lower(), token, expires_at),
         )
         db.commit()
         return True
@@ -226,12 +227,13 @@ def get_password_reset_token(token: str) -> Optional[sqlite3.Row]:
     try:
         db = get_db()
         import time
+
         now = int(time.time())
         row = db.execute(
             """SELECT email, token, expires_at, used 
                FROM password_reset_tokens 
                WHERE token = ? AND expires_at > ? AND used = 0""",
-            (token, now)
+            (token, now),
         ).fetchone()
         return row
     except sqlite3.Error as e:
@@ -281,7 +283,7 @@ def reset_user_password(email: str, new_password: str) -> bool:
         pwhash = generate_password_hash(new_password, method="pbkdf2:sha256")
         db.execute(
             "UPDATE users SET password_hash = ?, last_updated = CURRENT_TIMESTAMP WHERE email = ?",
-            (pwhash, email.lower())
+            (pwhash, email.lower()),
         )
         db.commit()
         return db.total_changes > 0
@@ -295,7 +297,9 @@ def reset_user_password(email: str, new_password: str) -> bool:
 
 def _utc_ts() -> int:
     """Return current UTC timestamp as integer."""
-    return int((datetime.now(timezone.utc) - datetime(1970, 1, 1, tzinfo=timezone.utc)).total_seconds())
+    return int(
+        (datetime.now(timezone.utc) - datetime(1970, 1, 1, tzinfo=timezone.utc)).total_seconds()
+    )
 
 
 def session_create(

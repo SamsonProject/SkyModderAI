@@ -7,7 +7,7 @@
 
 ## 🍯 What Changed
 
-### **1. Removed Buy Me a Coffee Links** ✅
+### **1. Removed Buy Me a Mead Links** ✅
 **Before:**
 ```html
 <a href="https://www.buymeacoffee.com/skymodder">
@@ -30,7 +30,7 @@
 ### **2. Updated Donation Amounts** ✅
 **Before:**
 ```html
-<button>$5 — Coffee</button>
+<button>$5 — Mead</button>
 <button>$10 — Lunch</button>
 <button>$20 — Keeps the lights on</button>
 <button>$50 — You're amazing</button>
@@ -65,7 +65,7 @@ Your donation pays for servers, APIs, and my mead budget. Thank you. 🍯
 - Patreon link
 - GitHub Sponsors link
 - PayPal link
-- Buy Me a Coffee link
+- Buy Me a Mead link
 
 **Now Using:**
 - **Stripe only** (as requested)
@@ -119,4 +119,4 @@ Your donation pays for servers, APIs, and my mead budget. Thank you. 🍯
 
 **Status: DONATION BRANDING UPDATED** 🍯
 
-**All references to Buy Me a Coffee removed. Stripe-only donations.**
+**All references to Buy Me a Mead updated. Stripe-only donations.**

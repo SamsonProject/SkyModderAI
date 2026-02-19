@@ -55,11 +55,9 @@ from constants import (
 )
 from deterministic_analysis import (
     analyze_load_order_deterministic,
-    scan_game_folder_deterministic,
     generate_bespoke_setups_deterministic,
+    scan_game_folder_deterministic,
 )
-from result_consolidator import consolidate_conflicts
-from transparency_service import start_analysis, complete_analysis
 from knowledge_index import (
     build_ai_context as build_knowledge_context,
 )
@@ -76,16 +74,15 @@ from openclaw_engine import (
     OPENCLAW_PERMISSION_SCOPES,
     build_openclaw_plan,
     suggest_loop_adjustments,
-    validate_plan_safety,
-    validate_permissions,
-    get_permission_descriptions,
 )
+from result_consolidator import consolidate_conflicts
 from search_engine import get_search_engine
 from system_impact import (
     format_system_impact_for_ai,
     format_system_impact_report,
     get_system_impact,
 )
+from transparency_service import complete_analysis, start_analysis
 from walkthrough_manager import WalkthroughManager
 
 
@@ -96,29 +93,34 @@ def _load_game_versions_data():
     """Load game versions from JSON file."""
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "game_versions.json")
     try:
-        with open(path, "r") as f:
+        with open(path) as f:
             return json.load(f)
     except Exception as e:
         logger.error(f"Failed to load game versions: {e}")
         return {}
 
+
 def get_versions_for_game(game_id):
     data = _load_game_versions_data()
     return data.get(game_id, {}).get("versions", {})
+
 
 def get_default_version(game_id):
     data = _load_game_versions_data()
     return data.get(game_id, {}).get("default", "")
 
+
 def get_version_info(game_id, version):
     versions = get_versions_for_game(game_id)
     return versions.get(version)
+
 
 def get_version_warning(game_id, version):
     info = get_version_info(game_id, version)
     if info and info.get("warning"):
         return {"message": info["warning"], "link": info.get("warning_link")}
     return None
+
 
 # -------------------------------------------------------------------
 # PII redaction for logs (never log emails, tokens, or customer data)
@@ -169,8 +171,14 @@ except ImportError:
     OPENAI_AVAILABLE = False
 
 # Flexible LLM Configuration (OpenAI, Qwen, LocalAI, etc.)
-LLM_API_KEY = os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY") or os.environ.get("OPEN_AI_KEY", "").strip()
-LLM_BASE_URL = os.environ.get("LLM_BASE_URL")  # e.g. https://dashscope.aliyuncs.com/compatible-mode/v1
+LLM_API_KEY = (
+    os.environ.get("LLM_API_KEY")
+    or os.environ.get("OPENAI_API_KEY")
+    or os.environ.get("OPEN_AI_KEY", "").strip()
+)
+LLM_BASE_URL = os.environ.get(
+    "LLM_BASE_URL"
+)  # e.g. https://dashscope.aliyuncs.com/compatible-mode/v1
 LLM_MODEL = os.environ.get("LLM_MODEL") or os.environ.get("OPENAI_CHAT_MODEL", "gpt-4o-mini")
 
 AI_CHAT_ENABLED = OPENAI_AVAILABLE and bool(LLM_API_KEY)
@@ -345,6 +353,7 @@ def check_data_ready():
 def get_ai_client():
     """Return configured AI client (OpenAI or compatible)."""
     return openai.OpenAI(api_key=LLM_API_KEY, base_url=LLM_BASE_URL)
+
 
 # BASE_URL configuration for OAuth callbacks
 BASE_URL = os.environ.get("BASE_URL", "https://skymodderai.onrender.com").rstrip("/")
@@ -1440,7 +1449,9 @@ def get_user_row(email):
 
 def _utc_ts():
     """Get current Unix timestamp (timezone-aware)."""
-    return int((datetime.now(timezone.utc) - datetime(1970, 1, 1, tzinfo=timezone.utc)).total_seconds())
+    return int(
+        (datetime.now(timezone.utc) - datetime(1970, 1, 1, tzinfo=timezone.utc)).total_seconds()
+    )
 
 
 def session_create(user_email, remember_me=False, user_agent=None):
@@ -1817,7 +1828,7 @@ def get_game_versions():
     )
 
     try:
-        with open(game_versions_file, "r") as f:
+        with open(game_versions_file) as f:
             data = json.load(f)
 
         if game and game in data:
@@ -2989,23 +3000,20 @@ def api_build_list():
 def _ai_generate_setups(game, preferences, nexus_slug, parser, limit=3, specs=None):
     """Pro: Generate multiple mod list setups. Now uses deterministic generation."""
     specs = specs or {}
-    
+
     # Use deterministic generation
     try:
         setups = generate_bespoke_setups_deterministic(
-            game=game,
-            preferences=preferences,
-            specs=specs,
-            limit=limit
+            game=game, preferences=preferences, specs=specs, limit=limit
         )
         return setups
     except Exception as e:
         logger.debug(f"Deterministic setups failed: {e}")
-    
+
     # Fallback to AI if deterministic fails and AI is available
     if not LLM_API_KEY:
         return []
-    
+
     prefs_str = ", ".join(f"{k}={v}" for k, v in preferences.items() if v and v != "any")
     spec_str = ""
     if specs and any(specs.values()):
@@ -3066,7 +3074,7 @@ def api_analyze_summary():
             model=LLM_MODEL,
             messages=[
                 {"role": "system", "content": system},
-                {"role": "user", "content": context[:15000]}
+                {"role": "user", "content": context[:15000]},
             ],
             max_tokens=600,
             temperature=0.3,
@@ -3093,7 +3101,12 @@ def api_compose_guide():
         return jsonify({"document": ""})
 
     # Format steps for AI context
-    steps_text = "\n".join([f"{i+1}. [{s.get('type', 'step').upper()}] {s.get('content') or s.get('message') or ''}" for i, s in enumerate(steps)])
+    steps_text = "\n".join(
+        [
+            f"{i + 1}. [{s.get('type', 'step').upper()}] {s.get('content') or s.get('message') or ''}"
+            for i, s in enumerate(steps)
+        ]
+    )
 
     system = (
         "You are SkyModderAI. The user has a list of modding issues and steps. "
@@ -3109,7 +3122,7 @@ def api_compose_guide():
             model=LLM_MODEL,
             messages=[
                 {"role": "system", "content": system},
-                {"role": "user", "content": f"Game: {game}\n\nRaw Steps:\n{steps_text}"}
+                {"role": "user", "content": f"Game: {game}\n\nRaw Steps:\n{steps_text}"},
             ],
             max_tokens=2500,
             temperature=0.3,
@@ -3499,37 +3512,39 @@ def search_mods_for_author():
     q = (request.args.get("q") or "").strip()
     game = (request.args.get("game") or DEFAULT_GAME).lower()
     version = (request.args.get("version") or "").strip() or "latest"
-    
+
     # Validate game
     allowed = {g["id"] for g in SUPPORTED_GAMES}
     if game not in allowed:
         game = DEFAULT_GAME
-    
+
     # Validate limit
     try:
         limit = min(max(1, int(request.args.get("limit", 10))), 20)
     except (TypeError, ValueError):
         limit = 10
-    
+
     if not q or len(q) < 2:
         return jsonify({"mods": []})
-    
+
     try:
         p = get_parser(game, version=version)
         engine = get_search_engine(p)
         results = engine.search(q, limit=limit)
-        
+
         # Format for mod author UI
         mods = []
         for r in results:
             mod_info = r.mod_info or {}
-            mods.append({
-                "name": r.mod_name,
-                "filename": r.mod_name,  # Use mod_name as filename fallback
-                "nexus_id": mod_info.get("nexus_id"),
-                "author": mod_info.get("author", "Unknown"),
-            })
-        
+            mods.append(
+                {
+                    "name": r.mod_name,
+                    "filename": r.mod_name,  # Use mod_name as filename fallback
+                    "nexus_id": mod_info.get("nexus_id"),
+                    "author": mod_info.get("author", "Unknown"),
+                }
+            )
+
         return jsonify({"mods": mods, "game": game, "query": q})
     except Exception as e:
         logger.exception("Mod search failed: %s", e)
@@ -3688,6 +3703,7 @@ def api_recommendations():
             )
             # Enrich with images
             from mod_images import enrich_recommendations_with_images
+
             recs = enrich_recommendations_with_images(p, recs, game)
             out = {"recommendations": recs, "game": game}
         # Dynamic warnings (plugin limit, system strain)
@@ -4467,6 +4483,7 @@ def analyze_mods():
 
         # Start transparency tracking
         import uuid
+
         analysis_id = str(uuid.uuid4())
         metadata = start_analysis(analysis_id)
 
@@ -4498,22 +4515,28 @@ def analyze_mods():
         # Consolidate conflicts for readability
         all_conflicts = []
         for c in err_list + warn_list + info_list:
-            all_conflicts.append({
-                "affected_mod": getattr(c, "affected_mod", ""),
-                "type": getattr(c, "type", "unknown"),
-                "severity": "critical" if c in err_list else "warning" if c in warn_list else "info",
-                "message": str(getattr(c, "message", "")),
-                "suggested_action": getattr(c, "suggested_action", ""),
-                "related_mod": getattr(c, "related_mod", "")
-            })
-        
+            all_conflicts.append(
+                {
+                    "affected_mod": getattr(c, "affected_mod", ""),
+                    "type": getattr(c, "type", "unknown"),
+                    "severity": "critical"
+                    if c in err_list
+                    else "warning"
+                    if c in warn_list
+                    else "info",
+                    "message": str(getattr(c, "message", "")),
+                    "suggested_action": getattr(c, "suggested_action", ""),
+                    "related_mod": getattr(c, "related_mod", ""),
+                }
+            )
+
         consolidated = consolidate_conflicts(all_conflicts)
 
         # Complete transparency tracking
         result = {
             "mod_list": [m.name for m in mods],
             "conflicts": all_conflicts,
-            "version_info": {"matched": True, "version": game_version} if game_version else {}
+            "version_info": {"matched": True, "version": game_version} if game_version else {},
         }
         metadata = complete_analysis(analysis_id, metadata, result)
 
@@ -4987,13 +5010,17 @@ def chat():
     mod_list = data.get("mod_list") or []
     deep_context = _get_deep_mod_context(game, message, mod_list)
     community_context = _get_community_intelligence(game, mod_list)
-    
+
     # Deterministic Analysis: Run conflict detection and inject results
     deterministic_context = ""
     if mod_list:
         try:
             analysis = analyze_load_order_deterministic(mod_list, game)
-            if analysis.get("conflicts") or analysis.get("missing_requirements") or analysis.get("load_order_issues"):
+            if (
+                analysis.get("conflicts")
+                or analysis.get("missing_requirements")
+                or analysis.get("load_order_issues")
+            ):
                 parts = []
                 if analysis.get("conflicts"):
                     parts.append(f"  Conflicts detected: {len(analysis['conflicts'])}")
@@ -5003,7 +5030,9 @@ def chat():
                     parts.append(f"  Load order issues: {len(analysis['load_order_issues'])}")
                 if analysis.get("recommendations"):
                     parts.append(f"  Recommendations: {len(analysis['recommendations'])}")
-                deterministic_context = f"Deterministic Analysis (live from database):\n" + "\n".join(parts)
+                deterministic_context = (
+                    "Deterministic Analysis (live from database):\n" + "\n".join(parts)
+                )
         except Exception as e:
             logger.debug(f"Deterministic analysis failed: {e}")
 
@@ -5031,7 +5060,9 @@ def chat():
         pruned, _ = prune_input_context(context, user_message=message, max_chars=10000)
         parts.append(f"Context from the user's last SkyModderAI analysis:\n\n{pruned}")
     if page_context:
-        parts.append(f"Current Page Content (what the user is looking at):\n\n{page_context[:5000]}")
+        parts.append(
+            f"Current Page Content (what the user is looking at):\n\n{page_context[:5000]}"
+        )
     if deep_context:
         parts.append(f"Deep LOOT Metadata (Intimate Database):\n{deep_context}")
     if community_context:
@@ -5125,7 +5156,7 @@ def scan_game_folder():
     if not tree and not key_files and not plugins:
         return jsonify({"error": "No folder data received. Select or drop your game folder."}), 400
     game_name = next((g["name"] for g in SUPPORTED_GAMES if g["id"] == game), "Skyrim")
-    
+
     # Run deterministic analysis first
     deterministic_findings = {}
     try:
@@ -5134,7 +5165,7 @@ def scan_game_folder():
         )
     except Exception as e:
         logger.debug(f"Deterministic scan failed: {e}")
-    
+
     from pruning import prune_game_folder_context
 
     tree_pruned, key_files_pruned, _ = prune_game_folder_context(
@@ -5143,24 +5174,31 @@ def scan_game_folder():
     key_block = []
     for path, content in key_files_pruned.items():
         key_block.append(f"--- {path} ---\n{(content or '')}")
-    
+
     # Build context with deterministic findings injected
     context_parts = []
     if deterministic_findings.get("findings"):
         context_parts.append("Deterministic Scan Results:")
         for finding in deterministic_findings["findings"]:
-            context_parts.append(f"  - [{finding.get('type', 'issue').upper()}] {finding.get('content')}")
+            context_parts.append(
+                f"  - [{finding.get('type', 'issue').upper()}] {finding.get('content')}"
+            )
     if deterministic_findings.get("warnings"):
         context_parts.append("Warnings:")
         for warning in deterministic_findings["warnings"]:
             context_parts.append(f"  - {warning}")
-    
-    context_parts.append(f"\nUser scanned their {game_name} game folder. Analyze for issues beyond load order.")
+
+    context_parts.append(
+        f"\nUser scanned their {game_name} game folder. Analyze for issues beyond load order."
+    )
     context_parts.append(f"File count: {file_count}")
-    context_parts.append(f"Plugins found in Data/: {", ".join(plugins[:80])}{"..." if len(plugins) > 80 else ""}")
+    plugins_str = ", ".join(plugins[:80])
+    if len(plugins) > 80:
+        plugins_str += "..."
+    context_parts.append(f"Plugins found in Data/: {plugins_str}")
     context_parts.append(f"\nFolder structure:\n{tree_pruned}")
     context_parts.append(f"\nKey config files:\n{chr(10).join(key_block)}")
-    
+
     context = "\n".join(context_parts)
     system = (
         "You are the SkyModderAI assistant. The user has shared their game folder structure and key files. "
@@ -6895,67 +6933,77 @@ def api_link_preview_nexus(game, mod_id):
         # Try to find mod in database
         mod_info = None
         for mod_name, info in parser.mod_database.items():
-            if hasattr(info, 'nexus_id') and str(info.nexus_id) == mod_id:
+            if hasattr(info, "nexus_id") and str(info.nexus_id) == mod_id:
                 mod_info = info
                 break
 
         if mod_info:
             image_url = get_mod_image(game, mod_id, mod_info.name)
-            return jsonify({
-                "type": "nexus",
-                "game": game,
-                "mod_id": mod_id,
-                "name": mod_info.name,
-                "image": image_url,
-                "author": getattr(mod_info, 'author', None),
-                "description": getattr(mod_info, 'description', None),
-                "url": f"https://www.nexusmods.com/{game}/mods/{mod_id}",
-                "loading": False,
-            })
+            return jsonify(
+                {
+                    "type": "nexus",
+                    "game": game,
+                    "mod_id": mod_id,
+                    "name": mod_info.name,
+                    "image": image_url,
+                    "author": getattr(mod_info, "author", None),
+                    "description": getattr(mod_info, "description", None),
+                    "url": f"https://www.nexusmods.com/{game}/mods/{mod_id}",
+                    "loading": False,
+                }
+            )
         else:
             # Fetch from Nexus API
             image_url = get_mod_image(game, mod_id, f"Mod {mod_id}")
-            return jsonify({
-                "type": "nexus",
-                "game": game,
-                "mod_id": mod_id,
-                "image": image_url,
-                "url": f"https://www.nexusmods.com/{game}/mods/{mod_id}",
-                "loading": False,
-            })
+            return jsonify(
+                {
+                    "type": "nexus",
+                    "game": game,
+                    "mod_id": mod_id,
+                    "image": image_url,
+                    "url": f"https://www.nexusmods.com/{game}/mods/{mod_id}",
+                    "loading": False,
+                }
+            )
 
     except Exception as e:
         logger.exception(f"Link preview failed for nexus {game}/{mod_id}: {e}")
-        return jsonify({
-            "type": "nexus",
-            "error": "Could not load preview",
-            "fallback": f"https://www.nexusmods.com/{game}/mods/{mod_id}"
-        })
+        return jsonify(
+            {
+                "type": "nexus",
+                "error": "Could not load preview",
+                "fallback": f"https://www.nexusmods.com/{game}/mods/{mod_id}",
+            }
+        )
 
 
 @app.route("/api/link-preview/imgur/<img_id>")
 def api_link_preview_imgur(img_id):
     """Get Imgur image preview data."""
-    return jsonify({
-        "type": "imgur",
-        "img_id": img_id,
-        "image_url": f"https://i.imgur.com/{img_id}.jpg",
-        "thumbnail": f"https://i.imgur.com/{img_id}s.jpg",
-        "can_embed": True,
-    })
+    return jsonify(
+        {
+            "type": "imgur",
+            "img_id": img_id,
+            "image_url": f"https://i.imgur.com/{img_id}.jpg",
+            "thumbnail": f"https://i.imgur.com/{img_id}s.jpg",
+            "can_embed": True,
+        }
+    )
 
 
 @app.route("/api/link-preview/youtube/<video_id>")
 def api_link_preview_youtube(video_id):
     """Get YouTube video preview data."""
-    return jsonify({
-        "type": "youtube",
-        "video_id": video_id,
-        "thumbnail": f"https://img.youtube.com/vi/{video_id}/mqdefault.jpg",
-        "embed_url": f"https://www.youtube.com/embed/{video_id}",
-        "title": "YouTube Video",
-        "can_embed": True,
-    })
+    return jsonify(
+        {
+            "type": "youtube",
+            "video_id": video_id,
+            "thumbnail": f"https://img.youtube.com/vi/{video_id}/mqdefault.jpg",
+            "embed_url": f"https://www.youtube.com/embed/{video_id}",
+            "title": "YouTube Video",
+            "can_embed": True,
+        }
+    )
 
 
 @app.route("/api/link-preview/internal/<page>")
@@ -6973,13 +7021,15 @@ def api_link_preview_internal(page):
 
     section = section_map.get(page.lower(), {"title": page, "description": ""})
 
-    return jsonify({
-        "type": "internal",
-        "page": page,
-        "title": section["title"],
-        "description": section["description"],
-        "url": f"/#panel-{page.lower()}",
-    })
+    return jsonify(
+        {
+            "type": "internal",
+            "page": page,
+            "title": section["title"],
+            "description": section["description"],
+            "url": f"/#panel-{page.lower()}",
+        }
+    )
 
 
 @app.route("/ai-feed.json")
@@ -6991,7 +7041,12 @@ def ai_feed():
             "tagline": "Paste your load order. Get answers.",
             "site_url": request.host_url.rstrip("/"),
             "pricing": {
-                "free": {"monthly_usd": 0, "core_analysis": True, "ai_chat": True, "dev_tools": True},
+                "free": {
+                    "monthly_usd": 0,
+                    "core_analysis": True,
+                    "ai_chat": True,
+                    "dev_tools": True,
+                },
                 "pro": {"monthly_usd": 0, "ai_chat": True, "dev_tools": True},
                 "openclaw_lab": {"monthly_usd": 0, "experimental": True, "sandbox_required": True},
             },
@@ -7036,32 +7091,33 @@ def health():
 # OpenCLAW Learning & Telemetry API
 # =============================================================================
 
+
 @app.route("/api/openclaw/learning/record", methods=["POST"])
 @rate_limit(RATE_LIMIT_API, "openclaw")
 @login_required_api
 def openclaw_learning_record():
     """Record learning data from analysis session (anonymized)."""
+    import hashlib
+
     from dev.openclaw import get_learner, record_mod_interaction
     from dev.openclaw.learner import SessionData
-    import hashlib
-    
+
     data = request.get_json() or {}
-    user_email = session.get("user_email", "anonymous")
     
     # Hash session ID for anonymity
     session_id = data.get("session_id", str(_time()))
     session_hash = hashlib.sha256(session_id.encode()).hexdigest()[:16]
-    
+
     # Record mod interactions from conflict analysis
     conflicts = data.get("conflicts", [])
     game = (data.get("game") or DEFAULT_GAME).lower()
-    
+
     for conflict in conflicts:
         mod_a = conflict.get("mod_a", "")
         mod_b = conflict.get("mod_b", "")
         conflict_type = conflict.get("type", "unknown")
         severity = conflict.get("severity", "info")
-        
+
         if mod_a and mod_b:
             record_mod_interaction(
                 mod_a=mod_a,
@@ -7071,11 +7127,11 @@ def openclaw_learning_record():
                 game=game,
                 metadata={"source": "analysis"},
             )
-    
+
     # Record session data
     learner = get_learner()
     mod_list = data.get("mod_list", [])
-    
+
     session_data = SessionData(
         session_hash=session_hash,
         game=game,
@@ -7089,14 +7145,16 @@ def openclaw_learning_record():
         success=data.get("success", True),
         mod_hashes=[learner._hash_mod_name(m) for m in mod_list[:100]],  # Limit to 100
     )
-    
+
     learner.record_session(session_data)
-    
-    return jsonify({
-        "success": True,
-        "message": "Learning data recorded",
-        "session_hash": session_hash,
-    })
+
+    return jsonify(
+        {
+            "success": True,
+            "message": "Learning data recorded",
+            "session_hash": session_hash,
+        }
+    )
 
 
 @app.route("/api/openclaw/learning/feedback", methods=["POST"])
@@ -7104,19 +7162,20 @@ def openclaw_learning_record():
 @login_required_api
 def openclaw_learning_feedback():
     """Record user feedback for learning (anonymized)."""
-    from dev.openclaw import get_learner, record_feedback
-    from dev.openclaw.learner import FeedbackData
     import hashlib
-    
+
+    from dev.openclaw import record_feedback
+    from dev.openclaw.learner import FeedbackData
+
     data = request.get_json() or {}
-    
+
     # Hash IDs for anonymity
     session_id = data.get("session_id", "")
     plan_id = data.get("plan_id", "")
-    
+
     session_hash = hashlib.sha256(session_id.encode()).hexdigest()[:16]
     plan_hash = hashlib.sha256(plan_id.encode()).hexdigest()[:16]
-    
+
     feedback_data = FeedbackData(
         session_hash=session_hash,
         plan_id_hash=plan_hash,
@@ -7129,13 +7188,15 @@ def openclaw_learning_feedback():
             else None
         ),
     )
-    
+
     record_feedback(feedback_data)
-    
-    return jsonify({
-        "success": True,
-        "message": "Feedback recorded",
-    })
+
+    return jsonify(
+        {
+            "success": True,
+            "message": "Feedback recorded",
+        }
+    )
 
 
 @app.route("/api/openclaw/learning/stats", methods=["GET"])
@@ -7146,19 +7207,20 @@ def openclaw_learning_stats():
     from dev.openclaw import get_learner
 
     # Everything is free - no tier check needed
-    user_email = session.get("user_email")
-
+    
     learner = get_learner()
     game = request.args.get("game", DEFAULT_GAME)
-    
+
     stats = learner.get_stats()
     interaction_stats = learner.get_interaction_stats(game)
-    
-    return jsonify({
-        "success": True,
-        "stats": stats,
-        "interaction_stats": interaction_stats,
-    })
+
+    return jsonify(
+        {
+            "success": True,
+            "stats": stats,
+            "interaction_stats": interaction_stats,
+        }
+    )
 
 
 @app.route("/api/openclaw/learning/compatibility", methods=["GET"])
@@ -7166,32 +7228,38 @@ def openclaw_learning_stats():
 def openclaw_learning_compatibility():
     """Get compatibility score between two mods."""
     from dev.openclaw import get_learner
-    
+
     mod_a = request.args.get("mod_a", "")
     mod_b = request.args.get("mod_b", "")
     game = request.args.get("game", DEFAULT_GAME)
-    
+
     if not mod_a or not mod_b:
         return api_error("mod_a and mod_b required.", 400)
-    
+
     learner = get_learner()
     score, confidence = learner.get_compatibility_score(mod_a, mod_b, game)
-    
-    return jsonify({
-        "success": True,
-        "mod_a": mod_a,
-        "mod_b": mod_b,
-        "game": game,
-        "compatibility_score": score,
-        "confidence": confidence,
-        "interpretation": (
-            "highly_compatible" if score > 0.8
-            else "compatible" if score > 0.6
-            else "neutral" if score > 0.4
-            else "conflict_likely" if score > 0.2
-            else "incompatible"
-        ),
-    })
+
+    return jsonify(
+        {
+            "success": True,
+            "mod_a": mod_a,
+            "mod_b": mod_b,
+            "game": game,
+            "compatibility_score": score,
+            "confidence": confidence,
+            "interpretation": (
+                "highly_compatible"
+                if score > 0.8
+                else "compatible"
+                if score > 0.6
+                else "neutral"
+                if score > 0.4
+                else "conflict_likely"
+                if score > 0.2
+                else "incompatible"
+            ),
+        }
+    )
 
 
 @app.route("/api/openclaw/learning/conflict-prediction", methods=["POST"])
@@ -7199,21 +7267,23 @@ def openclaw_learning_compatibility():
 def openclaw_learning_conflict_prediction():
     """Predict conflicts for a mod list."""
     from dev.openclaw import get_learner
-    
+
     data = request.get_json() or {}
     mod_list = data.get("mod_list", [])
     game = data.get("game", DEFAULT_GAME)
-    
+
     if not mod_list:
         return api_error("mod_list required.", 400)
-    
+
     learner = get_learner()
     prediction = learner.get_conflict_probability(mod_list, game)
-    
-    return jsonify({
-        "success": True,
-        "prediction": prediction,
-    })
+
+    return jsonify(
+        {
+            "success": True,
+            "prediction": prediction,
+        }
+    )
 
 
 @app.route("/api/openclaw/telemetry/enable", methods=["POST"])
@@ -7221,15 +7291,15 @@ def openclaw_learning_conflict_prediction():
 def openclaw_telemetry_enable():
     """Enable telemetry collection (opt-in)."""
     from dev.openclaw import enable_telemetry
-    
+
     data = request.get_json() or {}
     consent = data.get("consent", False)
-    
+
     if not consent:
         return api_error("Explicit consent required.", 400)
-    
+
     enable_telemetry()
-    
+
     # Log consent
     user_email = session.get("user_email")
     if user_email:
@@ -7241,11 +7311,13 @@ def openclaw_telemetry_enable():
             (user_email.lower(), json.dumps({"consent": True})),
         )
         get_db().commit()
-    
-    return jsonify({
-        "success": True,
-        "message": "Telemetry enabled. Thank you for contributing!",
-    })
+
+    return jsonify(
+        {
+            "success": True,
+            "message": "Telemetry enabled. Thank you for contributing!",
+        }
+    )
 
 
 @app.route("/api/openclaw/telemetry/disable", methods=["POST"])
@@ -7253,59 +7325,66 @@ def openclaw_telemetry_enable():
 def openclaw_telemetry_disable():
     """Disable telemetry collection."""
     from dev.openclaw import disable_telemetry, get_collector
-    
+
     disable_telemetry()
-    
+
     # Clear data if requested
     data = request.get_json() or {}
     if data.get("clear_data"):
         collector = get_collector()
         collector.clear_all_data()
-    
-    return jsonify({
-        "success": True,
-        "message": "Telemetry disabled",
-    })
+
+    return jsonify(
+        {
+            "success": True,
+            "message": "Telemetry disabled",
+        }
+    )
 
 
 @app.route("/api/openclaw/telemetry/status", methods=["GET"])
 @login_required_api
 def openclaw_telemetry_status():
     """Get telemetry status."""
-    from dev.openclaw import is_telemetry_enabled, get_collector
-    
+    from dev.openclaw import get_collector, is_telemetry_enabled
+
     collector = get_collector()
-    
-    return jsonify({
-        "success": True,
-        "enabled": is_telemetry_enabled(),
-        "stats": collector.get_stats(),
-    })
+
+    return jsonify(
+        {
+            "success": True,
+            "enabled": is_telemetry_enabled(),
+            "stats": collector.get_stats(),
+        }
+    )
 
 
 @app.route("/api/openclaw/telemetry/record", methods=["POST"])
 @rate_limit(RATE_LIMIT_API, "openclaw")
 def openclaw_telemetry_record():
     """Record telemetry data (if enabled)."""
+    import hashlib
+
     from dev.openclaw import get_collector, is_telemetry_enabled
     from dev.openclaw.telemetry import PerformanceSnapshot, UsageEvent
-    import hashlib
-    
+
     if not is_telemetry_enabled():
-        return jsonify({
-            "success": True,
-            "message": "Telemetry disabled",
-        })
-    
+        return jsonify(
+            {
+                "success": True,
+                "message": "Telemetry disabled",
+            }
+        )
+
     data = request.get_json() or {}
     event_type = data.get("event_type")
-    
+
     # Hash session ID
     session_id = data.get("session_id", str(_time()))
     session_hash = hashlib.sha256(session_id.encode()).hexdigest()[:16]
-    
+
     collector = get_collector()
-    
+
     if event_type == "performance":
         snapshot = PerformanceSnapshot(
             session_hash=session_hash,
@@ -7319,7 +7398,7 @@ def openclaw_telemetry_record():
             playtime_minutes=data.get("playtime_minutes", 0),
         )
         collector.record_performance(snapshot)
-    
+
     elif event_type == "usage":
         event = UsageEvent(
             event_type="usage",
@@ -7332,11 +7411,13 @@ def openclaw_telemetry_record():
             metadata=data.get("metadata", {}),
         )
         collector.record_usage(event)
-    
-    return jsonify({
-        "success": True,
-        "message": "Telemetry recorded",
-    })
+
+    return jsonify(
+        {
+            "success": True,
+            "message": "Telemetry recorded",
+        }
+    )
 
 
 @app.route("/api/openclaw/models/train", methods=["POST"])
@@ -7351,17 +7432,19 @@ def openclaw_models_train():
 
     data = request.get_json() or {}
     game = data.get("game", "skyrimse")
-    
+
     try:
         trainer = ModelTrainer()
         trained_models = trainer.train_all_models(game)
-        
-        return jsonify({
-            "success": True,
-            "game": game,
-            "models_trained": len(trained_models),
-            "model_paths": trained_models,
-        })
+
+        return jsonify(
+            {
+                "success": True,
+                "game": game,
+                "models_trained": len(trained_models),
+                "model_paths": trained_models,
+            }
+        )
     except Exception as e:
         logger.exception(f"Model training failed: {e}")
         return api_error(f"Training failed: {str(e)}", 500)
@@ -7372,32 +7455,35 @@ def openclaw_models_train():
 @login_required_api
 def openclaw_models_export():
     """Export training dataset. Free for everyone."""
-    from dev.openclaw.train_models import ModelTrainer
     import tempfile
+
+    from dev.openclaw.train_models import ModelTrainer
 
     # Everything is free - no tier check needed
     user_email = session.get("user_email")
 
     try:
         trainer = ModelTrainer()
-        
+
         # Export to temp file
         fd, temp_path = tempfile.mkstemp(suffix=".json")
         os.close(fd)
-        
+
         trainer.export_training_dataset(temp_path)
-        
+
         # Read and return (in production, would upload to S3 etc.)
         with open(temp_path) as f:
             dataset = json.load(f)
-        
+
         os.unlink(temp_path)
-        
-        return jsonify({
-            "success": True,
-            "dataset_size": len(json.dumps(dataset)),
-            "statistics": dataset.get("statistics", {}),
-        })
+
+        return jsonify(
+            {
+                "success": True,
+                "dataset_size": len(json.dumps(dataset)),
+                "statistics": dataset.get("statistics", {}),
+            }
+        )
     except Exception as e:
         logger.exception(f"Dataset export failed: {e}")
         return api_error(f"Export failed: {str(e)}", 500)
@@ -7407,16 +7493,17 @@ def openclaw_models_export():
 # Register Blueprints
 # =============================================================================
 
+# noqa: E402 - Import at bottom to avoid circular imports
 from blueprints import (
-    auth_bp,
-    api_bp,
     analysis_bp,
-    community_bp,
-    openclaw_bp,
-    feedback_bp,
-    export_bp,
-    sponsors_bp,
+    api_bp,
+    auth_bp,
     business_bp,
+    community_bp,
+    export_bp,
+    feedback_bp,
+    openclaw_bp,
+    sponsors_bp,
 )
 
 # Register all blueprints

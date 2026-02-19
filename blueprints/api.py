@@ -4,10 +4,11 @@ SkyModderAI - API Blueprint
 RESTful API endpoints for programmatic access.
 Versioned API with proper error handling and documentation.
 """
+
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable
 
 from flask import Blueprint, g, jsonify, request
 
@@ -23,7 +24,7 @@ from logging_utils import get_request_id
 from security_utils import rate_limit, validate_game_id, validate_mod_list
 
 if TYPE_CHECKING:
-    from sqlite3 import Connection
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -275,7 +276,7 @@ def normalize_modlist() -> Any:
 
         mod_list = data.get("mod_list", "")
         game = data.get("game", "skyrimse")
-        
+
         if not mod_list:
             raise InvalidModListError()
 
@@ -287,7 +288,7 @@ def normalize_modlist() -> Any:
             raise InvalidGameIDError(str(e))
 
         # Normalize mod list and generate fuzzy suggestions
-        from conflict_detector import parse_mod_list_text, ConflictDetector
+        from conflict_detector import ConflictDetector, parse_mod_list_text
 
         mods = parse_mod_list_text(mod_list)
         normalized = "\n".join(mod["name"] for mod in mods if mod.get("enabled", True))
@@ -299,11 +300,13 @@ def normalize_modlist() -> Any:
             if mod.get("enabled", True):
                 suggestion = detector.parser.get_fuzzy_suggestion(mod["name"])
                 if suggestion:
-                    suggestions.append({
-                        "original": mod["name"],
-                        "suggested": suggestion,
-                        "reason": "Possible typo or alternative name",
-                    })
+                    suggestions.append(
+                        {
+                            "original": mod["name"],
+                            "suggested": suggestion,
+                            "reason": "Possible typo or alternative name",
+                        }
+                    )
 
         return jsonify(
             {
@@ -353,13 +356,20 @@ def information_map() -> Any:
                 ],
                 "processing": [
                     {"name": "parsing", "description": "Parse mod list text"},
-                    {"name": "conflict_detection", "description": "Detect conflicts using LOOT data"},
+                    {
+                        "name": "conflict_detection",
+                        "description": "Detect conflicts using LOOT data",
+                    },
                     {"name": "recommendations", "description": "Generate recommendations"},
                 ],
                 "storage": [
                     {"name": "mod_database", "type": "JSON", "description": "LOOT mod metadata"},
                     {"name": "users.db", "type": "SQLite", "description": "User accounts"},
-                    {"name": "community_posts", "type": "SQLite", "description": "Community content"},
+                    {
+                        "name": "community_posts",
+                        "type": "SQLite",
+                        "description": "Community content",
+                    },
                 ],
                 "outputs": [
                     {"name": "conflicts", "type": "array", "description": "Detected conflicts"},
@@ -390,7 +400,7 @@ def platform_capabilities() -> Any:
     """
     import os
 
-    from app import AI_CHAT_ENABLED, OPENCLAW_ENABLED, OFFLINE_MODE
+    from app import AI_CHAT_ENABLED, OFFLINE_MODE, OPENCLAW_ENABLED
     from web_search import web_search_available
 
     return jsonify(

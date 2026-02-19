@@ -3,6 +3,7 @@ SkyModderAI - Custom Exception Hierarchy
 
 Professional-grade error handling with specific exception types for different error scenarios.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, Optional

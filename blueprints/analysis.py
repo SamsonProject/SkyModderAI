@@ -3,15 +3,15 @@ SkyModderAI - Analysis Blueprint
 
 Handles mod list analysis, conflict detection, and recommendations.
 """
+
 from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from flask import (
     Blueprint,
-    current_app,
     jsonify,
     render_template,
     request,
@@ -19,8 +19,6 @@ from flask import (
 )
 
 from exceptions import (
-    AnalysisError,
-    DataNotAvailableError,
     InvalidGameIDError,
     InvalidModListError,
     ValidationError,
@@ -29,7 +27,7 @@ from logging_utils import get_request_id
 from security_utils import rate_limit, validate_game_id, validate_mod_list
 
 if TYPE_CHECKING:
-    from sqlite3 import Connection
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +71,7 @@ def analyze() -> Any:
 
         # Start transparency tracking
         from transparency_service import get_transparency_service
+
         transparency = get_transparency_service()
         analysis_id = f"analysis_{game}_{int(time.time())}"
         metadata = transparency.start_analysis(analysis_id)
@@ -95,11 +94,7 @@ def analyze() -> Any:
         impact = get_system_impact(mods, game)
 
         # Complete transparency tracking
-        metadata = transparency.complete_analysis(
-            analysis_id,
-            metadata,
-            analysis_result
-        )
+        metadata = transparency.complete_analysis(analysis_id, metadata, analysis_result)
 
         logger.info(
             f"Analysis completed: {len(mods)} mods, {len(analysis_result.get('conflicts', []))} conflicts",
@@ -125,7 +120,9 @@ def analyze() -> Any:
                     "system_impact": impact,
                     "mod_count": len(mods),
                     "game": game,
-                    "transparency": metadata.to_dict() if hasattr(metadata, 'to_dict') else metadata,
+                    "transparency": metadata.to_dict()
+                    if hasattr(metadata, "to_dict")
+                    else metadata,
                 }
             )
 
@@ -165,7 +162,6 @@ def quick_analyze(game_id: str) -> Any:
 @analysis_bp.route("/history")
 def analysis_history() -> Any:
     """View analysis history for logged-in users."""
-    from blueprints.auth import login_required
 
     if "user_email" not in session:
         return render_template("error.html", error="Please log in to view history"), 401
@@ -181,7 +177,6 @@ def analysis_history() -> Any:
 @analysis_bp.route("/save", methods=["POST"])
 def save_analysis() -> Any:
     """Save analysis results."""
-    from blueprints.auth import login_required
 
     if "user_email" not in session:
         if request.is_json:

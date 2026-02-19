@@ -108,12 +108,9 @@ ERROR_INTERNAL_SERVER = "An internal error occurred. Please try again later."
 # =============================================================================
 # Supported Games (canonical list)
 # =============================================================================
-SUPPORTED_GAME_IDS = frozenset({
-    "skyrimse", "skyrim", "skyrimvr",
-    "oblivion",
-    "fallout3", "falloutnv", "fallout4",
-    "starfield"
-})
+SUPPORTED_GAME_IDS = frozenset(
+    {"skyrimse", "skyrim", "skyrimvr", "oblivion", "fallout3", "falloutnv", "fallout4", "starfield"}
+)
 
 # =============================================================================
 # Tier Names

@@ -3,6 +3,7 @@ SkyModderAI - User Repository
 
 Database access layer for user-related operations.
 """
+
 from __future__ import annotations
 
 import logging
@@ -11,7 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
-from exceptions import DatabaseOperationError, UserNotFoundError
+from exceptions import DatabaseOperationError
 from models import APIKey, User, UserSession
 
 logger = logging.getLogger(__name__)
@@ -230,9 +231,9 @@ class UserRepository:
             Session data or None
         """
         try:
-            user_session = self.session.query(UserSession).filter(
-                UserSession.token == token
-            ).first()
+            user_session = (
+                self.session.query(UserSession).filter(UserSession.token == token).first()
+            )
 
             if user_session:
                 return {
@@ -260,9 +261,9 @@ class UserRepository:
             True if deleted
         """
         try:
-            user_session = self.session.query(UserSession).filter(
-                UserSession.token == token
-            ).first()
+            user_session = (
+                self.session.query(UserSession).filter(UserSession.token == token).first()
+            )
 
             if user_session:
                 self.session.delete(user_session)
@@ -286,9 +287,7 @@ class UserRepository:
             List of session data
         """
         try:
-            sessions = self.session.query(UserSession).filter(
-                UserSession.user_email == email
-            ).all()
+            sessions = self.session.query(UserSession).filter(UserSession.user_email == email).all()
 
             return [
                 {
@@ -359,9 +358,7 @@ class UserRepository:
             API key data or None
         """
         try:
-            api_key = self.session.query(APIKey).filter(
-                APIKey.key_hash == key_hash
-            ).first()
+            api_key = self.session.query(APIKey).filter(APIKey.key_hash == key_hash).first()
 
             if api_key:
                 return {
@@ -387,9 +384,7 @@ class UserRepository:
             List of API key data
         """
         try:
-            api_keys = self.session.query(APIKey).filter(
-                APIKey.user_email == email
-            ).all()
+            api_keys = self.session.query(APIKey).filter(APIKey.user_email == email).all()
 
             return [
                 {
@@ -416,10 +411,14 @@ class UserRepository:
             True if deleted
         """
         try:
-            api_key = self.session.query(APIKey).filter(
-                APIKey.id == key_id,
-                APIKey.user_email == email,
-            ).first()
+            api_key = (
+                self.session.query(APIKey)
+                .filter(
+                    APIKey.id == key_id,
+                    APIKey.user_email == email,
+                )
+                .first()
+            )
 
             if api_key:
                 self.session.delete(api_key)

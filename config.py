@@ -69,8 +69,8 @@ class Config:
 
     # Payments enabled if we have a valid secret key (live or test)
     PAYMENTS_ENABLED = bool(
-        STRIPE_SECRET_KEY and
-        (STRIPE_SECRET_KEY.startswith("sk_live_") or STRIPE_SECRET_KEY.startswith("sk_test_"))
+        STRIPE_SECRET_KEY
+        and (STRIPE_SECRET_KEY.startswith("sk_live_") or STRIPE_SECRET_KEY.startswith("sk_test_"))
     )
 
     # Rate Limiting

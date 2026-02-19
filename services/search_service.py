@@ -3,10 +3,11 @@ SkyModderAI - Search Service
 
 Handles mod search and query operations.
 """
+
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from exceptions import InvalidGameIDError, ValidationError
 from search_engine import get_search_engine

@@ -12,8 +12,7 @@ from datetime import datetime, timezone
 from functools import wraps
 from typing import Any, Callable, Optional
 
-from flask import Flask, Request, request
-
+from flask import Flask, request
 
 # =============================================================================
 # PII Redaction
@@ -386,10 +385,14 @@ def setup_logging(
     if log_file:
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(level)
-        file_handler.setFormatter(StructuredFormatter() if enable_structured else logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        ))
+        file_handler.setFormatter(
+            StructuredFormatter()
+            if enable_structured
+            else logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
         file_handler.addFilter(SensitiveDataFilter())
         logger.addHandler(file_handler)
 

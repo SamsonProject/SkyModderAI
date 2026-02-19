@@ -15,7 +15,6 @@ All exports include:
 """
 
 import html
-import json
 import logging
 import re
 from datetime import datetime
@@ -26,9 +25,10 @@ logger = logging.getLogger(__name__)
 
 class LaTeXFormatter:
     """Format responses as LaTeX documents."""
-    
+
     # LaTeX document template
-    DOCUMENT_TEMPLATE = r"""
+    DOCUMENT_TEMPLATE = (
+        r"""
 \documentclass[11pt, a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -103,9 +103,13 @@ class LaTeXFormatter:
 }
 
 % Title
-\title{\textbf{\Large """ + "{{title}}" + r"""}}
+\title{\textbf{\Large """
+        + "{{title}}"
+        + r"""}}
 \author{SkyModderAI Intelligence Engine}
-\date{""" + "{{date}}" + r"""}
+\date{"""
+        + "{{date}}"
+        + r"""}
 
 \begin{document}
 
@@ -114,78 +118,83 @@ class LaTeXFormatter:
 \tableofcontents
 \newpage
 
-""" + "{{content}}" + r"""
+"""
+        + "{{content}}"
+        + r"""
 
 \end{document}
 """
+    )
 
     @classmethod
     def format_response(cls, content: Dict[str, Any]) -> str:
         """
         Format a response as LaTeX.
-        
+
         Args:
             content: Response content with sections, warnings, etc.
-            
+
         Returns:
             LaTeX formatted string
         """
         title = content.get("title", "SkyModderAI Guide")
         date = datetime.now().strftime("%B %d, %Y")
-        
+
         # Build content sections
         latex_content = []
-        
+
         # Executive summary
         if content.get("summary"):
             latex_content.append(cls._create_section("Executive Summary", content["summary"]))
-        
+
         # Warnings (high priority first)
         if content.get("warnings"):
             latex_content.append(cls._create_warnings(content["warnings"]))
-        
+
         # Main content sections
         for section in content.get("sections", []):
-            latex_content.append(cls._create_section(
-                section.get("title", "Section"),
-                section.get("content", ""),
-                section.get("subsection", False)
-            ))
-        
+            latex_content.append(
+                cls._create_section(
+                    section.get("title", "Section"),
+                    section.get("content", ""),
+                    section.get("subsection", False),
+                )
+            )
+
         # Recommendations
         if content.get("recommendations"):
             latex_content.append(cls._create_recommendations(content["recommendations"]))
-        
+
         # Sources
         if content.get("sources"):
             latex_content.append(cls._create_sources(content["sources"]))
-        
+
         # Combine
         full_content = "\n\n".join(latex_content)
-        
+
         # Fill template
         doc = cls.DOCUMENT_TEMPLATE
         doc = doc.replace("{{title}}", cls._escape(title))
         doc = doc.replace("{{date}}", date)
         doc = doc.replace("{{content}}", full_content)
-        
+
         return doc
-    
+
     @classmethod
     def _create_section(cls, title: str, content: str, subsection: bool = False) -> str:
         """Create a LaTeX section."""
         cmd = "subsection" if subsection else "section"
         return f"\\{cmd}{{{cls._escape(title)}}}\n\n{cls._format_content(content)}"
-    
+
     @classmethod
     def _create_warnings(cls, warnings: List[Dict[str, Any]]) -> str:
         """Create warning boxes."""
         latex = "\\section{⚠️ Important Warnings}\n\n"
-        
+
         for warning in warnings:
             level = warning.get("level", "warning")
             message = warning.get("message", "")
-            
+
             if level == "error" or level == "high":
                 box_type = "errorbox"
                 icon = "❌"
@@ -195,51 +204,51 @@ class LaTeXFormatter:
             else:
                 box_type = "infobox"
                 icon = "ℹ️"
-            
+
             latex += f"\\begin{{{box_type}}}[{icon} {cls._escape(message)}]\n"
-            
+
             if warning.get("details"):
                 latex += "\\begin{itemize}\n"
                 for detail in warning["details"]:
                     latex += f"  \\item {cls._escape(detail)}\n"
                 latex += "\\end{itemize}\n"
-            
+
             latex += f"\\end{{{box_type}}}\n\n"
-        
+
         return latex
-    
+
     @classmethod
     def _create_recommendations(cls, recommendations: List[Dict[str, Any]]) -> str:
         """Create recommendations section."""
         latex = "\\section{✅ Recommendations}\n\n"
         latex += "\\begin{enumerate}[label=\\textbf{\\arabic*.}]\n"
-        
+
         for rec in recommendations:
             priority = rec.get("priority", "normal")
             content = rec.get("content", "")
-            
+
             priority_marker = ""
             if priority == "high":
                 priority_marker = "\\textcolor{error}{\\textbf{[HIGH PRIORITY]}} "
             elif priority == "medium":
                 priority_marker = "\\textcolor{warning}{\\textbf{[MEDIUM]}} "
-            
+
             latex += f"  \\item {priority_marker}{cls._escape(content)}\n"
-        
+
         latex += "\\end{enumerate}\n"
         return latex
-    
+
     @classmethod
     def _create_sources(cls, sources: List[Dict[str, Any]]) -> str:
         """Create sources/bibliography section."""
         latex = "\\section{📚 Sources}\n\n"
         latex += "\\begin{itemize}\n"
-        
+
         for source in sources:
             title = source.get("title", "Unknown")
             url = source.get("url", "")
             credibility = source.get("credibility_score", 0)
-            
+
             # Credibility indicator
             if credibility >= 0.8:
                 cred_badge = "\\textcolor{success}{★★★}"
@@ -247,65 +256,75 @@ class LaTeXFormatter:
                 cred_badge = "\\textcolor{warning}{★★☆}"
             else:
                 cred_badge = "\\textcolor{error}{★☆☆}"
-            
+
             latex += f"  \\item {cred_badge} {cls._escape(title)}"
             if url:
                 latex += f" \\href{{{url}}}{{[Link]}}"
             latex += "\n"
-        
+
         latex += "\\end{itemize}\n"
         return latex
-    
+
     @classmethod
     def _format_content(cls, content: str) -> str:
         """Format markdown-like content as LaTeX."""
         if not content:
             return ""
-        
+
         # Convert markdown to LaTeX
         # Bold
-        content = re.sub(r'\*\*(.+?)\*\*', r'\\textbf{\1}', content)
+        content = re.sub(r"\*\*(.+?)\*\*", r"\\textbf{\1}", content)
         # Italic
-        content = re.sub(r'\*(.+?)\*', r'\\textit{\1}', content)
+        content = re.sub(r"\*(.+?)\*", r"\\textit{\1}", content)
         # Code
-        content = re.sub(r'`(.+?)`', r'\\texttt{\1}', content)
+        content = re.sub(r"`(.+?)`", r"\\texttt{\1}", content)
         # Lists
-        content = re.sub(r'^- (.+)$', r'\\begin{itemize}\n  \\item \1\n\\end{itemize}', content, flags=re.MULTILINE)
+        content = re.sub(
+            r"^- (.+)$",
+            r"\\begin{itemize}\n  \\item \1\n\\end{itemize}",
+            content,
+            flags=re.MULTILINE,
+        )
         # Numbered lists
-        content = re.sub(r'^(\d+)\. (.+)$', r'\\begin{enumerate}\n  \\item \2\n\\end{enumerate}', content, flags=re.MULTILINE)
+        content = re.sub(
+            r"^(\d+)\. (.+)$",
+            r"\\begin{enumerate}\n  \\item \2\n\\end{enumerate}",
+            content,
+            flags=re.MULTILINE,
+        )
         # Line breaks
-        content = content.replace('\n\n', '\\par\n\n')
-        
+        content = content.replace("\n\n", "\\par\n\n")
+
         return content
-    
+
     @classmethod
     def _escape(cls, text: str) -> str:
         """Escape special LaTeX characters."""
         if not text:
             return ""
-        
+
         special_chars = {
-            '&': r'\&',
-            '%': r'\%',
-            '$': r'\$',
-            '#': r'\#',
-            '_': r'\_',
-            '{': r'\{',
-            '}': r'\}',
-            '~': r'\textasciitilde{}',
-            '^': r'\textasciicircum{}',
-            '\\': r'\textbackslash{}',
+            "&": r"\&",
+            "%": r"\%",
+            "$": r"\$",
+            "#": r"\#",
+            "_": r"\_",
+            "{": r"\{",
+            "}": r"\}",
+            "~": r"\textasciitilde{}",
+            "^": r"\textasciicircum{}",
+            "\\": r"\textbackslash{}",
         }
-        
+
         for char, escape in special_chars.items():
             text = text.replace(char, escape)
-        
+
         return text
 
 
 class HTMLFormatter:
     """Format responses as self-contained HTML documents."""
-    
+
     HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -548,57 +567,56 @@ body {
     def format_response(cls, content: Dict[str, Any]) -> str:
         """
         Format a response as self-contained HTML.
-        
+
         Args:
             content: Response content with sections, warnings, etc.
-            
+
         Returns:
             HTML string with embedded CSS
         """
         title = content.get("title", "SkyModderAI Guide")
         date = datetime.now().strftime("%B %d, %Y")
-        
+
         # Build content sections
         html_content = []
-        
+
         # Executive summary
         if content.get("summary"):
             html_content.append(cls._create_section("Executive Summary", content["summary"]))
-        
+
         # Warnings
         if content.get("warnings"):
             html_content.append(cls._create_warnings(content["warnings"]))
-        
+
         # Main sections
         for section in content.get("sections", []):
-            html_content.append(cls._create_section(
-                section.get("title", "Section"),
-                section.get("content", ""),
-                section.get("subsection", False)
-            ))
-        
+            html_content.append(
+                cls._create_section(
+                    section.get("title", "Section"),
+                    section.get("content", ""),
+                    section.get("subsection", False),
+                )
+            )
+
         # Recommendations
         if content.get("recommendations"):
             html_content.append(cls._create_recommendations(content["recommendations"]))
-        
+
         # Sources
         if content.get("sources"):
             html_content.append(cls._create_sources(content["sources"]))
-        
+
         # Combine
         full_content = "\n\n".join(html_content)
-        
+
         # Fill template
         doc = cls.HTML_TEMPLATE
         doc = doc.format(
-            title=html.escape(title),
-            date=date,
-            content=full_content,
-            css=cls.CSS_STYLES
+            title=html.escape(title), date=date, content=full_content, css=cls.CSS_STYLES
         )
-        
+
         return doc
-    
+
     @classmethod
     def _create_section(cls, title: str, content: str, subsection: bool = False) -> str:
         """Create an HTML section."""
@@ -609,70 +627,70 @@ body {
     <div class="section-content">{cls._format_content(content)}</div>
 </div>
 """
-    
+
     @classmethod
     def _create_warnings(cls, warnings: List[Dict[str, Any]]) -> str:
         """Create warning boxes."""
         html = '<div class="section"><h2 class="section-title">⚠️ Important Warnings</h2>\n'
-        
+
         for warning in warnings:
             level = warning.get("level", "warning")
             message = warning.get("message", "")
-            
+
             level_class = "low"
             if level == "error" or level == "high":
                 level_class = "high"
             elif level == "warning" or level == "medium":
                 level_class = "medium"
-            
+
             html += f"""
 <div class="warning-box {level_class}">
     <div class="warning-title">⚠️ {html.escape(message)}</div>
 """
-            
+
             if warning.get("details"):
                 html += '    <ul class="warning-details">\n'
                 for detail in warning["details"]:
                     html += f"        <li>{html.escape(detail)}</li>\n"
                 html += "    </ul>\n"
-            
+
             html += "</div>\n"
-        
+
         html += "</div>\n"
         return html
-    
+
     @classmethod
     def _create_recommendations(cls, recommendations: List[Dict[str, Any]]) -> str:
         """Create recommendations section."""
         html = '<div class="section"><h2 class="section-title">✅ Recommendations</h2>\n'
         html += '<ol class="recommendation-list">\n'
-        
+
         for rec in recommendations:
             priority = rec.get("priority", "normal")
             content = rec.get("content", "")
-            
+
             priority_class = ""
             if priority == "high":
                 priority_class = "high"
             elif priority == "medium":
                 priority_class = "medium"
-            
+
             html += f'    <li class="{priority_class}">{cls._format_content(content)}</li>\n'
-        
+
         html += "</ol></div>\n"
         return html
-    
+
     @classmethod
     def _create_sources(cls, sources: List[Dict[str, Any]]) -> str:
         """Create sources section."""
         html = '<div class="section"><h2 class="section-title">📚 Sources</h2>\n'
         html += '<ul class="source-list">\n'
-        
+
         for source in sources:
             title = source.get("title", "Unknown")
             url = source.get("url", "")
             credibility = source.get("credibility_score", 0)
-            
+
             if credibility >= 0.8:
                 cred_class = "high"
                 cred_text = "★★★ High"
@@ -682,34 +700,34 @@ body {
             else:
                 cred_class = "low"
                 cred_text = "★☆☆ Low"
-            
-            html += f'    <li>\n'
+
+            html += "    <li>\n"
             html += f'        <span class="credibility {cred_class}">{cred_text}</span>\n'
-            html += f'        {html.escape(title)}'
+            html += f"        {html.escape(title)}"
             if url:
                 html += f' — <a href="{html.escape(url)}" class="source-link" target="_blank" rel="noopener">View Source</a>'
-            html += '\n    </li>\n'
-        
+            html += "\n    </li>\n"
+
         html += "</ul></div>\n"
         return html
-    
+
     @classmethod
     def _format_content(cls, content: str) -> str:
         """Format markdown-like content as HTML."""
         if not content:
             return ""
-        
+
         # Convert markdown to HTML
         # Bold
-        content = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', content)
+        content = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", content)
         # Italic
-        content = re.sub(r'\*(.+?)\*', r'<em>\1</em>', content)
+        content = re.sub(r"\*(.+?)\*", r"<em>\1</em>", content)
         # Code
-        content = re.sub(r'`(.+?)`', r'<code>\1</code>', content)
+        content = re.sub(r"`(.+?)`", r"<code>\1</code>", content)
         # Line breaks
-        content = content.replace('\n\n', '</p><p>')
-        content = f'<p>{content}</p>'
-        
+        content = content.replace("\n\n", "</p><p>")
+        content = f"<p>{content}</p>"
+
         return content
 
 
@@ -726,27 +744,27 @@ def format_as_html(content: Dict[str, Any]) -> str:
 def format_as_pdf(content: Dict[str, Any], output_path: str) -> bool:
     """
     Format content as PDF using WeasyPrint.
-    
+
     Args:
         content: Response content
         output_path: Path to save PDF
-        
+
     Returns:
         True if successful
     """
     try:
-        from weasyprint import HTML, CSS
-        
+        from weasyprint import CSS, HTML
+
         # Generate HTML
         html_content = format_as_html(content)
-        
+
         # Convert to PDF
         html = HTML(string=html_content)
         html.write_pdf(output_path)
-        
+
         logger.info(f"PDF saved to {output_path}")
         return True
-        
+
     except ImportError:
         logger.warning("WeasyPrint not installed. Install with: pip install weasyprint")
         return False
@@ -761,11 +779,11 @@ def create_guide_content(
     sections: List[Dict[str, Any]],
     warnings: Optional[List[Dict[str, Any]]] = None,
     recommendations: Optional[List[Dict[str, Any]]] = None,
-    sources: Optional[List[Dict[str, Any]]] = None
+    sources: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """
     Create a structured guide content dictionary.
-    
+
     Args:
         title: Guide title
         summary: Executive summary
@@ -773,7 +791,7 @@ def create_guide_content(
         warnings: List of warning dicts with level, message, details
         recommendations: List of recommendation dicts with priority, content
         sources: List of source dicts with title, url, credibility_score
-        
+
     Returns:
         Content dictionary ready for formatting
     """
@@ -783,5 +801,5 @@ def create_guide_content(
         "sections": sections,
         "warnings": warnings or [],
         "recommendations": recommendations or [],
-        "sources": sources or []
+        "sources": sources or [],
     }

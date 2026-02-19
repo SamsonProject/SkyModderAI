@@ -1,13 +1,15 @@
 """Initial schema migration for SkyModderAI
 
 Revision ID: initial
-Revises: 
+Revises:
 Create Date: 2026-02-18
 
 """
+
 from __future__ import annotations
 
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
 import sqlalchemy as sa
 from alembic import op

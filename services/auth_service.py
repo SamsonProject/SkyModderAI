@@ -3,6 +3,7 @@ SkyModderAI - Authentication Service
 
 Handles user authentication, registration, and session management business logic.
 """
+
 from __future__ import annotations
 
 import logging
@@ -18,7 +19,6 @@ from exceptions import (
     AccountNotVerifiedError,
     DuplicateResourceError,
     InvalidCredentialsError,
-    TokenExpiredError,
     TokenInvalidError,
     UserNotFoundError,
     ValidationError,

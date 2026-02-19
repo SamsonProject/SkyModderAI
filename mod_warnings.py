@@ -119,7 +119,6 @@ def get_mod_warnings(
         List of warning dictionaries with severity, message, and links
     """
     from conflict_detector import parse_mod_list_text
-    from system_impact import get_system_impact
 
     config = config or WarningConfig()
     warnings: List[ModWarning] = []
@@ -139,19 +138,13 @@ def get_mod_warnings(
 
     # Game-specific warnings
     if game in ("skyrimse", "skyrim", "skyrimvr", "fallout4", "starfield"):
-        warnings.extend(
-            _check_plugin_limit(enabled_count, config)
-        )
+        warnings.extend(_check_plugin_limit(enabled_count, config))
 
     # System strain warnings
-    warnings.extend(
-        _check_system_strain(mod_names, enabled_count, specs, game, config)
-    )
+    warnings.extend(_check_system_strain(mod_names, enabled_count, specs, game, config))
 
     # Script-heavy mod warnings
-    warnings.extend(
-        _check_script_heavy_mods(mod_names)
-    )
+    warnings.extend(_check_script_heavy_mods(mod_names))
 
     return warnings
 
@@ -268,8 +261,7 @@ def _check_script_heavy_mods(mod_names: List[str]) -> List[ModWarning]:
     ]
 
     heavy_count = sum(
-        1 for mod in mod_names
-        if any(pattern in mod.lower() for pattern in script_heavy_patterns)
+        1 for mod in mod_names if any(pattern in mod.lower() for pattern in script_heavy_patterns)
     )
 
     if heavy_count >= 5:

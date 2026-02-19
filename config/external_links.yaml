@@ -223,11 +223,11 @@ support:
     url: "mailto:chris@skymoddereai.com"
     label: "Email Support"
     description: "Contact us directly"
-  
+
   donate:
     buymeacoffee:
       url: "https://www.buymeacoffee.com/skymodder"
-      label: "Buy Me a Coffee"
+      label: "Buy Me a Mead"
       description: "Support the project"
     patreon:
       url: "https://www.patreon.com/skymodderai"

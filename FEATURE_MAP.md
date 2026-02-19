@@ -34,7 +34,7 @@
 - ✅ No bullshit
 
 **How we survive:**
-- ☕ One-time donations (buy me a coffee)
+- 🍯 One-time donations (buy me a mead)
 - 💰 Patreon (optional monthly support)
 - 🤝 GitHub Sponsors (optional monthly support)
 - 💳 PayPal donations (one-time)

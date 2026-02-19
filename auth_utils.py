@@ -11,9 +11,7 @@ from typing import Any, Optional
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
 
-def make_state_token(
-    secret_key: str, salt: str, next_url: str = ""
-) -> str:
+def make_state_token(secret_key: str, salt: str, next_url: str = "") -> str:
     """
     Generate a signed state token for OAuth.
 
@@ -63,9 +61,7 @@ def generate_verification_token(secret_key: str, email: str) -> str:
     return s.dumps(email)
 
 
-def verify_verification_token(
-    token: str, secret_key: str, max_age: int = 86400
-) -> Optional[str]:
+def verify_verification_token(token: str, secret_key: str, max_age: int = 86400) -> Optional[str]:
     """Verify an email verification token. Returns email if valid."""
     s = URLSafeTimedSerializer(secret_key, salt="email-verification")
     try:

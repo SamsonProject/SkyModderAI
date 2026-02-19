@@ -23,8 +23,6 @@ addopts = """
     --cov-report=xml:coverage.xml
     --cov-fail-under=80
     --maxfail=5
-    --dist=loadscope
-    -n=auto
 """
 
 # Markers

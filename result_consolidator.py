@@ -15,18 +15,18 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ConsolidatedGroup:
     """A group of related items."""
-    
+
     key: str
     title: str
     severity: str  # critical, warning, info
     items: List[Dict[str, Any]] = field(default_factory=list)
     count: int = 0
-    
+
     def add(self, item: Dict[str, Any]):
         """Add item to group."""
         self.items.append(item)
         self.count = len(self.items)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API response."""
         return {
@@ -35,27 +35,27 @@ class ConsolidatedGroup:
             "severity": self.severity,
             "count": self.count,
             "items": self.items[:5],  # Show first 5, rest are collapsed
-            "has_more": self.count > 5
+            "has_more": self.count > 5,
         }
 
 
 @dataclass
 class ConsolidatedResult:
     """Consolidated analysis result."""
-    
+
     # Summary counts
     total_items: int = 0
     total_groups: int = 0
     critical_count: int = 0
     warning_count: int = 0
     info_count: int = 0
-    
+
     # Grouped results
     groups: List[ConsolidatedGroup] = field(default_factory=list)
-    
+
     # Quick view (top-level summary)
     quick_view: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API response."""
         return {
@@ -64,16 +64,16 @@ class ConsolidatedResult:
                 "total_groups": self.total_groups,
                 "critical": self.critical_count,
                 "warning": self.warning_count,
-                "info": self.info_count
+                "info": self.info_count,
             },
             "quick_view": self.quick_view,
-            "groups": [g.to_dict() for g in self.groups]
+            "groups": [g.to_dict() for g in self.groups],
         }
 
 
 class ResultConsolidator:
     """Consolidate analysis results for better readability."""
-    
+
     # Severity mapping
     SEVERITY_MAP = {
         "critical": 0,
@@ -83,9 +83,9 @@ class ResultConsolidator:
         "medium": 1,
         "info": 2,
         "low": 2,
-        "suggestion": 2
+        "suggestion": 2,
     }
-    
+
     # Group titles by conflict type
     GROUP_TITLES = {
         "incompatible": "Incompatible Mods",
@@ -93,53 +93,50 @@ class ResultConsolidator:
         "load_order": "Load Order Issues",
         "dirty_edits": "Dirty Edits",
         "patch_available": "Patches Available",
-        "version_mismatch": "Version Mismatches"
+        "version_mismatch": "Version Mismatches",
     }
-    
+
     def consolidate_conflicts(self, conflicts: List[Dict[str, Any]]) -> ConsolidatedResult:
         """
         Consolidate conflict list into grouped, readable structure.
-        
+
         Args:
             conflicts: List of conflict dictionaries
-            
+
         Returns:
             ConsolidatedResult with grouped conflicts
         """
         if not conflicts:
             return ConsolidatedResult()
-        
+
         result = ConsolidatedResult(total_items=len(conflicts))
-        
+
         # Group by affected mod and conflict type
         groups: Dict[str, ConsolidatedGroup] = {}
-        
+
         for conflict in conflicts:
             # Determine severity
             severity = conflict.get("severity", "info").lower()
             severity_key = self.SEVERITY_MAP.get(severity, 2)
-            
+
             # Group key: affected_mod + conflict_type
             affected_mod = conflict.get("affected_mod", "Unknown")
             conflict_type = conflict.get("type", "general")
             group_key = f"{affected_mod}.{conflict_type}"
-            
+
             # Create group if doesn't exist
             if group_key not in groups:
                 group_title = self.GROUP_TITLES.get(
-                    conflict_type,
-                    f"{conflict_type.replace('_', ' ').title()} - {affected_mod}"
+                    conflict_type, f"{conflict_type.replace('_', ' ').title()} - {affected_mod}"
                 )
-                
+
                 groups[group_key] = ConsolidatedGroup(
-                    key=group_key,
-                    title=group_title,
-                    severity=severity
+                    key=group_key, title=group_title, severity=severity
                 )
-            
+
             # Add conflict to group
             groups[group_key].add(conflict)
-            
+
             # Update severity counts
             if severity_key == 0:
                 result.critical_count += 1
@@ -147,49 +144,48 @@ class ResultConsolidator:
                 result.warning_count += 1
             else:
                 result.info_count += 1
-        
+
         # Sort groups by severity, then by count
         sorted_groups = sorted(
-            groups.values(),
-            key=lambda g: (self.SEVERITY_MAP.get(g.severity, 2), -g.count)
+            groups.values(), key=lambda g: (self.SEVERITY_MAP.get(g.severity, 2), -g.count)
         )
-        
+
         result.groups = sorted_groups
         result.total_groups = len(sorted_groups)
-        
+
         # Create quick view
         result.quick_view = self._create_quick_view(result)
-        
+
         return result
-    
+
     def _create_quick_view(self, result: ConsolidatedResult) -> Dict[str, Any]:
         """Create quick view summary."""
         return {
             "message": self._generate_summary_message(result),
             "priority_action": self._get_priority_action(result),
-            "affected_mods": len(set(
-                g.key.split(".")[0] for g in result.groups
-            ))
+            "affected_mods": len(set(g.key.split(".")[0] for g in result.groups)),
         }
-    
+
     def _generate_summary_message(self, result: ConsolidatedResult) -> str:
         """Generate human-readable summary."""
         parts = []
-        
+
         if result.critical_count > 0:
-            parts.append(f"{result.critical_count} critical issue{'s' if result.critical_count > 1 else ''}")
-        
+            parts.append(
+                f"{result.critical_count} critical issue{'s' if result.critical_count > 1 else ''}"
+            )
+
         if result.warning_count > 0:
             parts.append(f"{result.warning_count} warning{'s' if result.warning_count > 1 else ''}")
-        
+
         if result.info_count > 0:
             parts.append(f"{result.info_count} suggestion{'s' if result.info_count > 1 else ''}")
-        
+
         if not parts:
             return "✅ No issues found!"
-        
+
         return f"Found {', '.join(parts)}"
-    
+
     def _get_priority_action(self, result: ConsolidatedResult) -> Optional[str]:
         """Get highest priority action."""
         if result.critical_count > 0:
@@ -197,123 +193,114 @@ class ResultConsolidator:
             for group in result.groups:
                 if self.SEVERITY_MAP.get(group.severity, 2) == 0:
                     return f"Fix {group.title} ({group.count} issues)"
-        
+
         if result.warning_count > 0:
             return f"Review {result.warning_count} warnings"
-        
+
         return None
-    
+
     def consolidate_search_results(
-        self,
-        results: List[Dict[str, Any]],
-        max_display: int = 20
+        self, results: List[Dict[str, Any]], max_display: int = 20
     ) -> Dict[str, Any]:
         """
         Consolidate search results for display.
-        
+
         Args:
             results: List of search result dictionaries
             max_display: Maximum results to show initially
-            
+
         Returns:
             Consolidated search results
         """
         if not results:
             return {"results": [], "total": 0, "showing": 0}
-        
+
         # Sort by score
-        sorted_results = sorted(
-            results,
-            key=lambda r: r.get("score", 0),
-            reverse=True
-        )
-        
+        sorted_results = sorted(results, key=lambda r: r.get("score", 0), reverse=True)
+
         # Group by category
         categories: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
-        
+
         for result in sorted_results:
             category = result.get("category", "other")
             categories[category].append(result)
-        
+
         return {
             "results": sorted_results[:max_display],
             "total": len(results),
             "showing": min(len(results), max_display),
-            "categories": {
-                cat: len(items) for cat, items in categories.items()
-            },
-            "has_more": len(results) > max_display
+            "categories": {cat: len(items) for cat, items in categories.items()},
+            "has_more": len(results) > max_display,
         }
-    
-    def consolidate_recommendations(
-        self,
-        recommendations: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+
+    def consolidate_recommendations(self, recommendations: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Consolidate recommendations by priority and category.
-        
+
         Args:
             recommendations: List of recommendation dictionaries
-            
+
         Returns:
             Consolidated recommendations
         """
         if not recommendations:
             return {"recommendations": [], "by_priority": {}, "by_category": {}}
-        
+
         # Group by priority
         by_priority: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
         by_category: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
-        
+
         for rec in recommendations:
             priority = rec.get("priority", "normal")
             category = rec.get("category", "general")
-            
+
             by_priority[priority].append(rec)
             by_category[category].append(rec)
-        
+
         return {
             "recommendations": recommendations,
-            "by_priority": {
-                priority: recs for priority, recs in by_priority.items()
-            },
-            "by_category": {
-                category: recs for category, recs in by_category.items()
-            },
-            "total": len(recommendations)
+            "by_priority": {priority: recs for priority, recs in by_priority.items()},
+            "by_category": {category: recs for category, recs in by_category.items()},
+            "total": len(recommendations),
         }
-    
+
     def format_for_display(self, result: ConsolidatedResult) -> str:
         """
         Format consolidated result for text display.
-        
+
         Args:
             result: ConsolidatedResult
-            
+
         Returns:
             Formatted text string
         """
         lines = []
-        
+
         # Summary
         lines.append(result.quick_view.get("message", "Analysis Complete"))
         lines.append("")
-        
+
         # Groups
         for group in result.groups:
-            icon = "🔴" if group.severity == "critical" else "⚠️" if group.severity == "warning" else "ℹ️"
+            icon = (
+                "🔴"
+                if group.severity == "critical"
+                else "⚠️"
+                if group.severity == "warning"
+                else "ℹ️"
+            )
             lines.append(f"{icon} {group.title} ({group.count})")
-            
+
             # Show first 3 items
             for item in group.items[:3]:
                 message = item.get("message", item.get("content", "Unknown issue"))
                 lines.append(f"   • {message}")
-            
+
             if group.count > 3:
                 lines.append(f"   ... and {group.count - 3} more")
-            
+
             lines.append("")
-        
+
         return "\n".join(lines)
 
 
@@ -336,15 +323,12 @@ def consolidate_conflicts(conflicts: List[Dict[str, Any]]) -> ConsolidatedResult
 
 
 def consolidate_search_results(
-    results: List[Dict[str, Any]],
-    max_display: int = 20
+    results: List[Dict[str, Any]], max_display: int = 20
 ) -> Dict[str, Any]:
     """Consolidate search results."""
     return get_consolidator().consolidate_search_results(results, max_display)
 
 
-def consolidate_recommendations(
-    recommendations: List[Dict[str, Any]]
-) -> Dict[str, Any]:
+def consolidate_recommendations(recommendations: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Consolidate recommendations."""
     return get_consolidator().consolidate_recommendations(recommendations)

@@ -3,6 +3,7 @@ SkyModderAI - Community Blueprint
 
 Handles community posts, replies, voting, and reports.
 """
+
 from __future__ import annotations
 
 import logging
@@ -15,7 +16,7 @@ from logging_utils import get_request_id
 from security_utils import rate_limit
 
 if TYPE_CHECKING:
-    from sqlite3 import Connection
+    pass
 
 logger = logging.getLogger(__name__)
 

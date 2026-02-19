@@ -22,14 +22,9 @@ from constants import (
     MAX_PASSWORD_LENGTH,
     MAX_SEARCH_QUERY_LENGTH,
     MIN_PASSWORD_LENGTH,
-    RATE_LIMIT_ANALYZE,
-    RATE_LIMIT_API,
-    RATE_LIMIT_AUTH,
     RATE_LIMIT_DEFAULT,
-    RATE_LIMIT_SEARCH,
     RATE_LIMIT_WINDOW,
 )
-
 
 # =============================================================================
 # Rate Limiting
@@ -55,9 +50,7 @@ class RateLimiter:
             (ts, count) for ts, count in self._requests[identifier] if ts > cutoff
         ]
 
-    def is_rate_limited(
-        self, identifier: str, limit: int, window: int = RATE_LIMIT_WINDOW
-    ) -> bool:
+    def is_rate_limited(self, identifier: str, limit: int, window: int = RATE_LIMIT_WINDOW) -> bool:
         """
         Check if an identifier has exceeded the rate limit.
 

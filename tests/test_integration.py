@@ -3,14 +3,15 @@ SkyModderAI - Integration Tests
 
 End-to-end tests for critical user journeys and API endpoints.
 """
+
 from __future__ import annotations
 
 import json
 import os
 import sys
 import tempfile
-from datetime import datetime, timezone
-from typing import Any, Dict, Generator
+from collections.abc import Generator
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -18,16 +19,10 @@ import pytest
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import app
-from exceptions import (
-    AuthenticationError,
-    InvalidCredentialsError,
-    ValidationError,
-)
-from models import Base, User
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
+from app import app
+from models import Base
 
 # =============================================================================
 # Test Fixtures

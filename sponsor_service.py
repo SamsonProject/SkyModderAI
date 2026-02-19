@@ -16,7 +16,7 @@ import hashlib
 import logging
 import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -51,7 +51,7 @@ class SponsorCreative:
             "status": self.status,
             "impressions": self.impressions,
             "clicks": self.clicks,
-            "created_at": self.created_at.isoformat() if self.created_at else None
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
 
@@ -117,25 +117,22 @@ class Sponsor:
                 "cpm_rate": self.cpm_rate,
                 "plan_clicks": self.plan_clicks,
                 "plan_price": self.plan_price,
-                "click_credits": self.click_credits
+                "click_credits": self.click_credits,
             },
             "performance": {
                 "impressions": self.impressions,
                 "clicks": self.clicks,
                 "ctr": self.ctr,
                 "monthly_spend": self.monthly_spend,
-                "billable_clicks": self.billable_clicks
+                "billable_clicks": self.billable_clicks,
             },
-            "community": {
-                "score": self.community_score,
-                "votes": self.community_votes
-            },
+            "community": {"score": self.community_score, "votes": self.community_votes},
             "ranking_score": self.ranking_score,
             "status": self.status,
             "verified_date": self.verified_date.isoformat() if self.verified_date else None,
             "approved_at": self.approved_at.isoformat() if self.approved_at else None,
             "approved_by": self.approved_by,
-            "created_at": self.created_at.isoformat() if self.created_at else None
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
 
@@ -159,7 +156,7 @@ class ClickRecord:
             "fingerprint_hash": self.fingerprint_hash,
             "billable": self.billable,
             "rejection_reason": self.rejection_reason,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
         }
 
 
@@ -191,8 +188,10 @@ class SponsorService:
     def _get_db(self):
         """Get database connection from Flask g object."""
         from flask import g
-        if 'db' not in g:
+
+        if "db" not in g:
             from db import get_db
+
             g.db = get_db()
         return g.db
 
@@ -223,7 +222,7 @@ class SponsorService:
         product_description: str,
         category: str,
         description: str = "",
-        landing_url: str = ""
+        landing_url: str = "",
     ) -> Optional[Sponsor]:
         """
         Create a new sponsor application.
@@ -244,20 +243,32 @@ class SponsorService:
             landing_url=landing_url,
             status="pending",
             created_at=now,
-            updated_at=now
+            updated_at=now,
         )
 
         try:
             db = self._get_db()
-            db.execute("""
+            db.execute(
+                """
                 INSERT INTO sponsors (
                     sponsor_id, name, website, contact_email, product_description,
                     category, description, landing_url, status, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                sponsor_id, name, website, contact_email, product_description,
-                category, description, landing_url, "pending", now, now
-            ))
+            """,
+                (
+                    sponsor_id,
+                    name,
+                    website,
+                    contact_email,
+                    product_description,
+                    category,
+                    description,
+                    landing_url,
+                    "pending",
+                    now,
+                    now,
+                ),
+            )
             db.commit()
             logger.info(f"Created sponsor application: {sponsor_id} ({name})")
             return sponsor
@@ -268,9 +279,7 @@ class SponsorService:
     def get_sponsor(self, sponsor_id: str) -> Optional[Sponsor]:
         """Get sponsor by ID."""
         db = self._get_db()
-        row = db.execute(
-            "SELECT * FROM sponsors WHERE sponsor_id = ?", (sponsor_id,)
-        ).fetchone()
+        row = db.execute("SELECT * FROM sponsors WHERE sponsor_id = ?", (sponsor_id,)).fetchone()
 
         if not row:
             return None
@@ -303,13 +312,19 @@ class SponsorService:
             community_votes=row.get("community_votes", 0),
             ranking_score=row.get("ranking_score", 0.0),
             status=row["status"],
-            verified_date=datetime.fromisoformat(row["verified_date"]) if row.get("verified_date") else None,
-            approved_at=datetime.fromisoformat(row["approved_at"]) if row.get("approved_at") else None,
+            verified_date=datetime.fromisoformat(row["verified_date"])
+            if row.get("verified_date")
+            else None,
+            approved_at=datetime.fromisoformat(row["approved_at"])
+            if row.get("approved_at")
+            else None,
             approved_by=row.get("approved_by"),
-            rejected_at=datetime.fromisoformat(row["rejected_at"]) if row.get("rejected_at") else None,
+            rejected_at=datetime.fromisoformat(row["rejected_at"])
+            if row.get("rejected_at")
+            else None,
             rejected_reason=row.get("rejected_reason"),
             created_at=datetime.fromisoformat(row["created_at"]) if row.get("created_at") else None,
-            updated_at=datetime.fromisoformat(row["updated_at"]) if row.get("updated_at") else None
+            updated_at=datetime.fromisoformat(row["updated_at"]) if row.get("updated_at") else None,
         )
 
     def get_all_sponsors(self, status: str = None) -> List[Sponsor]:
@@ -317,13 +332,10 @@ class SponsorService:
         db = self._get_db()
         if status:
             rows = db.execute(
-                "SELECT * FROM sponsors WHERE status = ? ORDER BY ranking_score DESC",
-                (status,)
+                "SELECT * FROM sponsors WHERE status = ? ORDER BY ranking_score DESC", (status,)
             ).fetchall()
         else:
-            rows = db.execute(
-                "SELECT * FROM sponsors ORDER BY ranking_score DESC"
-            ).fetchall()
+            rows = db.execute("SELECT * FROM sponsors ORDER BY ranking_score DESC").fetchall()
 
         return [self._row_to_sponsor(row) for row in rows]
 
@@ -338,19 +350,25 @@ class SponsorService:
         db = self._get_db()
 
         if category:
-            rows = db.execute("""
+            rows = db.execute(
+                """
                 SELECT * FROM sponsors
                 WHERE status = 'active' AND category = ?
                 ORDER BY ranking_score DESC
                 LIMIT ?
-            """, (category, limit)).fetchall()
+            """,
+                (category, limit),
+            ).fetchall()
         else:
-            rows = db.execute("""
+            rows = db.execute(
+                """
                 SELECT * FROM sponsors
                 WHERE status = 'active'
                 ORDER BY ranking_score DESC
                 LIMIT ?
-            """, (limit,)).fetchall()
+            """,
+                (limit,),
+            ).fetchall()
 
         return [self._row_to_sponsor(row) for row in rows]
 
@@ -363,7 +381,7 @@ class SponsorService:
         image_url: str,
         headline: str,
         body_copy: str,
-        landing_url: str
+        landing_url: str,
     ) -> Optional[SponsorCreative]:
         """
         Create a new ad creative for a sponsor.
@@ -394,20 +412,30 @@ class SponsorService:
             body_copy=body_copy,
             landing_url=landing_url,
             status="active",
-            created_at=now
+            created_at=now,
         )
 
         try:
             db = self._get_db()
-            db.execute("""
+            db.execute(
+                """
                 INSERT INTO sponsor_creatives (
                     creative_id, sponsor_id, name, image_url, headline,
                     body_copy, landing_url, status, created_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                creative_id, sponsor_id, name, image_url, headline,
-                body_copy, landing_url, "active", now
-            ))
+            """,
+                (
+                    creative_id,
+                    sponsor_id,
+                    name,
+                    image_url,
+                    headline,
+                    body_copy,
+                    landing_url,
+                    "active",
+                    now,
+                ),
+            )
             db.commit()
             logger.info(f"Created creative {creative_id} for sponsor {sponsor_id}")
             return creative
@@ -420,17 +448,23 @@ class SponsorService:
         db = self._get_db()
 
         if status:
-            rows = db.execute("""
+            rows = db.execute(
+                """
                 SELECT * FROM sponsor_creatives
                 WHERE sponsor_id = ? AND status = ?
                 ORDER BY impressions ASC
-            """, (sponsor_id, status)).fetchall()
+            """,
+                (sponsor_id, status),
+            ).fetchall()
         else:
-            rows = db.execute("""
+            rows = db.execute(
+                """
                 SELECT * FROM sponsor_creatives
                 WHERE sponsor_id = ?
                 ORDER BY impressions ASC
-            """, (sponsor_id,)).fetchall()
+            """,
+                (sponsor_id,),
+            ).fetchall()
 
         return [self._row_to_creative(row) for row in rows]
 
@@ -447,7 +481,7 @@ class SponsorService:
             status=row.get("status", "active"),
             impressions=row.get("impressions", 0),
             clicks=row.get("clicks", 0),
-            created_at=datetime.fromisoformat(row["created_at"]) if row.get("created_at") else None
+            created_at=datetime.fromisoformat(row["created_at"]) if row.get("created_at") else None,
         )
 
     def get_next_creative(self, sponsor_id: str) -> Optional[SponsorCreative]:
@@ -458,12 +492,15 @@ class SponsorService:
         (equalizes exposure across creatives).
         """
         db = self._get_db()
-        row = db.execute("""
+        row = db.execute(
+            """
             SELECT * FROM sponsor_creatives
             WHERE sponsor_id = ? AND status = 'active'
             ORDER BY impressions ASC
             LIMIT 1
-        """, (sponsor_id,)).fetchone()
+        """,
+            (sponsor_id,),
+        ).fetchone()
 
         if not row:
             return None
@@ -474,22 +511,28 @@ class SponsorService:
         """Pause a creative."""
         now = datetime.now()
         db = self._get_db()
-        db.execute("""
+        db.execute(
+            """
             UPDATE sponsor_creatives
             SET status = 'paused', paused_at = ?
             WHERE creative_id = ?
-        """, (now, creative_id))
+        """,
+            (now, creative_id),
+        )
         db.commit()
         return db.total_changes > 0
 
     def activate_creative(self, creative_id: str) -> bool:
         """Activate a paused creative."""
         db = self._get_db()
-        db.execute("""
+        db.execute(
+            """
             UPDATE sponsor_creatives
             SET status = 'active'
             WHERE creative_id = ?
-        """, (creative_id,))
+        """,
+            (creative_id,),
+        )
         db.commit()
         return db.total_changes > 0
 
@@ -498,24 +541,29 @@ class SponsorService:
         db = self._get_db()
 
         # Update creative impressions
-        db.execute("""
+        db.execute(
+            """
             UPDATE sponsor_creatives
             SET impressions = impressions + 1
             WHERE creative_id = ?
-        """, (creative_id,))
+        """,
+            (creative_id,),
+        )
 
         # Get sponsor_id and update sponsor impressions
         row = db.execute(
-            "SELECT sponsor_id FROM sponsor_creatives WHERE creative_id = ?",
-            (creative_id,)
+            "SELECT sponsor_id FROM sponsor_creatives WHERE creative_id = ?", (creative_id,)
         ).fetchone()
 
         if row:
-            db.execute("""
+            db.execute(
+                """
                 UPDATE sponsors
                 SET impressions = impressions + 1
                 WHERE sponsor_id = ?
-            """, (row["sponsor_id"],))
+            """,
+                (row["sponsor_id"],),
+            )
 
         db.commit()
         return db.total_changes > 0
@@ -523,11 +571,7 @@ class SponsorService:
     # ==================== Click Tracking & Fraud Protection ====================
 
     def record_click(
-        self,
-        sponsor_id: str,
-        creative_id: Optional[str],
-        user_id: Optional[str],
-        request
+        self, sponsor_id: str, creative_id: Optional[str], user_id: Optional[str], request
     ) -> Tuple[bool, str, ClickRecord]:
         """
         Record click with fraud protection.
@@ -550,20 +594,23 @@ class SponsorService:
 
         # Get fingerprint (IP + User Agent) and hash it
         ip = request.remote_addr
-        user_agent = request.headers.get('User-Agent', '')
+        user_agent = request.headers.get("User-Agent", "")
         fingerprint_hash = self._hash_fingerprint(ip, user_agent)
 
         now = time.time()
 
         # Check for duplicate within 24h window
         db = self._get_db()
-        last_click = db.execute("""
+        last_click = db.execute(
+            """
             SELECT timestamp FROM sponsor_clicks
             WHERE fingerprint_hash = ? AND sponsor_id = ?
             AND timestamp > ?
             ORDER BY timestamp DESC
             LIMIT 1
-        """, (fingerprint_hash, sponsor_id, now - self.FRAUD_WINDOW)).fetchone()
+        """,
+            (fingerprint_hash, sponsor_id, now - self.FRAUD_WINDOW),
+        ).fetchone()
 
         if last_click:
             # Duplicate click - log but mark as non-billable
@@ -574,7 +621,7 @@ class SponsorService:
                 fingerprint_hash=fingerprint_hash,
                 billable=False,
                 rejection_reason="Duplicate click (24h window)",
-                timestamp=now
+                timestamp=now,
             )
             self._log_click(click_record)
             logger.debug(f"Duplicate click filtered: {sponsor_id} from {fingerprint_hash[:16]}...")
@@ -588,36 +635,48 @@ class SponsorService:
             fingerprint_hash=fingerprint_hash,
             billable=True,
             rejection_reason=None,
-            timestamp=now
+            timestamp=now,
         )
         self._log_click(click_record)
 
         # Update sponsor stats
-        db.execute("""
+        db.execute(
+            """
             UPDATE sponsors
             SET clicks = clicks + 1, billable_clicks = billable_clicks + 1
             WHERE sponsor_id = ?
-        """, (sponsor_id,))
+        """,
+            (sponsor_id,),
+        )
 
         if creative_id:
-            db.execute("""
+            db.execute(
+                """
                 UPDATE sponsor_creatives
                 SET clicks = clicks + 1
                 WHERE creative_id = ?
-            """, (creative_id,))
+            """,
+                (creative_id,),
+            )
 
         # Update CTR
         if sponsor.impressions > 0:
             new_ctr = (sponsor.clicks / sponsor.impressions) * 100
-            db.execute("""
+            db.execute(
+                """
                 UPDATE sponsors SET ctr = ? WHERE sponsor_id = ?
-            """, (new_ctr, sponsor_id))
+            """,
+                (new_ctr, sponsor_id),
+            )
 
             # Update ranking score
             new_ranking = self._calculate_ranking_score(sponsor.community_score, new_ctr)
-            db.execute("""
+            db.execute(
+                """
                 UPDATE sponsors SET ranking_score = ? WHERE sponsor_id = ?
-            """, (new_ranking, sponsor_id))
+            """,
+                (new_ranking, sponsor_id),
+            )
 
         db.commit()
 
@@ -627,20 +686,23 @@ class SponsorService:
     def _log_click(self, click: ClickRecord):
         """Log click to database for billing audit."""
         db = self._get_db()
-        db.execute("""
+        db.execute(
+            """
             INSERT INTO sponsor_clicks (
                 sponsor_id, creative_id, user_id, fingerprint_hash,
                 billable, rejection_reason, timestamp
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            click.sponsor_id,
-            click.creative_id,
-            click.user_id,
-            click.fingerprint_hash,
-            1 if click.billable else 0,
-            click.rejection_reason,
-            click.timestamp
-        ))
+        """,
+            (
+                click.sponsor_id,
+                click.creative_id,
+                click.user_id,
+                click.fingerprint_hash,
+                1 if click.billable else 0,
+                click.rejection_reason,
+                click.timestamp,
+            ),
+        )
         db.commit()
 
     # ==================== Community Voting ====================
@@ -662,51 +724,62 @@ class SponsorService:
         now = datetime.now()
 
         # Insert or replace vote
-        db.execute("""
+        db.execute(
+            """
             INSERT OR REPLACE INTO sponsor_votes (user_id, sponsor_id, score, voted_at)
             VALUES (?, ?, ?, ?)
-        """, (user_id, sponsor_id, score, now))
+        """,
+            (user_id, sponsor_id, score, now),
+        )
 
         # Recalculate average score
-        result = db.execute("""
+        result = db.execute(
+            """
             SELECT AVG(score) as avg_score, COUNT(*) as vote_count
             FROM sponsor_votes
             WHERE sponsor_id = ?
-        """, (sponsor_id,)).fetchone()
+        """,
+            (sponsor_id,),
+        ).fetchone()
 
         new_score = round(result["avg_score"], 2)
         new_votes = result["vote_count"]
 
         # Update sponsor
-        db.execute("""
+        db.execute(
+            """
             UPDATE sponsors
             SET community_score = ?, community_votes = ?
             WHERE sponsor_id = ?
-        """, (new_score, new_votes, sponsor_id))
+        """,
+            (new_score, new_votes, sponsor_id),
+        )
 
         # Update ranking score
         new_ranking = self._calculate_ranking_score(new_score, sponsor.ctr)
-        db.execute("""
+        db.execute(
+            """
             UPDATE sponsors SET ranking_score = ? WHERE sponsor_id = ?
-        """, (new_ranking, sponsor_id))
+        """,
+            (new_ranking, sponsor_id),
+        )
 
         db.commit()
 
         logger.info(f"Vote recorded: user {user_id} gave {score} to sponsor {sponsor_id}")
 
-        return {
-            "score": new_score,
-            "votes": new_votes,
-            "ranking_score": new_ranking
-        }
+        return {"score": new_score, "votes": new_votes, "ranking_score": new_ranking}
 
     def get_user_vote(self, sponsor_id: str, user_id: str) -> Optional[int]:
         """Get a user's vote for a sponsor."""
         db = self._get_db()
-        row = db.execute("""
+        row = db.execute(
+            """
             SELECT score FROM sponsor_votes
             WHERE sponsor_id = ? AND user_id = ?
-        """, (sponsor_id, user_id)).fetchone()
+        """,
+            (sponsor_id, user_id),
+        ).fetchone()
         return row["score"] if row else None
 
     # ==================== Admin Functions ====================
@@ -715,11 +788,14 @@ class SponsorService:
         """Approve a sponsor application."""
         now = datetime.now()
         db = self._get_db()
-        db.execute("""
+        db.execute(
+            """
             UPDATE sponsors
             SET status = 'active', approved_at = ?, approved_by = ?
             WHERE sponsor_id = ?
-        """, (now, approved_by, sponsor_id))
+        """,
+            (now, approved_by, sponsor_id),
+        )
         db.commit()
         return db.total_changes > 0
 
@@ -727,11 +803,14 @@ class SponsorService:
         """Reject a sponsor application."""
         now = datetime.now()
         db = self._get_db()
-        db.execute("""
+        db.execute(
+            """
             UPDATE sponsors
             SET status = 'rejected', rejected_at = ?, rejected_reason = ?
             WHERE sponsor_id = ?
-        """, (now, reason, sponsor_id))
+        """,
+            (now, reason, sponsor_id),
+        )
         db.commit()
         return db.total_changes > 0
 
@@ -748,37 +827,37 @@ class SponsorService:
         db = self._get_db()
 
         # Get billable clicks count
-        result = db.execute("""
+        result = db.execute(
+            """
             SELECT COUNT(*) as count, SUM(CASE WHEN billable THEN 1 ELSE 0 END) as billable
             FROM sponsor_clicks
             WHERE sponsor_id = ?
-        """, (sponsor_id,)).fetchone()
+        """,
+            (sponsor_id,),
+        ).fetchone()
 
         return {
             "sponsor_id": sponsor_id,
             "plan": {
                 "clicks": self.CLICKS_PER_PLAN,
                 "price": self.PLAN_PRICE,
-                "cpm": self.CPM_RATE
+                "cpm": self.CPM_RATE,
             },
             "performance": {
                 "impressions": sponsor.impressions,
                 "clicks": sponsor.clicks,
                 "billable_clicks": sponsor.billable_clicks,
                 "ctr": sponsor.ctr,
-                "monthly_spend": sponsor.monthly_spend
+                "monthly_spend": sponsor.monthly_spend,
             },
-            "community": {
-                "score": sponsor.community_score,
-                "votes": sponsor.community_votes
-            },
+            "community": {"score": sponsor.community_score, "votes": sponsor.community_votes},
             "ranking_score": sponsor.ranking_score,
             "cost_per_click": self._calculate_click_cost(),
             "click_credits_remaining": sponsor.click_credits,
             "audit": {
                 "total_clicks_logged": result["count"],
-                "billable_clicks": result["billable"] or 0
-            }
+                "billable_clicks": result["billable"] or 0,
+            },
         }
 
 
@@ -808,7 +887,9 @@ def get_ranked_sponsors(category: str = None, limit: int = 10) -> List[Sponsor]:
     return get_sponsor_service().get_ranked_sponsors(category, limit)
 
 
-def record_click(sponsor_id: str, creative_id: str, user_id: Optional[str], request) -> Tuple[bool, str, ClickRecord]:
+def record_click(
+    sponsor_id: str, creative_id: str, user_id: Optional[str], request
+) -> Tuple[bool, str, ClickRecord]:
     return get_sponsor_service().record_click(sponsor_id, creative_id, user_id, request)
 
 

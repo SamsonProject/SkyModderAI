@@ -3,12 +3,13 @@ SkyModderAI - OpenCLAW Blueprint
 
 Handles OpenCLAW automation, sandbox operations, and plan execution.
 """
+
 from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, Any
 
-from flask import Blueprint, current_app, jsonify, render_template, request, session
+from flask import Blueprint, jsonify, render_template, request, session
 
 from exceptions import (
     AuthenticationError,
@@ -24,12 +25,11 @@ from openclaw_engine import (
     OPENCLAW_PERMISSION_SCOPES,
     build_openclaw_plan,
     get_permission_descriptions,
-    validate_permissions,
 )
 from security_utils import rate_limit, validate_game_id
 
 if TYPE_CHECKING:
-    from sqlite3 import Connection
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +124,9 @@ def propose_plan() -> Any:
 
         is_safe, violations = validate_plan_safety(plan)
         if not is_safe:
-            raise SafetyViolationError("Plan failed safety validation", details={"violations": violations})
+            raise SafetyViolationError(
+                "Plan failed safety validation", details={"violations": violations}
+            )
 
         logger.info(
             f"OpenCLAW plan proposed: {plan.plan_id} by {session['user_email']}",
@@ -188,8 +190,8 @@ def execute_plan() -> Any:
             raise PermissionDeniedError("Plan execution requires write_sandbox_files permission")
 
         # Execute plan
-        from dev.openclaw import execute_plan as execute_openclaw_plan
         from db import get_db
+        from dev.openclaw import execute_plan as execute_openclaw_plan
 
         db = get_db()
         result = execute_openclaw_plan(

@@ -17,7 +17,6 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import create_engine, text
-from models import Base
 
 # Database URL from environment or default
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///instance/app.db")
@@ -25,7 +24,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///instance/app.db")
 
 def migrate():
     """Run database migration."""
-    print(f"Starting sponsor tables migration...")
+    print("Starting sponsor tables migration...")
     print(f"Database: {DATABASE_URL}")
 
     # Create engine
@@ -35,7 +34,8 @@ def migrate():
     print("\nCreating sponsor tables...")
     with engine.connect() as conn:
         # Sponsors table
-        conn.execute(text("""
+        conn.execute(
+            text("""
             CREATE TABLE IF NOT EXISTS sponsors (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sponsor_id TEXT UNIQUE NOT NULL,
@@ -80,10 +80,12 @@ def migrate():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """))
+        """)
+        )
 
         # Sponsor creatives table (multiple ads per sponsor)
-        conn.execute(text("""
+        conn.execute(
+            text("""
             CREATE TABLE IF NOT EXISTS sponsor_creatives (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 creative_id TEXT UNIQUE NOT NULL,
@@ -101,16 +103,20 @@ def migrate():
 
                 FOREIGN KEY (sponsor_id) REFERENCES sponsors(sponsor_id)
             )
-        """))
+        """)
+        )
 
         # Index for creative rotation (find lowest impressions)
-        conn.execute(text("""
+        conn.execute(
+            text("""
             CREATE INDEX IF NOT EXISTS idx_sponsor_creatives_rotation
             ON sponsor_creatives(sponsor_id, status, impressions)
-        """))
+        """)
+        )
 
         # Sponsor clicks table (billing audit trail)
-        conn.execute(text("""
+        conn.execute(
+            text("""
             CREATE TABLE IF NOT EXISTS sponsor_clicks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sponsor_id TEXT NOT NULL,
@@ -124,22 +130,28 @@ def migrate():
                 FOREIGN KEY (sponsor_id) REFERENCES sponsors(sponsor_id),
                 FOREIGN KEY (creative_id) REFERENCES sponsor_creatives(creative_id)
             )
-        """))
+        """)
+        )
 
         # Index for fraud detection
-        conn.execute(text("""
+        conn.execute(
+            text("""
             CREATE INDEX IF NOT EXISTS idx_sponsor_clicks_fingerprint
             ON sponsor_clicks(fingerprint_hash, sponsor_id, timestamp)
-        """))
+        """)
+        )
 
         # Index for billing queries
-        conn.execute(text("""
+        conn.execute(
+            text("""
             CREATE INDEX IF NOT EXISTS idx_sponsor_clicks_billable
             ON sponsor_clicks(billable, sponsor_id, timestamp)
-        """))
+        """)
+        )
 
         # Sponsor votes table (community ranking)
-        conn.execute(text("""
+        conn.execute(
+            text("""
             CREATE TABLE IF NOT EXISTS sponsor_votes (
                 user_id TEXT NOT NULL,
                 sponsor_id TEXT NOT NULL,
@@ -149,13 +161,16 @@ def migrate():
                 FOREIGN KEY (sponsor_id) REFERENCES sponsors(sponsor_id),
                 PRIMARY KEY (user_id, sponsor_id)
             )
-        """))
+        """)
+        )
 
         # Index for community score calculation
-        conn.execute(text("""
+        conn.execute(
+            text("""
             CREATE INDEX IF NOT EXISTS idx_sponsor_votes_sponsor
             ON sponsor_votes(sponsor_id, score)
-        """))
+        """)
+        )
 
         conn.commit()
 

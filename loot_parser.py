@@ -200,7 +200,7 @@ class LOOTParser:
                     + (f" (v{self.version})" if not is_latest else "")
                 )
                 try:
-                    with open(path, "r", encoding="utf-8") as f:
+                    with open(path, encoding="utf-8") as f:
                         self.masterlist_data = yaml.safe_load(f)
                     if legacy_cache and path == legacy_cache:
                         with open(cache_file, "w", encoding="utf-8") as f:
@@ -511,7 +511,7 @@ class LOOTParser:
 
         for path in paths_to_try:
             try:
-                with open(path, "r", encoding="utf-8") as f:
+                with open(path, encoding="utf-8") as f:
                     data = json.load(f)
 
                 self.mod_database = {}

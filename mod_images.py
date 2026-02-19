@@ -71,7 +71,8 @@ def get_mod_image(
     if use_cache and os.path.exists(cache_file):
         try:
             import json
-            with open(cache_file, "r") as f:
+
+            with open(cache_file) as f:
                 data = json.load(f)
 
             # Check if cache is still valid
@@ -200,52 +201,60 @@ def extract_embed_info(text: str) -> List[Dict]:
     embeds = []
 
     # Imgur images/albums
-    imgur_pattern = r'https?://(?:i\.)?imgur\.com/([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?'
+    imgur_pattern = r"https?://(?:i\.)?imgur\.com/([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?"
     for match in re.finditer(imgur_pattern, text):
         img_id = match.group(1)
-        embeds.append({
-            "type": "imgur",
-            "url": match.group(0),
-            "embed_url": f"https://i.imgur.com/{img_id}.jpg",
-            "thumbnail": f"https://i.imgur.com/{img_id}s.jpg",
-        })
+        embeds.append(
+            {
+                "type": "imgur",
+                "url": match.group(0),
+                "embed_url": f"https://i.imgur.com/{img_id}.jpg",
+                "thumbnail": f"https://i.imgur.com/{img_id}s.jpg",
+            }
+        )
 
     # YouTube videos
     youtube_patterns = [
-        r'https?://(?:www\.)?youtube\.com/watch\?v=([a-zA-Z0-9_-]+)',
-        r'https?://youtu\.be/([a-zA-Z0-9_-]+)',
+        r"https?://(?:www\.)?youtube\.com/watch\?v=([a-zA-Z0-9_-]+)",
+        r"https?://youtu\.be/([a-zA-Z0-9_-]+)",
     ]
     for pattern in youtube_patterns:
         for match in re.finditer(pattern, text):
             video_id = match.group(1)
-            embeds.append({
-                "type": "youtube",
-                "url": match.group(0),
-                "embed_url": f"https://www.youtube.com/embed/{video_id}",
-                "thumbnail": f"https://img.youtube.com/vi/{video_id}/mqdefault.jpg",
-            })
+            embeds.append(
+                {
+                    "type": "youtube",
+                    "url": match.group(0),
+                    "embed_url": f"https://www.youtube.com/embed/{video_id}",
+                    "thumbnail": f"https://img.youtube.com/vi/{video_id}/mqdefault.jpg",
+                }
+            )
 
     # Vimeo videos
-    vimeo_pattern = r'https?://(?:www\.)?vimeo\.com/([0-9]+)'
+    vimeo_pattern = r"https?://(?:www\.)?vimeo\.com/([0-9]+)"
     for match in re.finditer(vimeo_pattern, text):
         video_id = match.group(1)
-        embeds.append({
-            "type": "vimeo",
-            "url": match.group(0),
-            "embed_url": f"https://player.vimeo.com/video/{video_id}",
-            "thumbnail": None,  # Would need API call
-        })
+        embeds.append(
+            {
+                "type": "vimeo",
+                "url": match.group(0),
+                "embed_url": f"https://player.vimeo.com/video/{video_id}",
+                "thumbnail": None,  # Would need API call
+            }
+        )
 
     # Twitch clips/streams
-    twitch_pattern = r'https?://(?:www\.)?twitch\.tv/([a-zA-Z0-9_]+)'
+    twitch_pattern = r"https?://(?:www\.)?twitch\.tv/([a-zA-Z0-9_]+)"
     for match in re.finditer(twitch_pattern, text):
         channel = match.group(1)
-        embeds.append({
-            "type": "twitch",
-            "url": match.group(0),
-            "embed_url": f"https://player.twitch.tv/?channel={channel}&parent={get_current_domain()}",
-            "thumbnail": None,
-        })
+        embeds.append(
+            {
+                "type": "twitch",
+                "url": match.group(0),
+                "embed_url": f"https://player.twitch.tv/?channel={channel}&parent={get_current_domain()}",
+                "thumbnail": None,
+            }
+        )
 
     return embeds
 
@@ -306,7 +315,7 @@ def enrich_mod_with_image(parser, mod_entry: dict, game_id: str) -> dict:
     nexus_url = mod_entry.get("nexus_url", "")
     if nexus_url:
         # Extract mod ID from Nexus URL
-        match = re.search(r'/mods/(\d+)', nexus_url)
+        match = re.search(r"/mods/(\d+)", nexus_url)
         if match:
             mod_id = match.group(1)
             mod_entry["image_url"] = get_mod_image(game_id, mod_id, mod_name)

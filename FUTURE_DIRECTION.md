@@ -338,7 +338,7 @@ SkyModderAI is the first "hemisphere" of a larger cognitive architecture. It dem
 
 **This Week:**
 - [ ] Review and approve this roadmap
-- [ ] Provide Buy Me a Coffee link
+- [ ] Provide Buy Me a Mead link
 - [ ] Select 10-20 curated community builds
 - [ ] Review sponsor charter
 
@@ -366,7 +366,7 @@ SkyModderAI is the first "hemisphere" of a larger cognitive architecture. It dem
 **How to Support:**
 - [ ] Use the tool (it's free!)
 - [ ] Submit feedback
-- [ ] Donate if you love it (Buy Me a Coffee)
+- [ ] Donate if you love it (Buy Me a Mead)
 - [ ] Tell your friends
 - [ ] Report bugs
 

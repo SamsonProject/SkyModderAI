@@ -3,6 +3,7 @@ Alembic Environment Configuration for SkyModderAI
 
 This script configures the Alembic migration environment.
 """
+
 from __future__ import annotations
 
 import os
@@ -29,7 +30,6 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Other values from app config
-from config import config as app_config
 
 
 def get_url() -> str:

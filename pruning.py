@@ -41,7 +41,11 @@ logger = logging.getLogger(__name__)
 
 PRUNING_ENABLED = os.environ.get("PRUNING_ENABLED", "1").strip() in ("1", "true", "yes")
 PRUNING_MAX_CONTEXT_CHARS = int(os.environ.get("PRUNING_MAX_CONTEXT_CHARS", "12000"))
-CONTEXT_THREADING_ENABLED = os.environ.get("CONTEXT_THREADING_ENABLED", "1").strip() in ("1", "true", "yes")
+CONTEXT_THREADING_ENABLED = os.environ.get("CONTEXT_THREADING_ENABLED", "1").strip() in (
+    "1",
+    "true",
+    "yes",
+)
 
 # Import context threading if enabled
 if CONTEXT_THREADING_ENABLED:
@@ -67,15 +71,15 @@ def prune_with_intention(
 ) -> Tuple[str, Dict]:
     """
     Prune context with intention tracking using context threading.
-    
+
     This is smarter than basic pruning — it tracks WHY we're compressing
     and preserves goal-relevant information even if it would normally be cut.
-    
+
     Args:
         context: Context to prune
         intention: The goal/intention (preserves goal-relevant info)
         max_chars: Maximum characters (default: PRUNING_MAX_CONTEXT_CHARS)
-    
+
     Returns:
         (pruned_context, stats) — stats includes threading info if enabled
     """
