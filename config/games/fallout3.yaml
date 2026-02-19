@@ -1,0 +1,26 @@
+# Fallout 3 Configuration
+game:
+  id: fallout3
+  name: "Fallout 3"
+  short_name: "FO3"
+  versions: ["1.7"]
+  default_version: "1.7"
+tools:
+  mod_managers:
+    - name: "Mod Organizer 2"
+      url: "https://www.nexusmods.com/fallout3/mods/6194"
+      recommended: true
+  script_extenders:
+    - name: "FOSE"
+      url: "http://fose.silverlock.org/"
+      required: false
+essentials:
+  - name: "Fallout 3 Script Extender"
+    url: "http://fose.silverlock.org/"
+    recommended: true
+paths:
+  appdata: "%LOCALAPPDATA%/Fallout3"
+  ini: "Fallout3Prefs.ini"
+community:
+  nexus_slug: "fallout3"
+  subreddits: ["r/fo3"]

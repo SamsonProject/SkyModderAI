@@ -41,3 +41,10 @@ sentry-sdk[flask]>=1.40.0
 
 # Type Hints
 typing-extensions>=4.9.0
+
+# Caching & Scheduling (Phase 2)
+redis>=5.0.0
+APScheduler>=3.10.0
+
+# PDF Export (Phase 6)
+weasyprint>=60.0.0

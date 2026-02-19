@@ -1,0 +1,713 @@
+<!--
+  SkyModderAI — Sponsors Page
+  Ethical, community-curated sponsorship directory
+-->
+{% extends "base.html" %}
+
+{% block title %}Sponsors - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sponsors-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .sponsors-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .sponsors-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .sponsors-header p {
+        color: #94a3b8;
+        font-size: 1.125rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Charter Section */
+    .charter-section {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid #334155;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .charter-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .charter-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .charter-badge {
+        background: #22c55e;
+        color: #000;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .charter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .charter-card {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .charter-card h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .charter-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .charter-card li {
+        padding: 0.5rem 0;
+        color: #94a3b8;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .charter-card li::before {
+        content: "→";
+        color: #3b82f6;
+    }
+
+    .charter-card.rejected li::before {
+        content: "✕";
+        color: #ef4444;
+    }
+
+    .pricing-highlight {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid #3b82f6;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+
+    .pricing-highlight p {
+        margin: 0;
+        color: #94a3b8;
+        font-size: 0.875rem;
+    }
+
+    .pricing-highlight strong {
+        color: #3b82f6;
+    }
+
+    /* Sponsor Directory */
+    .directory-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .sponsors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .sponsor-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.15s;
+        position: relative;
+    }
+
+    .sponsor-card:hover {
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+    }
+
+    .sponsor-card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .sponsor-logo {
+        width: 64px;
+        height: 64px;
+        border-radius: 8px;
+        background: #334155;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .sponsor-info h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .sponsor-category {
+        font-size: 0.75rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .sponsor-description {
+        color: #94a3b8;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .sponsor-stats {
+        display: flex;
+        gap: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #334155;
+    }
+
+    .stat {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        text-transform: uppercase;
+    }
+
+    .sponsor-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: #94a3b8;
+        border: 1px solid #334155;
+    }
+
+    .btn-secondary:hover {
+        border-color: #3b82f6;
+        color: #fff;
+    }
+
+    .vote-stars {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .vote-star {
+        color: #fbbf24;
+        font-size: 1rem;
+    }
+
+    .vote-star.empty {
+        color: #334155;
+    }
+
+    /* Application Form */
+    .application-section {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 16px;
+        padding: 2rem;
+    }
+
+    .application-section h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .application-section > p {
+        color: #94a3b8;
+        margin-bottom: 2rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #e2e8f0;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: #fff;
+        font-size: 0.875rem;
+        transition: border-color 0.15s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+    }
+
+    .form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .form-help {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #64748b;
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #94a3b8;
+    }
+
+    /* Flash messages */
+    .flash-message {
+        background: #22c55e;
+        color: #000;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .sponsors-page {
+            padding: 1rem;
+        }
+
+        .sponsors-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .charter-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .sponsors-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sponsors-page">
+    <!-- Header -->
+    <div class="sponsors-header">
+        <h1>🤝 Ethical Sponsors</h1>
+        <p>Community-curated partners. No dark patterns. No data harvesting. Just honest products we trust.</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% if request.args.get('success') == 'applied' %}
+    <div class="flash-message">
+        ✓ Application submitted! We'll review within 7 days.
+    </div>
+    {% endif %}
+
+    <!-- Charter Section -->
+    <div class="charter-section">
+        <div class="charter-header">
+            <h2>Our Ethical Charter</h2>
+            <span class="charter-badge">Always Visible</span>
+        </div>
+
+        <div class="charter-grid">
+            <!-- Pricing -->
+            <div class="charter-card">
+                <h3>💰 Simple Pricing</h3>
+                <ul>
+                    <li><strong>$5 per 1,000 clicks</strong> (CPM)</li>
+                    <li><strong>$50 = 10,000 clicks</strong> prepaid</li>
+                    <li>No monthly caps, no hidden fees</li>
+                    <li>Server-side fraud protection</li>
+                </ul>
+                <div class="pricing-highlight">
+                    <p>Cost per click: <strong>$0.005</strong></p>
+                </div>
+            </div>
+
+            <!-- Approved Categories -->
+            <div class="charter-card">
+                <h3>✅ What We Accept</h3>
+                <ul>
+                    <li>Modding tools & utilities</li>
+                    <li>Gaming hardware (peripherals)</li>
+                    <li>Indie game studios</li>
+                    <li>Creative software (3D, textures)</li>
+                    <li>Education platforms</li>
+                    <li>Ethical tech companies</li>
+                </ul>
+            </div>
+
+            <!-- Rejected Categories -->
+            <div class="charter-card rejected">
+                <h3>❌ Hard Nos</h3>
+                <ul>
+                    <li>Cryptocurrency / NFT projects</li>
+                    <li>Gambling or gambling-adjacent</li>
+                    <li>Auto-install software</li>
+                    <li>Subscription traps</li>
+                    <li>Surveillance / stalking tools</li>
+                    <li>Community-flagged harmful products</li>
+                </ul>
+            </div>
+
+            <!-- Ranking -->
+            <div class="charter-card">
+                <h3>📊 Democratic Ranking</h3>
+                <ul>
+                    <li><strong>60% Community Score</strong> - Trust</li>
+                    <li><strong>40% CTR</strong> - Relevance</li>
+                    <li>10+ flags triggers review</li>
+                    <li>Transparent voting (1-5 stars)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sponsor Directory -->
+    <div class="directory-section">
+        <div class="section-header">
+            <h2>🏆 Active Sponsors</h2>
+        </div>
+
+        {% if sponsors %}
+        <div class="sponsors-grid">
+            {% for sponsor in sponsors %}
+            <div class="sponsor-card">
+                <div class="sponsor-card-header">
+                    <div class="sponsor-logo">
+                        {% if sponsor.logo_url %}
+                        <img src="{{ sponsor.logo_url }}" alt="{{ sponsor.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+                        {% else %}
+                        {{ sponsor.name[0]|upper }}
+                        {% endif %}
+                    </div>
+                    <div class="sponsor-info">
+                        <h3>{{ sponsor.name }}</h3>
+                        <span class="sponsor-category">{{ sponsor.category|replace('_', ' ')|title }}</span>
+                    </div>
+                </div>
+
+                <p class="sponsor-description">
+                    {{ sponsor.product_description[:150] }}{% if sponsor.product_description|length > 150 %}...{% endif %}
+                </p>
+
+                <div class="sponsor-stats">
+                    <div class="stat">
+                        <span class="stat-value">
+                            {% if sponsor.community_score > 0 %}
+                                {{ "%.1f"|format(sponsor.community_score) }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </span>
+                        <span class="stat-label">Community Score</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">
+                            {% if sponsor.community_votes > 0 %}
+                                {{ sponsor.community_votes }}
+                            {% else %}
+                                No votes
+                            {% endif %}
+                        </span>
+                        <span class="stat-label">Votes</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ "%.1f"|format(sponsor.ctr) }}%</span>
+                        <span class="stat-label">CTR</span>
+                    </div>
+                </div>
+
+                <div class="sponsor-actions">
+                    <a href="{{ url_for('sponsors.sponsor_detail', sponsor_id=sponsor.id) }}" class="btn btn-primary">
+                        Visit Sponsor
+                    </a>
+                    <button class="btn btn-secondary" onclick="openVoteModal('{{ sponsor.id }}')">
+                        ⭐ Vote
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No Active Sponsors Yet</h3>
+            <p>Be the first! Apply to become a sponsor and help support the community.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Application Form -->
+    <div class="application-section">
+        <h2>📝 Apply to Sponsor</h2>
+        <p>Join our ethical sponsorship program. Review takes 5-7 days.</p>
+
+        <form action="{{ url_for('sponsors.apply_sponsor') }}" method="POST">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="company_name">Company / Product Name *</label>
+                    <input type="text" id="company_name" name="company_name" required
+                           placeholder="e.g., ModCraft Pro">
+                </div>
+
+                <div class="form-group">
+                    <label for="website">Website *</label>
+                    <input type="url" id="website" name="website" required
+                           placeholder="https://example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="contact_email">Contact Email *</label>
+                    <input type="email" id="contact_email" name="contact_email" required
+                           placeholder="you@company.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category *</label>
+                    <select id="category" name="category" required>
+                        <option value="">Select a category...</option>
+                        <option value="modding_tools">Modding Tools & Utilities</option>
+                        <option value="gaming_hardware">Gaming Hardware</option>
+                        <option value="indie_games">Indie Games</option>
+                        <option value="creative_software">Creative Software</option>
+                        <option value="education">Education Platforms</option>
+                        <option value="ethical_tech">Ethical Tech</option>
+                    </select>
+                    <span class="form-help">Must align with our ethical charter</span>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="product_description">Product Description *</label>
+                    <textarea id="product_description" name="product_description" required
+                              placeholder="Describe your product, what it does, and why modders would find it useful..."></textarea>
+                    <span class="form-help">Be clear and honest. No marketing fluff.</span>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="landing_url">Landing Page URL (optional)</label>
+                    <input type="url" id="landing_url" name="landing_url"
+                           placeholder="https://example.com/skymodderai-special">
+                    <span class="form-help">Where should users land after clicking? Include ?ref=skymodderai tracking if you have it.</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; align-items: center;">
+                <button type="submit" class="btn btn-primary">
+                    Submit Application
+                </button>
+                <span class="form-help">
+                    By applying, you agree to our <a href="#" style="color: #3b82f6;">Ethical Charter</a> and <a href="#" style="color: #3b82f6;">Terms of Service</a>.
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Vote Modal -->
+<div id="voteModal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:2rem;max-width:400px;width:90%;">
+        <h3 style="margin-bottom:1rem;">Rate This Sponsor</h3>
+        <p style="color:#94a3b8;margin-bottom:1.5rem;">How much do you trust this sponsor? (1-5 stars)</p>
+        
+        <div class="vote-stars" id="voteStars" style="font-size:2rem;margin-bottom:1.5rem;">
+            <span class="vote-star empty" data-value="1">☆</span>
+            <span class="vote-star empty" data-value="2">☆</span>
+            <span class="vote-star empty" data-value="3">☆</span>
+            <span class="vote-star empty" data-value="4">☆</span>
+            <span class="vote-star empty" data-value="5">☆</span>
+        </div>
+        
+        <div style="display:flex;gap:1rem;">
+            <button class="btn btn-primary" onclick="submitVote()">Submit Vote</button>
+            <button class="btn btn-secondary" onclick="closeVoteModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentSponsorId = null;
+let selectedVote = 0;
+
+function openVoteModal(sponsorId) {
+    currentSponsorId = sponsorId;
+    document.getElementById('voteModal').style.display = 'flex';
+    
+    // Setup star hover effects
+    const stars = document.querySelectorAll('#voteStars .vote-star');
+    stars.forEach(star => {
+        star.onclick = () => {
+            selectedVote = parseInt(star.dataset.value);
+            updateStars();
+        };
+        star.onmouseenter = () => highlightStars(parseInt(star.dataset.value));
+        star.onmouseleave = () => updateStars();
+    });
+}
+
+function closeVoteModal() {
+    document.getElementById('voteModal').style.display = 'none';
+    currentSponsorId = null;
+    selectedVote = 0;
+}
+
+function highlightStars(count) {
+    const stars = document.querySelectorAll('#voteStars .vote-star');
+    stars.forEach((star, i) => {
+        if (i < count) {
+            star.textContent = '★';
+            star.classList.remove('empty');
+        } else {
+            star.textContent = '☆';
+            star.classList.add('empty');
+        }
+    });
+}
+
+function updateStars() {
+    highlightStars(selectedVote);
+}
+
+async function submitVote() {
+    if (selectedVote < 1) {
+        alert('Please select a rating');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/sponsors/${currentSponsorId}/vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ score: selectedVote })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`Thanks for voting! New score: ${result.score}/5 (${result.votes} votes)`);
+            closeVoteModal();
+            location.reload();
+        } else if (result.error && result.error.includes('log in')) {
+            window.location.href = '/login';
+        } else {
+            alert(result.error || 'Vote failed');
+        }
+    } catch (e) {
+        alert('Vote failed. Please try again.');
+    }
+}
+
+// Close modal on outside click
+document.getElementById('voteModal').onclick = (e) => {
+    if (e.target.id === 'voteModal') closeVoteModal();
+};
+</script>
+{% endblock %}

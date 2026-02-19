@@ -32,6 +32,17 @@ def _google_oauth_state_verify(state):
     return verify_state_token(secret_key=config.SECRET_KEY, salt="google-oauth-state", state=state)
 
 
+# Aliases for compatibility
+def google_oauth_init():
+    """Alias for google_oauth_authorize."""
+    return google_oauth_authorize()
+
+
+def github_oauth_init():
+    """Alias for github_oauth_authorize."""
+    return github_oauth_authorize()
+
+
 def google_oauth_authorize():
     """Redirect to Google OAuth consent page."""
     if not config.GOOGLE_OAUTH_ENABLED:

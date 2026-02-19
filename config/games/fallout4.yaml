@@ -1,0 +1,65 @@
+# Fallout 4 Configuration
+# Verified: February 18, 2026
+
+game:
+  id: fallout4
+  name: "Fallout 4"
+  short_name: "FO4"
+  versions:
+    - "1.10.163"  # Latest Next-Gen
+    - "1.10.138"  # Previous
+  default_version: "1.10.163"
+
+tools:
+  mod_managers:
+    - name: "Mod Organizer 2"
+      url: "https://www.nexusmods.com/fallout4/mods/6194"
+      recommended: true
+    - name: "Vortex"
+      url: "https://www.nexusmods.com/site/mods/1"
+      recommended: true
+
+  script_extenders:
+    - name: "F4SE"
+      url: "https://f4se.silverlock.org/"
+      required: false
+      notes: "Not required for most mods"
+
+  essential_tools:
+    - name: "LOOT"
+      url: "https://loot.github.io/"
+      description: "Load order optimization"
+    - name: "FO4Edit"
+      url: "https://www.nexusmods.com/fallout4/mods/27373"
+      description: "Mod editing and cleaning"
+
+essentials:
+  - name: "Unofficial Fallout 4 Patch"
+    short_name: "UFO4P"
+    url: "https://www.nexusmods.com/fallout4/mods/4598"
+    required: true
+    description: "Essential bug fixes"
+
+  - name: "Fallout 4 Script Extender"
+    short_name: "F4SE"
+    url: "https://f4se.silverlock.org/"
+    required: false
+    recommended: true
+    description: "Required for some advanced mods"
+
+paths:
+  appdata: "%LOCALAPPDATA%/Fallout4"
+  plugins_txt: "%LOCALAPPDATA%/Fallout4/plugins.txt"
+  ini: "Fallout4Prefs.ini"
+  saves: "%USERPROFILE%/Documents/My Games/Fallout4/Saves"
+
+community:
+  nexus_slug: "fallout4"
+  subreddits:
+    - "r/fo4mods"
+    - "r/fo4"
+
+notes:
+  - "Next-Gen update (1.10.x) broke some mods"
+  - "Most mods still work with latest version"
+  - "Creation Club content can conflict with mods"

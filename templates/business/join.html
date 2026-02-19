@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join - Business Community</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container" style="max-width: 600px; margin: 3rem auto; padding: 0 2rem;">
+        <h1>Join Free</h1>
+        <p>List your business in our trusted directory.</p>
+        <form method="POST" style="margin-top: 2rem;">
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem;">Company Name</label>
+                <input type="text" name="company_name" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem;">Website</label>
+                <input type="url" name="website" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem;">Category</label>
+                <select name="category" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="primary-button" style="width: 100%;">Submit Application</button>
+        </form>
+        <p style="text-align: center; margin-top: 1rem;"><a href="/business">← Back to Business Hub</a></p>
+    </div>
+</body>
+</html>

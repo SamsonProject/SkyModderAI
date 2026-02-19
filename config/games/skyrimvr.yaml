@@ -1,0 +1,29 @@
+# Skyrim VR Configuration
+game:
+  id: skyrimvr
+  name: "Skyrim VR"
+  short_name: "Skyrim VR"
+  versions: ["1.4.15"]
+  default_version: "1.4.15"
+tools:
+  mod_managers:
+    - name: "Mod Organizer 2"
+      url: "https://www.nexusmods.com/skyrimspecialedition/mods/6194"
+      recommended: true
+  script_extenders:
+    - name: "SKSE64 VR"
+      url: "https://skse.silverlock.org/"
+      required: true
+essentials:
+  - name: "Unofficial Skyrim Special Edition Patch"
+    url: "https://www.nexusmods.com/skyrimspecialedition/mods/266"
+    required: true
+  - name: "VRIK Player Avatar"
+    url: "https://www.nexusmods.com/skyrimspecialedition/mods/40063"
+    recommended: true
+paths:
+  appdata: "%LOCALAPPDATA%/Skyrim VR"
+  ini: "SkyrimVRPrefs.ini"
+community:
+  nexus_slug: "skyrimspecialedition"
+  subreddits: ["r/skyrimvr"]

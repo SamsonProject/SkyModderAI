@@ -1,0 +1,309 @@
+/* Feedback UI Components */
+
+/* Rating Widget */
+.feedback-rating-widget {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background: var(--bg-input);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.feedback-prompt {
+    margin: 0 0 var(--space-sm) 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.star-rating {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.star-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--space-xs);
+    transition: transform 0.15s ease;
+}
+
+.star-btn:hover {
+    transform: scale(1.2);
+}
+
+.star {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    transition: color 0.15s ease;
+}
+
+.star.filled {
+    color: var(--accent-primary);
+}
+
+.feedback-status {
+    margin-top: var(--space-sm);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.feedback-status.success {
+    color: var(--success);
+}
+
+.feedback-status.error {
+    color: var(--error);
+}
+
+/* Feedback Modal */
+.feedback-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.feedback-modal.show {
+    display: flex;
+    opacity: 1;
+}
+
+.feedback-modal-content {
+    background: var(--bg-primary);
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.feedback-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border);
+}
+
+.feedback-modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.feedback-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: var(--space-xs);
+    line-height: 1;
+}
+
+.feedback-close:hover {
+    color: var(--text-primary);
+}
+
+.feedback-modal-body {
+    padding: var(--space-lg);
+}
+
+.form-group {
+    margin-bottom: var(--space-md);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--space-xs);
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-group input[type="checkbox"] {
+    margin-right: var(--space-xs);
+}
+
+.feedback-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border);
+}
+
+.feedback-cancel,
+.feedback-submit {
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.feedback-cancel {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+}
+
+.feedback-cancel:hover {
+    background: var(--bg-secondary);
+}
+
+.feedback-submit {
+    background: var(--accent-primary);
+    border: 1px solid var(--accent-primary);
+    color: white;
+}
+
+.feedback-submit:hover {
+    background: var(--accent-primary-dark);
+}
+
+.feedback-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Feedback Toast */
+.feedback-toast {
+    position: fixed;
+    bottom: var(--space-lg);
+    right: var(--space-lg);
+    background: var(--success);
+    color: white;
+    padding: var(--space-md) var(--space-lg);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    z-index: 10001;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.feedback-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Feedback Button (floating) */
+.feedback-fab {
+    position: fixed;
+    bottom: var(--space-lg);
+    right: var(--space-lg);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.feedback-fab:hover {
+    transform: scale(1.1);
+    background: var(--accent-primary-dark);
+}
+
+/* Analysis Rating (inline) */
+.analysis-rating {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border);
+}
+
+.analysis-rating h4 {
+    margin: 0 0 var(--space-sm) 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.analysis-rating-buttons {
+    display: flex;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-sm);
+}
+
+.analysis-rating-btn {
+    min-width: 40px;
+    height: 40px;
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: all 0.15s ease;
+}
+
+.analysis-rating-btn:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
+.analysis-rating-btn.selected {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .feedback-modal-content {
+        width: 95%;
+        margin: var(--space-md);
+    }
+    
+    .feedback-fab {
+        bottom: var(--space-md);
+        right: var(--space-md);
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+    }
+    
+    .feedback-toast {
+        left: var(--space-md);
+        right: var(--space-md);
+        bottom: var(--space-md);
+    }
+}

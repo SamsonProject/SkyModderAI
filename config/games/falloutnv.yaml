@@ -1,0 +1,30 @@
+# Fallout New Vegas Configuration
+game:
+  id: falloutnv
+  name: "Fallout: New Vegas"
+  short_name: "FNV"
+  versions: ["1.4.0.525"]
+  default_version: "1.4.0.525"
+tools:
+  mod_managers:
+    - name: "Mod Organizer 2"
+      url: "https://www.nexusmods.com/newvegas/mods/6194"
+      recommended: true
+  script_extenders:
+    - name: "NVSE"
+      url: "https://nvse.silverlock.org/"
+      required: false
+essentials:
+  - name: "Yukichigai Unofficial Patch"
+    short_name: "YUP"
+    url: "https://www.nexusmods.com/newvegas/mods/51664"
+    required: true
+  - name: "New Vegas Script Extender"
+    url: "https://nvse.silverlock.org/"
+    recommended: true
+paths:
+  appdata: "%LOCALAPPDATA%/FalloutNV"
+  ini: "FalloutPrefs.ini"
+community:
+  nexus_slug: "newvegas"
+  subreddits: ["r/fo4mods", "r/newvegas"]

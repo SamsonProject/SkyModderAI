@@ -1,0 +1,29 @@
+# Oblivion Configuration
+game:
+  id: oblivion
+  name: "The Elder Scrolls IV: Oblivion"
+  short_name: "Oblivion"
+  versions: ["1.2.0416"]
+  default_version: "1.2.0416"
+tools:
+  mod_managers:
+    - name: "Mod Organizer 2"
+      url: "https://www.nexusmods.com/oblivion/mods/1334"
+      recommended: true
+  script_extenders:
+    - name: "OBSE"
+      url: "http://obse.silverlock.org/"
+      required: false
+essentials:
+  - name: "Unofficial Oblivion Patch"
+    url: "https://www.nexusmods.com/oblivion/mods/52923"
+    required: true
+  - name: "Oblivion Script Extender"
+    url: "http://obse.silverlock.org/"
+    recommended: true
+paths:
+  appdata: "%LOCALAPPDATA%/Oblivion"
+  ini: "OblivionPrefs.ini"
+community:
+  nexus_slug: "oblivion"
+  subreddits: ["r/oblivion"]

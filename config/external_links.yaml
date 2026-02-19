@@ -1,0 +1,257 @@
+# SkyModderAI - External Links Configuration
+# All external URLs should be defined here, not hardcoded in Python files.
+# This allows updating links without code changes.
+
+# Format:
+# category:
+#   key:
+#     url: "https://..."
+#     label: "Display Name"
+#     description: "What this is"
+#     alternatives: (optional list of fallback links)
+
+# =============================================================================
+# Mod Repositories
+# =============================================================================
+repositories:
+  nexus_mods:
+    url: "https://www.nexusmods.com/"
+    label: "Nexus Mods"
+    description: "Primary mod repository for Bethesda games"
+    game_slugs:
+      skyrimse: "skyrimspecialedition"
+      skyrim: "skyrim"
+      skyrimvr: "skyrimspecialedition"
+      oblivion: "oblivion"
+      fallout3: "fallout3"
+      falloutnv: "newvegas"
+      fallout4: "fallout4"
+      starfield: "starfield"
+  
+  bethesda_net:
+    url: "https://bethesda.net/"
+    label: "Bethesda.net"
+    description: "Official Bethesda mod platform"
+    alternatives:
+      - url: "https://nexusmods.com/"
+        label: "Nexus Mods (Recommended)"
+
+# =============================================================================
+# Essential Tools
+# =============================================================================
+tools:
+  loot:
+    url: "https://loot.github.io/"
+    label: "LOOT"
+    description: "Load Order Optimisation Tool"
+    download_url: "https://github.com/loot/loot/releases"
+    docs_url: "https://loot.github.io/docs/"
+  
+  xedit:
+    url: "https://tes5edit.github.io/"
+    label: "xEdit"
+    description: "Mod editing and cleaning tool"
+    download_url: "https://www.nexusmods.com/site/mods/1"
+    docs_url: "https://tes5edit.github.io/docs/"
+    variants:
+      skyrimse: "SSEEdit"
+      skyrim: "TES5Edit"
+      oblivion: "TES4Edit"
+      fallout3: "FO3Edit"
+      falloutnv: "FNVEdit"
+      fallout4: "FO4Edit"
+  
+  wabbajack:
+    url: "https://www.wabbajack.org/"
+    label: "Wabbajack"
+    description: "Automated modlist installer"
+    download_url: "https://www.wabbajack.org/#/download"
+  
+  mod_organizer_2:
+    url: "https://www.nexusmods.com/site/mods/1"
+    label: "Mod Organizer 2"
+    description: "Mod manager"
+    download_url: "https://www.nexusmods.com/site/mods/1"
+    alternatives:
+      - url: "https://www.nexusmods.com/site/mods/1"
+        label: "Vortex"
+
+# =============================================================================
+# Script Extenders
+# =============================================================================
+script_extenders:
+  skse64:
+    url: "https://skse.silverlock.org/"
+    label: "SKSE64"
+    description: "Skyrim Script Extender for SE/VR"
+    game: "skyrimse"
+  
+  skse:
+    url: "https://skse.silverlock.org/"
+    label: "SKSE"
+    description: "Skyrim Script Extender (Legendary Edition)"
+    game: "skyrim"
+  
+  f4se:
+    url: "https://f4se.silverlock.org/"
+    label: "F4SE"
+    description: "Fallout 4 Script Extender"
+    game: "fallout4"
+  
+  nvse:
+    url: "https://nvse.silverlock.org/"
+    label: "NVSE"
+    description: "New Vegas Script Extender"
+    game: "falloutnv"
+  
+  obse:
+    url: "http://obse.silverlock.org/"
+    label: "OBSE"
+    description: "Oblivion Script Extender"
+    game: "oblivion"
+
+# =============================================================================
+# Essential Mods (Cross-Game)
+# =============================================================================
+essential_mods:
+  unofficial_patches:
+    skyrimse:
+      name: "USSEP"
+      url: "https://www.nexusmods.com/skyrimspecialedition/mods/266"
+      description: "Unofficial Skyrim Special Edition Patch"
+    skyrim:
+      name: "USLEEP"
+      url: "https://www.nexusmods.com/skyrim/mods/71214"
+      description: "Unofficial Skyrim Legendary Edition Patch"
+    fallout4:
+      name: "UFO4P"
+      url: "https://www.nexusmods.com/fallout4/mods/4598"
+      description: "Unofficial Fallout 4 Patch"
+    falloutnv:
+      name: "YUP"
+      url: "https://www.nexusmods.com/newvegas/mods/51664"
+      description: "Yukichigai Unofficial Patch"
+    oblivion:
+      name: "UOP"
+      url: "https://www.nexusmods.com/oblivion/mods/52923"
+      description: "Unofficial Oblivion Patch"
+  
+  address_library:
+    skyrimse:
+      name: "Address Library for SKSE"
+      url: "https://www.nexusmods.com/skyrimspecialedition/mods/32444"
+      description: "Required for many SKSE plugins"
+  
+  engine_fixes:
+    skyrimse:
+      name: "Engine Fixes"
+      url: "https://www.nexusmods.com/skyrimspecialedition/mods/17230"
+      description: "Engine bug fixes not covered by USSEP"
+  
+  skyui:
+    skyrimse:
+      name: "SkyUI"
+      url: "https://www.nexusmods.com/skyrimspecialedition/mods/12604"
+      description: "Improved inventory and UI"
+
+# =============================================================================
+# Community Resources
+# =============================================================================
+community:
+  reddit:
+    skyrimmods:
+      url: "https://www.reddit.com/r/skyrimmods/"
+      label: "r/skyrimmods"
+      description: "Skyrim modding community"
+    fo4mods:
+      url: "https://www.reddit.com/r/fo4mods/"
+      label: "r/fo4mods"
+      description: "Fallout 4 modding community"
+    modding:
+      url: "https://www.reddit.com/r/modding/"
+      label: "r/modding"
+      description: "General modding community"
+  
+  discord:
+    skyrim:
+      url: "https://discord.gg/skyrim"
+      label: "Skyrim Discord"
+    modding:
+      url: "https://discord.gg/modding"
+      label: "Modding Discord"
+
+# =============================================================================
+# Learning Resources
+# =============================================================================
+learning:
+  youtube_channels:
+    gopher:
+      url: "https://www.youtube.com/@GopherVids"
+      label: "Gopher"
+      description: "Modding tutorials and guides"
+    gamerpoets:
+      url: "https://www.youtube.com/@GamerPoets"
+      label: "GamerPoets"
+      description: "In-depth modding analysis"
+  
+  wikis:
+    uesp:
+      url: "https://en.uesp.net/"
+      label: "UESP"
+      description: "Unofficial Elder Scrolls Pages"
+    fallout_wiki:
+      url: "https://fallout.wiki/"
+      label: "Fallout Wiki"
+      description: "Fallout community wiki"
+  
+  guides:
+    modding_guides:
+      url: "https://tes5edit.github.io/docs/"
+      label: "xEdit Documentation"
+      description: "Mod editing guides"
+
+# =============================================================================
+# Support & Documentation
+# =============================================================================
+support:
+  github:
+    url: "https://github.com/SamsonProject/SkyModderAI"
+    label: "GitHub"
+    description: "Source code and issue tracker"
+  
+  email:
+    url: "mailto:chris@skymoddereai.com"
+    label: "Email Support"
+    description: "Contact us directly"
+  
+  donate:
+    buymeacoffee:
+      url: "https://www.buymeacoffee.com/skymodder"
+      label: "Buy Me a Coffee"
+      description: "Support the project"
+    patreon:
+      url: "https://www.patreon.com/skymodderai"
+      label: "Patreon"
+      description: "Monthly support"
+      enabled: false  # Set to true when created
+
+# =============================================================================
+# Legal & Policies
+# =============================================================================
+legal:
+  terms:
+    url: "/terms"
+    label: "Terms of Service"
+  
+  privacy:
+    url: "/privacy"
+    label: "Privacy Policy"
+  
+  safety:
+    url: "/safety"
+    label: "Safety Guidelines"
+  
+  license:
+    url: "https://opensource.org/licenses/MIT"
+    label: "MIT License"
+    description: "SkyModderAI is open source"

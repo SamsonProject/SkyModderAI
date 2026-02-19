@@ -1,0 +1,56 @@
+# Education Hub Content Configuration
+
+categories:
+  - id: getting_started
+    label: "Getting Started"
+    description: "New to community marketing? Start here."
+    icon: "🌱"
+    tracks:
+      - What community trust means and why it matters more than reach
+      - How niche audiences differ from mass market audiences
+      - Setting realistic expectations for CPM advertising
+      - Reading your first metrics dashboard
+      - How the trust score works and how to build it
+
+  - id: community_presence
+    label: "Building Community Presence"
+    description: "Beyond ads — how to become part of the community."
+    icon: "🤝"
+    tracks:
+      - How to run an effective AMA with a modding audience
+      - Contributing to the education hub and why it helps your score
+      - Authentic vs transactional sponsorship — the difference users notice
+      - Partnering with mod authors
+      - When to participate in community and when to stay quiet
+
+  - id: metrics_and_data
+    label: "Metrics That Matter"
+    description: "What the numbers actually mean."
+    icon: "📊"
+    tracks:
+      - CTR in niche communities vs mass market benchmarks
+      - Bounce rate interpretation for gaming audiences
+      - How to use demographic data without violating user trust
+      - What a good trust score trajectory looks like
+      - Leading vs lagging indicators for community health
+
+  - id: advanced
+    label: "Advanced Strategy"
+    description: "For businesses ready to go deeper."
+    icon: "🔬"
+    tracks:
+      - Word-of-mouth mechanics in modding communities
+      - Building referral loops through community tools
+      - Long-term relationship vs campaign thinking
+      - How to respond to community flags constructively
+      - Co-marketing with other trusted directory members
+
+  - id: external
+    label: "External Resources"
+    description: "The best thinking from outside SkyModderAI."
+    icon: "🔗"
+    tracks:
+      - Curated links to community marketing literature
+      - Recommended tools for small business analytics
+      - Industry newsletters worth reading
+      - Open source resources for gaming businesses

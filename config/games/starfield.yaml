@@ -1,0 +1,31 @@
+# Starfield Configuration
+game:
+  id: starfield
+  name: "Starfield"
+  short_name: "Starfield"
+  versions: ["1.8.86"]
+  default_version: "1.8.86"
+tools:
+  mod_managers:
+    - name: "Mod Organizer 2"
+      url: "https://www.nexusmods.com/starfield/mods/6194"
+      recommended: true
+  script_extenders:
+    - name: "Starfield Script Extender"
+      url: "https://github.com/ianpatt/sfse"
+      required: false
+essentials:
+  - name: "Starfield Community Patch"
+    url: "https://www.nexusmods.com/starfield/mods/1"
+    required: false
+    recommended: true
+paths:
+  appdata: "%LOCALAPPDATA%/Starfield"
+  ini: "StarfieldPrefs.ini"
+community:
+  nexus_slug: "starfield"
+  subreddits: ["r/starfield", "r/starfieldmods"]
+notes:
+  - "Modding support is still evolving"
+  - "Bethesda officially supports mods"
+  - "Check mod compatibility frequently"

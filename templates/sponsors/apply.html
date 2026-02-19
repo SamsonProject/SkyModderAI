@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Apply to Sponsor{% endblock %}
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 3rem auto; padding: 0 2rem;">
+    <h1>Apply to Sponsor</h1>
+    <p>Ethical, pay-per-click advertising. $5 per 1,000 clicks.</p>
+    <form method="POST" style="margin-top: 2rem;">
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem;">Company Name</label>
+            <input type="text" name="company_name" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+        </div>
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem;">Landing Page URL</label>
+            <input type="url" name="landing_url" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+        </div>
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem;">Category</label>
+            <select name="category" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem;">Description</label>
+            <textarea name="description" rows="4" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;"></textarea>
+        </div>
+        <button type="submit" class="primary-button" style="width: 100%;">Submit Application</button>
+    </form>
+</div>
+{% endblock %}

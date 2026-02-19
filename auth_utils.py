@@ -54,3 +54,23 @@ def verify_state_token(
         return None
     except Exception:
         return None
+
+
+# Aliases for compatibility with existing code
+def generate_verification_token(secret_key: str, email: str) -> str:
+    """Generate a verification token for email confirmation."""
+    s = URLSafeTimedSerializer(secret_key, salt="email-verification")
+    return s.dumps(email)
+
+
+def verify_verification_token(
+    token: str, secret_key: str, max_age: int = 86400
+) -> Optional[str]:
+    """Verify an email verification token. Returns email if valid."""
+    s = URLSafeTimedSerializer(secret_key, salt="email-verification")
+    try:
+        return s.loads(token, max_age=max_age)  # type: ignore[no-any-return]
+    except (BadSignature, SignatureExpired):
+        return None
+    except Exception:
+        return None

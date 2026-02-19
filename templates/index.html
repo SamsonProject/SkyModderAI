@@ -17,7 +17,7 @@
     <link rel="canonical" href="/">
     <meta name="ai-discovery" content="SkyModderAI feed at /ai-feed.json">
     <link rel="alternate" type="application/json" href="/ai-feed.json" title="SkyModderAI AI Feed">
-    <title>SkyModderAI — Your Modding Powerhouse for Bethesda Games</title>
+    <title>SkyModderAI <span class="beta-tag">Beta</span> — Your Modding Powerhouse for Bethesda Games</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.modern.svg">
     <link rel="manifest" href="/manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,6 +28,126 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/style.modern.css">
     <link rel="stylesheet" href="/static/css/centering-fixes.css">
+    <link rel="stylesheet" href="/static/css/style.phase1-additions.css">
+    <style>
+        /* Analysis Header Components */
+        .analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #334155;
+        }
+
+        .analysis-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .analysis-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+        }
+
+        .transparency-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .transparency-toggle:hover {
+            border-color: #3b82f6;
+            color: #fff;
+        }
+
+        .transparency-panel {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .transparency-panel h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1.125rem;
+            color: #e2e8f0;
+        }
+
+        .transparency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .transparency-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .transparency-item-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .transparency-item-value {
+            font-size: 1rem;
+            color: #e2e8f0;
+            margin-top: 0.25rem;
+        }
+
+        .data-source-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #334155;
+            color: #e2e8f0;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            margin: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .analysis-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .analysis-header-actions {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
     <script type="application/ld+json">
     {
@@ -62,6 +182,7 @@
                 <span class="logo-icon logo-icon-rotate" role="img" aria-hidden="true"></span>
                 <div class="logo-text">
                     <h1 class="logo-title">SkyModderAI</h1>
+                    <span class="beta-tag" title="Beta version">Beta</span>
                     <p class="tagline">Built by modders, for modders.</p>
                 </div>
             </a>
@@ -72,6 +193,8 @@
                 <kbd class="header-search-kbd">⌘K</kbd>
             </button>
             <nav class="header-nav">
+                <a href="#community" class="nav-link" style="color: #f59e0b; font-weight: 700;">🔥 Community</a>
+                <a href="/business" class="nav-link">Business</a>
                 {% if session.get('user_email') %}
                 <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
                 <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
@@ -108,8 +231,12 @@
         <main id="main-content">
 
             <div class="main-tabs" role="tablist">
+                <button type="button" class="main-tab" data-tab="community" role="tab" aria-selected="false"
+                    style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25)); border: 2px solid #f59e0b; font-weight: 700;">
+                    🔥 Community
+                </button>
                 <button type="button" class="main-tab active" data-tab="analyze" role="tab"
-                    aria-selected="true">Analyze</button>
+                    aria-selected="true">🔍 Analyze</button>
                 <button type="button" class="main-tab" data-tab="quickstart" role="tab" aria-selected="false">Quick
                     Start</button>
                 <button type="button" class="main-tab" data-tab="build-list" role="tab" aria-selected="false">Build a
@@ -118,14 +245,12 @@
                     aria-selected="false">Library</button>
                 <button type="button" class="main-tab" data-tab="gameplay" role="tab"
                     aria-selected="false">Gameplay</button>
-                <button type="button" class="main-tab" data-tab="community" role="tab"
-                    aria-selected="false">Community</button>
                 <button type="button" class="main-tab main-tab-dev" data-tab="dev" role="tab" aria-selected="false"
                     style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(6, 182, 212, 0.15)); border: 1px solid var(--accent-primary);">
                     🛠️ Mod Authors
                 </button>
             </div>
-            <section class="tool-section tab-panel active" id="panel-analyze" role="tabpanel" aria-hidden="false">
+            <section class="tool-section tab-panel" id="panel-analyze" role="tabpanel" aria-hidden="true">
                 <div class="input-panel">
                     <form id="analyze-form" action="#" method="post" novalidate>
                         <h3 class="input-panel-title">Analyze your mod list</h3>
@@ -252,7 +377,20 @@ Supports:
                 </div>
 
                 <div id="results-panel" class="results-panel hidden">
-                    <h3>Analysis Results</h3>
+                    <div class="analysis-header">
+                        <h3>Analysis Results</h3>
+                        <div class="analysis-header-actions">
+                            <span class="confidence-badge" id="confidence-badge" title="Based on data sources, match rate, and credibility scores">
+                                🎯 <span id="confidence-value">--</span>% Confidence
+                            </span>
+                            <button class="transparency-toggle" id="transparency-toggle-btn" onclick="toggleTransparencyPanel()" title="View analysis methodology">
+                                🔍 How This Was Analyzed
+                            </button>
+                        </div>
+                    </div>
+                    <div id="transparency-panel" class="transparency-panel hidden">
+                        <!-- Transparency details injected by JS -->
+                    </div>
                     <div id="plugin-limit-banner" class="plugin-limit-banner hidden"></div>
                     <div id="ai-summary-section" class="ai-summary-section hidden">
                         <!-- AI Strategic Plan will be injected here -->
@@ -377,6 +515,16 @@ Supports:
                     </div>
                     <div id="chat-section" class="chat-section hidden">
                         <h4>Ask about your results</h4>
+                        
+                        <!-- User Guidance Tag -->
+                        <div class="ai-guidance-tag">
+                            <span class="ai-guidance-icon">💡</span>
+                            <span class="ai-guidance-text">
+                                <strong>Tip:</strong> SkyModderAI works best when conversations stay focused on modding. 
+                                Casual chat is welcome, but may reduce result precision.
+                            </span>
+                        </div>
+                        
                         <div id="chat-messages" class="chat-messages"></div>
                         <form id="chat-form" class="chat-form">
                             <input type="text" id="chat-input" placeholder="e.g. How do I fix the load order for USSEP?"
@@ -630,8 +778,8 @@ Supports:
                 </div>
             </section>
 
-            <!-- Community: robust, no ads ever -->
-            <section class="tab-panel community-panel" id="panel-community" role="tabpanel" aria-hidden="true">
+            <!-- Community: FIRST, robust, no ads ever -->
+            <section class="tab-panel community-panel active" id="panel-community" role="tabpanel" aria-hidden="false">
                 <div class="community-content">
                     <h2 class="community-title">Community</h2>
                     <p class="community-intro">Share tips, ask questions, celebrate a stable load order. We're all here
@@ -722,32 +870,20 @@ Supports:
         </main>
         <!-- Footer -->
         <footer>
-            <p>I've been modding since 2012. Hundreds of mods, one crash, no idea why. This is the tool I built so we
-                don't have to guess anymore. For everyone who keeps coming back to Skyrim, Fallout, Starfield—and the
-                worlds we make our own.</p>
-            <p>Built on LOOT data, enhanced with AI and community knowledge. 
-                <a href="https://github.com/SamsonProject/SkyModderAI" target="_blank"
-                    rel="noopener noreferrer">Open source on GitHub</a>. Not affiliated with Bethesda or LOOT.</p>
-            <div class="footer-resources">
-                <span class="footer-resources-label">Community &amp; tools:</span>
-                <a href="https://www.nexusmods.com/" target="_blank" rel="noopener noreferrer" title="Nexus Mods"><img
-                        src="/static/icons/nexus.svg" alt="" width="20" height="20"> Nexus Mods</a>
-                <a href="https://loot.github.io/" target="_blank" rel="noopener noreferrer" title="LOOT"><img
-                        src="/static/icons/loot.svg" alt="" width="20" height="20"> LOOT</a>
-                <a href="https://tes5edit.github.io/" target="_blank" rel="noopener noreferrer" title="xEdit"><img
-                        src="/static/icons/xedit.svg" alt="" width="20" height="20"> xEdit</a>
-                <a href="https://www.nexusmods.com/skyrimspecialedition/mods/6194" target="_blank"
-                    rel="noopener noreferrer" title="Mod Organizer 2"><img src="/static/icons/mo2.svg" alt="" width="20"
-                        height="20"> MO2</a>
-                <a href="https://www.nexusmods.com/site/mods/1" target="_blank" rel="noopener noreferrer"
-                    title="Vortex"><img src="/static/icons/vortex.svg" alt="" width="20" height="20"> Vortex</a>
-                <a href="https://www.wabbajack.org/" target="_blank" rel="noopener noreferrer" title="Wabbajack"><img
-                        src="/static/icons/wabbajack.svg" alt="" width="20" height="20"> Wabbajack</a>
+            <div class="footer-content">
+                <p class="footer-personal">I've been modding since 2012. Hundreds of mods, one crash, no idea why. This is the tool I built so we don't have to guess anymore. For everyone who keeps coming back to Skyrim, Fallout, Starfield—and the worlds we make our own.</p>
+                <p class="footer-about">Built on LOOT data, enhanced with AI and community knowledge. <a href="https://github.com/SamsonProject/SkyModderAI" target="_blank" rel="noopener noreferrer">Open source on GitHub</a>. Not affiliated with Bethesda or LOOT.</p>
+                <div class="footer-resources">
+                    <span class="footer-resources-label">Community &amp; tools:</span>
+                    <a href="https://www.nexusmods.com/" target="_blank" rel="noopener noreferrer" title="Nexus Mods"><img src="/static/icons/nexus.svg" alt="" width="20" height="20"> Nexus Mods</a>
+                    <a href="https://loot.github.io/" target="_blank" rel="noopener noreferrer" title="LOOT"><img src="/static/icons/loot.svg" alt="" width="20" height="20"> LOOT</a>
+                    <a href="https://tes5edit.github.io/" target="_blank" rel="noopener noreferrer" title="xEdit"><img src="/static/icons/xedit.svg" alt="" width="20" height="20"> xEdit</a>
+                    <a href="https://www.nexusmods.com/skyrimspecialedition/mods/6194" target="_blank" rel="noopener noreferrer" title="Mod Organizer 2"><img src="/static/icons/mo2.svg" alt="" width="20" height="20"> MO2</a>
+                    <a href="https://www.nexusmods.com/site/mods/1" target="_blank" rel="noopener noreferrer" title="Vortex"><img src="/static/icons/vortex.svg" alt="" width="20" height="20"> Vortex</a>
+                    <a href="https://www.wabbajack.org/" target="_blank" rel="noopener noreferrer" title="Wabbajack"><img src="/static/icons/wabbajack.svg" alt="" width="20" height="20"> Wabbajack</a>
+                </div>
+                <p class="footer-links">SkyModderAI © 2026 | <a href="/terms">Terms</a> | <a href="/privacy">Privacy</a> | <a href="/safety">Safety</a> | <a href="/api">API</a> | <a href="mailto:support@skymodderai.com">Support</a> | <a href="tel:+12069157203">(206) 915-7203</a></p>
             </div>
-            <p class="footer-links">SkyModderAI © 2026 | <a href="/terms">Terms</a> | <a href="/privacy">Privacy</a> |
-                <a href="/safety">Safety</a> | <a href="/api">API</a> | <a
-                    href="mailto:support@skymodderai.com">Support</a> | <a href="tel:+12069157203">(206) 915-7203</a>
-            </p>
         </footer>
     </div>
     <button type="button" id="feedback-fab" class="secondary-button"
@@ -845,6 +981,105 @@ Supports:
     <script src="/static/js/modern-ui.js"></script>
     <script src="/static/js/link-architecture.js"></script>
     <script src="/static/js/app.js"></script>
+    
+    <!-- Transparency Panel & Confidence Badge Logic -->
+    <script>
+        // Toggle transparency panel visibility
+        function toggleTransparencyPanel() {
+            const panel = document.getElementById('transparency-panel');
+            const btn = document.getElementById('transparency-toggle-btn');
+            
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                btn.textContent = '🔍 Hide Analysis Details';
+            } else {
+                panel.classList.add('hidden');
+                btn.textContent = '🔍 How This Was Analyzed';
+            }
+        }
+
+        // Update confidence badge display
+        function updateConfidenceBadge(confidence) {
+            const badge = document.getElementById('confidence-badge');
+            const value = document.getElementById('confidence-value');
+            
+            if (confidence !== undefined && confidence !== null) {
+                value.textContent = Math.round(confidence);
+                
+                // Color-code based on confidence level
+                if (confidence >= 80) {
+                    badge.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+                } else if (confidence >= 60) {
+                    badge.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                } else {
+                    badge.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                }
+            } else {
+                value.textContent = '--';
+                badge.style.background = 'linear-gradient(135deg, #64748b, #475569)';
+            }
+        }
+
+        // Render transparency panel content
+        function renderTransparencyPanel(metadata) {
+            const panel = document.getElementById('transparency-panel');
+            
+            if (!metadata) {
+                panel.innerHTML = '<p class="hint">No analysis metadata available.</p>';
+                return;
+            }
+            
+            let html = '<h4>🔍 Analysis Methodology</h4>';
+            html += '<div class="transparency-grid">';
+            
+            // Data sources
+            if (metadata.data_sources && metadata.data_sources.length > 0) {
+                html += '<div class="transparency-item">';
+                html += '<div class="transparency-item-label">Data Sources</div>';
+                html += '<div class="transparency-item-value">';
+                metadata.data_sources.forEach(source => {
+                    html += `<span class="data-source-tag">${source.name || source}</span>`;
+                });
+                html += '</div></div>';
+            }
+            
+            // AI involvement
+            if (metadata.ai_model) {
+                html += '<div class="transparency-item">';
+                html += '<div class="transparency-item-label">AI Model</div>';
+                html += `<div class="transparency-item-value">${metadata.ai_model}</div>`;
+                html += '</div>';
+            }
+            
+            // Analysis duration
+            if (metadata.duration_ms) {
+                html += '<div class="transparency-item">';
+                html += '<div class="transparency-item-label">Analysis Time</div>';
+                html += `<div class="transparency-item-value">${(metadata.duration_ms / 1000).toFixed(2)}s</div>`;
+                html += '</div>';
+            }
+            
+            // Items analyzed
+            if (metadata.items_analyzed) {
+                html += '<div class="transparency-item">';
+                html += '<div class="transparency-item-label">Items Analyzed</div>';
+                html += `<div class="transparency-item-value">${metadata.items_analyzed}</div>`;
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            
+            panel.innerHTML = html;
+        }
+
+        // Keyboard shortcut for transparency panel (Alt+T)
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key === 't') {
+                e.preventDefault();
+                toggleTransparencyPanel();
+            }
+        });
+    </script>
     </body>
 
 </html>

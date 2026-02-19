@@ -1,0 +1,47 @@
+# Fallout: New Vegas Configuration
+# Last Updated: February 2026
+
+game:
+  id: "newvegas"
+  name: "Fallout: New Vegas"
+  short_name: "FNV"
+  version: "1.4.0.525"
+  release_year: 2010
+  platform: ["PC", "Xbox 360", "PlayStation 3"]
+  
+paths:
+  data_folder: "Data"
+  plugins_file: "plugins.txt"
+  ini_file: "Fallout_default.ini"
+  save_folder: "Saves"
+  
+limits:
+  max_plugins: 139
+  plugin_extension: ".esp"
+  light_plugin_extension: ".esm"
+  recommended_load_order: 100
+  note: "4GB patch required for large mod lists"
+  
+modding_tools:
+  script_extender:
+    name: "NVSE"
+    url: "http://nvse.silverlock.org/"
+    required_for: ["script-heavy mods", "UI extensions"]
+  mod_manager:
+    recommended: ["Mod Organizer 2", "Vortex"]
+  essentials:
+    - "New Vegas Script Extender (NVSE)"
+    - "4GB Patch"
+    - "New Vegas Tick Fix"
+    - "Unofficial Patch NVSE"
+    - "xNVSE"
+    
+communities:
+  nexus: "https://www.nexusmods.com/newvegas"
+  reddit: "https://reddit.com/r/falloutnv"
+  discord: "https://discord.gg/newvegas"
+  
+notes:
+  - "Gamebryo engine - stability mods essential"
+  - "Very active modding community"
+  - "TTW (Tale of Two Wastelands) merges with FO3"

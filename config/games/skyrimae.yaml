@@ -1,0 +1,46 @@
+# Skyrim Anniversary Edition Configuration
+# Last Updated: February 2026
+
+game:
+  id: "skyrimae"
+  name: "Skyrim Anniversary Edition"
+  short_name: "Skyrim AE"
+  version: "1.6.1170"
+  release_year: 2021
+  platform: ["PC", "Xbox", "PlayStation"]
+  
+paths:
+  data_folder: "Data"
+  plugins_file: "plugins.txt"
+  ini_file: "SkyrimPrefs.ini"
+  save_folder: "Saves"
+  
+limits:
+  max_plugins: 254
+  plugin_extension: ".esp"
+  light_plugin_extension: ".esl"
+  recommended_load_order: 200
+  
+modding_tools:
+  script_extender:
+    name: "SKSE64"
+    url: "https://skse.silverlock.org/"
+    required_for: ["script-heavy mods", "UI extensions"]
+    note: "Ensure SKSE64 matches game version"
+  mod_manager:
+    recommended: ["Mod Organizer 2", "Vortex"]
+  essentials:
+    - "Address Library for SKSE Plugins"
+    - "Skyrim Script Extender (SKSE64)"
+    - "Unofficial Skyrim Special Edition Patch"
+    - "Skyrim 1.6 Creation Club Content Compatibility"
+    
+communities:
+  nexus: "https://www.nexusmods.com/skyrimspecialedition"
+  reddit: "https://reddit.com/r/skyrim"
+  discord: "https://discord.gg/skyrim"
+  
+notes:
+  - "AE = SE 1.6.x + Creation Club content bundle"
+  - "Many SE mods work but check SKSE dependencies"
+  - "Creation Club content can conflict with some mods"

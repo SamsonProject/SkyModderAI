@@ -1721,6 +1721,129 @@ const CONFLICT_TYPE_LABELS = {
     unknown_mod: 'Unknown mod'
 };
 
+// NEW: Populate transparency panel from metadata
+function populateTransparencyPanel(metadata) {
+    const panel = document.getElementById('transparency-panel');
+    if (!panel || !metadata) return;
+
+    const sources = metadata.data_sources || [];
+    const filters = metadata.filters || [];
+    const ai = metadata.ai_involvement || {};
+    const perf = metadata.performance || {};
+
+    panel.innerHTML = `
+        <div class="transparency-section">
+            <h4>📊 Data Sources</h4>
+            <ul class="transparency-list">
+                ${sources.map(s => `
+                    <li>
+                        <strong>${escapeHtml(s.name)}</strong>
+                        <span class="hint">${escapeHtml(s.description || '')}</span>
+                        ${s.url ? `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener">Learn more ↗</a>` : ''}
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+        <div class="transparency-section">
+            <h4>⚙️ Filters Applied</h4>
+            <ul class="transparency-list">
+                ${filters.map(f => `
+                    <li>
+                        <strong>${escapeHtml(f.name)}</strong>: ${escapeHtml(f.value || 'None')}
+                        <span class="hint">${escapeHtml(f.description || '')}</span>
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+        <div class="transparency-section">
+            <h4>🤖 AI Involvement</h4>
+            <ul class="transparency-list">
+                <li><strong>Conflict Detection:</strong> ${escapeHtml(ai.conflict_detection || 'Deterministic')}</li>
+                <li><strong>Resolution Suggestions:</strong> ${escapeHtml(ai.resolution_suggestions || 'Rule-based')}</li>
+                <li><strong>Tokens Used:</strong> ${ai.tokens_used || 0}</li>
+            </ul>
+        </div>
+        <div class="transparency-section">
+            <h4>⏱️ Performance</h4>
+            <ul class="transparency-list">
+                <li><strong>Duration:</strong> ${(perf.duration_ms || 0).toFixed(2)}ms</li>
+                <li><strong>Items Analyzed:</strong> ${perf.items_analyzed || 0}</li>
+                <li><strong>Conflicts Found:</strong> ${perf.conflicts_found || 0}</li>
+            </ul>
+        </div>
+    `;
+}
+
+// NEW: Display consolidated conflicts (hierarchical)
+function displayConsolidatedConflicts(consolidated) {
+    const container = document.getElementById('conflicts-container');
+    if (!container || !consolidated || !consolidated.groups) return;
+
+    container.innerHTML = '';
+
+    // Display groups hierarchically
+    consolidated.groups.forEach(group => {
+        const groupEl = document.createElement('div');
+        groupEl.className = `conflict-group ${group.severity}`;
+        groupEl.innerHTML = `
+            <div class="conflict-group-header" onclick="toggleConflictGroup('${group.key}')">
+                <span class="conflict-group-icon">${group.severity === 'critical' ? '🔴' : group.severity === 'warning' ? '⚠️' : 'ℹ️'}</span>
+                <span class="conflict-group-title">${escapeHtml(group.title)}</span>
+                <span class="conflict-group-count">(${group.count} issue${group.count > 1 ? 's' : ''})</span>
+                <span class="conflict-group-toggle">${group.has_more ? '▼' : '▶'}</span>
+            </div>
+            <div class="conflict-group-content" id="group-content-${group.key}" style="display: ${group.has_more ? 'none' : 'block'};">
+                ${group.items.map(item => `
+                    <div class="conflict-item ${group.severity}">
+                        <div class="conflict-message">${escapeHtml(item.message || '')}</div>
+                        ${item.suggested_action ? `<div class="conflict-action"><strong>Fix:</strong> ${escapeHtml(item.suggested_action)}</div>` : ''}
+                    </div>
+                `).join('')}
+                ${group.has_more ? `<div class="conflict-more-hint hint">+ ${group.count - 5} more issues (expand to see all)</div>` : ''}
+            </div>
+        `;
+        container.appendChild(groupEl);
+    });
+}
+
+// NEW: Toggle conflict group expand/collapse
+window.toggleConflictGroup = function(groupKey) {
+    const content = document.getElementById(`group-content-${groupKey}`);
+    if (content) {
+        content.style.display = content.style.display === 'none' ? 'block' : 'none';
+    }
+};
+
+// NEW: Toggle transparency panel
+window.toggleTransparencyPanel = function() {
+    const panel = document.getElementById('transparency-panel');
+    if (panel) {
+        panel.classList.toggle('hidden');
+    }
+};
+
+// Fallback to flat display (existing behavior)
+function displayFlatConflicts(data) {
+    const container = document.getElementById('conflicts-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+    const errors = data.conflicts?.errors ?? [];
+    const warnings = data.conflicts?.warnings ?? [];
+    const info = data.conflicts?.info ?? [];
+    const nexusSlug = data.nexus_game_slug || 'skyrimspecialedition';
+
+    if (errors.length) {
+        container.appendChild(createConflictsSection('Errors', 'error', errors, nexusSlug));
+    }
+    if (warnings.length) {
+        container.appendChild(createConflictsSection('Warnings', 'warning', warnings, nexusSlug));
+    }
+    if (info.length) {
+        container.appendChild(createConflictsSection('Info', 'info', info, nexusSlug));
+    }
+}
+
 function createConflictsSection(title, type, conflicts, nexusGameSlug) {
     const section = document.createElement('div');
     section.className = `conflicts-section ${type}`;
@@ -2094,33 +2217,34 @@ async function analyzeModList() {
 
             elements.resultsPanel?.classList.remove('limit-reached');
 
-            // Ensure conflict arrays exist (defensive for API response shape)
-            const errors = data.conflicts?.errors ?? [];
-            const warnings = data.conflicts?.warnings ?? [];
-            const info = data.conflicts?.info ?? [];
-
-            // Clear previous results and results search (fresh analysis = fresh view)
-            elements.conflictsContainer.innerHTML = '';
-            const resultsSearchInput = document.getElementById('results-search-input');
-            if (resultsSearchInput) { resultsSearchInput.value = ''; }
-            const resultsSearchClear = document.getElementById('results-search-clear');
-            if (resultsSearchClear) resultsSearchClear.classList.add('hidden');
-
-            const nexusSlug = data.nexus_game_slug || 'skyrimspecialedition';
-            if (errors.length) {
-                elements.conflictsContainer.appendChild(
-                    createConflictsSection('Errors', 'error', errors, nexusSlug)
-                );
+            // NEW: Populate confidence badge from metadata
+            if (data.metadata && data.metadata.confidence) {
+                const confidenceValue = Math.round(data.metadata.confidence * 100);
+                const confidenceEl = document.getElementById('confidence-value');
+                if (confidenceEl) {
+                    confidenceEl.textContent = confidenceValue;
+                }
+                // Update badge color based on confidence
+                const badgeEl = document.getElementById('confidence-badge');
+                if (badgeEl) {
+                    badgeEl.className = 'confidence-badge confidence-' + 
+                        (confidenceValue >= 80 ? 'high' : confidenceValue >= 60 ? 'medium' : 'low');
+                }
             }
-            if (warnings.length) {
-                elements.conflictsContainer.appendChild(
-                    createConflictsSection('Warnings', 'warning', warnings, nexusSlug)
-                );
+
+            // NEW: Populate transparency panel
+            if (data.metadata) {
+                populateTransparencyPanel(data.metadata);
             }
-            if (info.length) {
-                elements.conflictsContainer.appendChild(
-                    createConflictsSection('Info', 'info', info, nexusSlug)
-                );
+
+            // NEW: Use consolidated conflicts if available
+            const consolidated = data.consolidated;
+            if (consolidated && consolidated.groups) {
+                // Use consolidated hierarchical display
+                displayConsolidatedConflicts(consolidated);
+            } else {
+                // Fallback to flat display
+                displayFlatConflicts(data);
             }
 
             if (errors.length === 0 && warnings.length === 0 && info.length === 0) {

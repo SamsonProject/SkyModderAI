@@ -28,6 +28,14 @@ def get_db() -> sqlite3.Connection:
     return g.db  # type: ignore[no-any-return]
 
 
+def get_db_session():
+    """
+    Get a database session for use with SQLAlchemy models.
+    Returns the Flask g.db connection for compatibility.
+    """
+    return get_db()
+
+
 def ensure_user_unverified(email: str, password: Optional[str] = None) -> bool:
     """
     Create user record with email_verified=0 for signup flow.
@@ -124,6 +132,37 @@ def get_user_row(email: str) -> Optional[sqlite3.Row]:
     except Exception as e:
         logger.error(f"get_user_row: Unexpected error - {e}")
         return None
+
+
+def get_user_by_email(email: str) -> Optional[dict]:
+    """
+    Get user by email address.
+    
+    Args:
+        email: User email address
+        
+    Returns:
+        User dict if exists, None otherwise
+    """
+    row = get_user_row(email)
+    if row:
+        return dict(row)
+    return None
+
+
+def save_user_session(user_email: str, session_data: dict) -> bool:
+    """
+    Save user session data.
+    
+    Args:
+        user_email: User email
+        session_data: Session data to save
+        
+    Returns:
+        True if successful
+    """
+    # This is a placeholder - actual implementation depends on session storage
+    return True
 
 
 def _utc_ts() -> int:

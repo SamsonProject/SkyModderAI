@@ -8,6 +8,10 @@ from .api import api_bp
 from .analysis import analysis_bp
 from .community import community_bp
 from .openclaw import openclaw_bp
+from .feedback import feedback_bp
+from .export import export_bp
+from .sponsors import sponsors_bp
+from .business import business_bp
 
 __all__ = [
     "auth_bp",
@@ -15,4 +19,8 @@ __all__ = [
     "analysis_bp",
     "community_bp",
     "openclaw_bp",
+    "feedback_bp",
+    "export_bp",
+    "sponsors_bp",
+    "business_bp",
 ]

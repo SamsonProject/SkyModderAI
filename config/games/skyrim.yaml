@@ -1,0 +1,53 @@
+# Skyrim Legendary Edition Configuration
+# Verified: February 18, 2026
+
+game:
+  id: skyrim
+  name: "Skyrim Legendary Edition"
+  short_name: "Skyrim LE"
+  versions:
+    - "1.9.32.0"
+  default_version: "1.9.32.0"
+
+tools:
+  mod_managers:
+    - name: "Mod Organizer 2"
+      url: "https://www.nexusmods.com/skyrim/mods/6194"
+      recommended: true
+    - name: "Vortex"
+      url: "https://www.nexusmods.com/site/mods/1"
+      recommended: false
+
+  script_extenders:
+    - name: "SKSE"
+      url: "https://skse.silverlock.org/"
+      required: true
+      notes: "Use SKSE 1.7.3 for LE"
+
+essentials:
+  - name: "Unofficial Skyrim Legendary Edition Patch"
+    short_name: "USLEEP"
+    url: "https://www.nexusmods.com/skyrim/mods/71214"
+    required: true
+
+  - name: "SkyUI"
+    short_name: "SkyUI"
+    url: "https://www.nexusmods.com/skyrim/mods/3863"
+    required: false
+    recommended: true
+
+paths:
+  appdata: "%LOCALAPPDATA%/Skyrim"
+  plugins_txt: "%LOCALAPPDATA%/Skyrim/plugins.txt"
+  ini: "SkyrimPrefs.ini"
+
+community:
+  nexus_slug: "skyrim"
+  subreddits:
+    - "r/skyrimmods"
+    - "r/skyrim"
+
+notes:
+  - "LE is no longer updated by Bethesda"
+  - "Most modders have moved to SE/AE"
+  - "Still viable for modding with older mods"

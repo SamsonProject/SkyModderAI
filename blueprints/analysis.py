@@ -6,6 +6,7 @@ Handles mod list analysis, conflict detection, and recommendations.
 from __future__ import annotations
 
 import logging
+import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from flask import (
@@ -70,6 +71,12 @@ def analyze() -> Any:
         except ValueError as e:
             raise InvalidGameIDError(str(e))
 
+        # Start transparency tracking
+        from transparency_service import get_transparency_service
+        transparency = get_transparency_service()
+        analysis_id = f"analysis_{game}_{int(time.time())}"
+        metadata = transparency.start_analysis(analysis_id)
+
         # Perform analysis
         from conflict_detector import ConflictDetector, parse_mod_list_text
 
@@ -86,6 +93,13 @@ def analyze() -> Any:
         from system_impact import get_system_impact
 
         impact = get_system_impact(mods, game)
+
+        # Complete transparency tracking
+        metadata = transparency.complete_analysis(
+            analysis_id,
+            metadata,
+            analysis_result
+        )
 
         logger.info(
             f"Analysis completed: {len(mods)} mods, {len(analysis_result.get('conflicts', []))} conflicts",
@@ -111,6 +125,7 @@ def analyze() -> Any:
                     "system_impact": impact,
                     "mod_count": len(mods),
                     "game": game,
+                    "transparency": metadata.to_dict() if hasattr(metadata, 'to_dict') else metadata,
                 }
             )
 
@@ -121,6 +136,7 @@ def analyze() -> Any:
             system_impact=impact,
             mod_count=len(mods),
             game=game,
+            transparency=metadata,
         )
 
     except (InvalidModListError, InvalidGameIDError, ValidationError) as e:

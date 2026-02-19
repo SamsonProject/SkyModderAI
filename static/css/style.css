@@ -2122,6 +2122,34 @@ body {
     margin-bottom: var(--space-md);
 }
 
+/* AI Guidance Tag */
+.ai-guidance-tag {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-input);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent-primary);
+    margin-bottom: var(--space-md);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.ai-guidance-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.ai-guidance-text {
+    color: var(--text-secondary);
+}
+
+.ai-guidance-text strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
 .chat-messages {
     min-height: 80px;
     max-height: 280px;

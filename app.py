@@ -53,6 +53,13 @@ from constants import (
     RATE_LIMIT_SEARCH,
     RATE_LIMIT_WINDOW,
 )
+from deterministic_analysis import (
+    analyze_load_order_deterministic,
+    scan_game_folder_deterministic,
+    generate_bespoke_setups_deterministic,
+)
+from result_consolidator import consolidate_conflicts
+from transparency_service import start_analysis, complete_analysis
 from knowledge_index import (
     build_ai_context as build_knowledge_context,
 )
@@ -2970,10 +2977,25 @@ def api_build_list():
 
 
 def _ai_generate_setups(game, preferences, nexus_slug, parser, limit=3, specs=None):
-    """Pro: Generate multiple mod list setups via AI. Returns list of {name, mods, rationale}."""
+    """Pro: Generate multiple mod list setups. Now uses deterministic generation."""
+    specs = specs or {}
+    
+    # Use deterministic generation
+    try:
+        setups = generate_bespoke_setups_deterministic(
+            game=game,
+            preferences=preferences,
+            specs=specs,
+            limit=limit
+        )
+        return setups
+    except Exception as e:
+        logger.debug(f"Deterministic setups failed: {e}")
+    
+    # Fallback to AI if deterministic fails and AI is available
     if not LLM_API_KEY:
         return []
-    specs = specs or {}
+    
     prefs_str = ", ".join(f"{k}={v}" for k, v in preferences.items() if v and v != "any")
     spec_str = ""
     if specs and any(specs.values()):
@@ -4433,6 +4455,11 @@ def analyze_mods():
         if isinstance(specs, dict):
             specs = {k: v for k, v in specs.items() if v}
 
+        # Start transparency tracking
+        import uuid
+        analysis_id = str(uuid.uuid4())
+        metadata = start_analysis(analysis_id)
+
         # Knowledge index: resolutions + esoteric solutions for AI
         knowledge_ctx = build_knowledge_context(
             game_id=game,
@@ -4458,6 +4485,28 @@ def analyze_mods():
             specs=specs,
         )
 
+        # Consolidate conflicts for readability
+        all_conflicts = []
+        for c in err_list + warn_list + info_list:
+            all_conflicts.append({
+                "affected_mod": getattr(c, "affected_mod", ""),
+                "type": getattr(c, "type", "unknown"),
+                "severity": "critical" if c in err_list else "warning" if c in warn_list else "info",
+                "message": str(getattr(c, "message", "")),
+                "suggested_action": getattr(c, "suggested_action", ""),
+                "related_mod": getattr(c, "related_mod", "")
+            })
+        
+        consolidated = consolidate_conflicts(all_conflicts)
+
+        # Complete transparency tracking
+        result = {
+            "mod_list": [m.name for m in mods],
+            "conflicts": all_conflicts,
+            "version_info": {"matched": True, "version": game_version} if game_version else {}
+        }
+        metadata = complete_analysis(analysis_id, metadata, result)
+
         payload = {
             "success": True,
             "mod_count": len(mods),
@@ -4470,6 +4519,8 @@ def analyze_mods():
                 "warnings": [safe_conflict_dict(c) for c in warn_list],
                 "info": [safe_conflict_dict(c) for c in info_list],
             },
+            "consolidated": consolidated.to_dict(),  # NEW: Hierarchical conflict display
+            "metadata": metadata.to_dict(),  # NEW: Transparency data
             "report": detector.format_report()
             + (format_system_impact_report(system_impact) if system_impact else ""),
             "summary": {
@@ -4926,6 +4977,25 @@ def chat():
     mod_list = data.get("mod_list") or []
     deep_context = _get_deep_mod_context(game, message, mod_list)
     community_context = _get_community_intelligence(game, mod_list)
+    
+    # Deterministic Analysis: Run conflict detection and inject results
+    deterministic_context = ""
+    if mod_list:
+        try:
+            analysis = analyze_load_order_deterministic(mod_list, game)
+            if analysis.get("conflicts") or analysis.get("missing_requirements") or analysis.get("load_order_issues"):
+                parts = []
+                if analysis.get("conflicts"):
+                    parts.append(f"  Conflicts detected: {len(analysis['conflicts'])}")
+                if analysis.get("missing_requirements"):
+                    parts.append(f"  Missing requirements: {len(analysis['missing_requirements'])}")
+                if analysis.get("load_order_issues"):
+                    parts.append(f"  Load order issues: {len(analysis['load_order_issues'])}")
+                if analysis.get("recommendations"):
+                    parts.append(f"  Recommendations: {len(analysis['recommendations'])}")
+                deterministic_context = f"Deterministic Analysis (live from database):\n" + "\n".join(parts)
+        except Exception as e:
+            logger.debug(f"Deterministic analysis failed: {e}")
 
     system = (
         "You are the SkyModderAI assistant. Your task: help the user fix their load order and feel confident doing it. "
@@ -4956,6 +5026,8 @@ def chat():
         parts.append(f"Deep LOOT Metadata (Intimate Database):\n{deep_context}")
     if community_context:
         parts.append(community_context)
+    if deterministic_context:
+        parts.append(deterministic_context)
 
     if web_solutions:
         sol_block = "Community solutions (from Reddit/Nexus):\n" + "\n".join(
@@ -5043,6 +5115,16 @@ def scan_game_folder():
     if not tree and not key_files and not plugins:
         return jsonify({"error": "No folder data received. Select or drop your game folder."}), 400
     game_name = next((g["name"] for g in SUPPORTED_GAMES if g["id"] == game), "Skyrim")
+    
+    # Run deterministic analysis first
+    deterministic_findings = {}
+    try:
+        deterministic_findings = scan_game_folder_deterministic(
+            game_path="", game=game, tree=tree, key_files=key_files, plugins=plugins
+        )
+    except Exception as e:
+        logger.debug(f"Deterministic scan failed: {e}")
+    
     from pruning import prune_game_folder_context
 
     tree_pruned, key_files_pruned, _ = prune_game_folder_context(
@@ -5051,17 +5133,25 @@ def scan_game_folder():
     key_block = []
     for path, content in key_files_pruned.items():
         key_block.append(f"--- {path} ---\n{(content or '')}")
-    context = f"""User scanned their {game_name} game folder. Analyze for issues beyond load order.
-
-File count: {file_count}
-Plugins found in Data/: {", ".join(plugins[:80])}{"..." if len(plugins) > 80 else ""}
-
-Folder structure:
-{tree_pruned}
-
-Key config files:
-{chr(10).join(key_block)}
-"""
+    
+    # Build context with deterministic findings injected
+    context_parts = []
+    if deterministic_findings.get("findings"):
+        context_parts.append("Deterministic Scan Results:")
+        for finding in deterministic_findings["findings"]:
+            context_parts.append(f"  - [{finding.get('type', 'issue').upper()}] {finding.get('content')}")
+    if deterministic_findings.get("warnings"):
+        context_parts.append("Warnings:")
+        for warning in deterministic_findings["warnings"]:
+            context_parts.append(f"  - {warning}")
+    
+    context_parts.append(f"\nUser scanned their {game_name} game folder. Analyze for issues beyond load order.")
+    context_parts.append(f"File count: {file_count}")
+    context_parts.append(f"Plugins found in Data/: {", ".join(plugins[:80])}{"..." if len(plugins) > 80 else ""}")
+    context_parts.append(f"\nFolder structure:\n{tree_pruned}")
+    context_parts.append(f"\nKey config files:\n{chr(10).join(key_block)}")
+    
+    context = "\n".join(context_parts)
     system = (
         "You are the SkyModderAI assistant. The user has shared their game folder structure and key files. "
         "Analyze for issues that Mod Organizer / Vortex might not catch: "
@@ -7301,6 +7391,36 @@ def openclaw_models_export():
     except Exception as e:
         logger.exception(f"Dataset export failed: {e}")
         return api_error(f"Export failed: {str(e)}", 500)
+
+
+# =============================================================================
+# Register Blueprints
+# =============================================================================
+
+from blueprints import (
+    auth_bp,
+    api_bp,
+    analysis_bp,
+    community_bp,
+    openclaw_bp,
+    feedback_bp,
+    export_bp,
+    sponsors_bp,
+    business_bp,
+)
+
+# Register all blueprints
+app.register_blueprint(auth_bp)
+app.register_blueprint(api_bp)
+app.register_blueprint(analysis_bp)
+app.register_blueprint(community_bp)
+app.register_blueprint(openclaw_bp)
+app.register_blueprint(feedback_bp)
+app.register_blueprint(export_bp)
+app.register_blueprint(sponsors_bp)
+app.register_blueprint(business_bp)
+
+logger.info("All blueprints registered")
 
 
 if __name__ == "__main__":

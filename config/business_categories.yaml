@@ -1,0 +1,44 @@
+# Business Categories Configuration
+
+approved:
+  - id: modding_tools
+    label: "Modding Tools & Software"
+    description: "Tools that help people mod games"
+
+  - id: gaming_hardware
+    label: "Gaming Hardware"
+    description: "Peripherals, components, rigs"
+
+  - id: indie_studio
+    label: "Indie Game Studio"
+    description: "Independent game developers"
+
+  - id: content_creation
+    label: "Content Creation"
+    description: "Streaming, video, guides, podcasts"
+
+  - id: education
+    label: "Education & Training"
+    description: "Courses, tutorials, certifications"
+
+  - id: ethical_tech
+    label: "Ethical & Sustainable Tech"
+    description: "Companies with environmental or ethical commitments"
+
+  - id: creative_services
+    label: "Creative Services"
+    description: "Art, music, writing for games"
+
+  - id: community_platform
+    label: "Community Platforms"
+    description: "Forums, wikis, Discord tools"
+
+# Hard disqualifications — cannot be overridden
+disqualified:
+  - cryptocurrency_nft
+  - gambling
+  - auto_install_software
+  - subscription_traps
+  - surveillance_tools
+  - adult_content
+  - predatory_monetization

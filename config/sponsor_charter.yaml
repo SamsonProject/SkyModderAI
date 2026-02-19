@@ -1,0 +1,235 @@
+# SkyModderAI - Ethical Sponsor Charter
+
+**Last Updated:** February 18, 2026
+
+---
+
+## System Configuration
+
+```yaml
+system:
+  pricing:
+    cpm_rate: 5.00  # $5 per 1,000 clicks
+    minimum_purchase: 50.00  # $50 minimum (10,000 clicks)
+    currency: "USD"
+    prepaid_model: true
+  
+  storage:
+    max_creatives_per_sponsor: 100  # Configurable limit
+    max_creative_size_mb: 2
+    allowed_formats: ["jpg", "png", "webp", "gif"]
+  
+  fraud_protection:
+    dedup_window_hours: 24
+    fingerprint_fields: ["ip", "user_agent"]
+    hash_algorithm: "sha256"
+  
+  ranking:
+    community_weight: 0.6
+    ctr_weight: 0.4
+    ctr_normalization_max: 5.0  # 5% CTR = 1.0 normalized
+```
+
+---
+
+## Our Promise
+
+SkyModderAI sponsors are **community-curated, ethically-vetted partners**. We believe advertising can be honest, transparent, and actually useful. No dark patterns. No data harvesting. No bullshit.
+
+---
+
+## Pricing: Pay-Per-Click
+
+**Simple, honest pricing:**
+
+| Plan | Clicks | Price | Cost Per Click |
+|------|--------|-------|----------------|
+| Standard | 1,000 | $5 | $0.005 |
+| Bulk | 10,000 | $50 | $0.005 |
+
+**What you get:**
+- Server-side click tracking (fraud-protected)
+- Community ranking (democratic)
+- Category targeting (by game, mod type)
+- Performance dashboard (real-time)
+
+**What you don't get:**
+- Fake clicks (we filter duplicates)
+- Bot traffic (we detect fraud)
+- Hidden fees (what you see is what you pay)
+
+---
+
+## Ethical Charter
+
+### ✅ What We Accept
+
+**Categories:**
+- Modding tools & utilities
+- Gaming hardware (peripherals, components)
+- Indie game studios (Bethesda-style RPGs)
+- Creative software (3D modeling, texture tools)
+- Education platforms (programming, modding tutorials)
+- Environmental/ethical tech companies
+
+**Requirements:**
+- Must be relevant to modding/gaming/creative tools
+- No predatory monetization (loot boxes for kids, etc.)
+- No data harvesting products
+- No subscription traps
+- Clear refund/return policies
+- Respectful of user privacy
+
+### ❌ What We Reject
+
+**Hard nos (regardless of money):**
+- Crypto/NFT projects
+- Gambling (or adjacent)
+- Anything that auto-installs without consent
+- Subscription traps (hidden recurring charges)
+- Surveillance tech (spyware, keyloggers)
+- Known fraud operations
+- Misleading claims ("#1 modding tool" with no basis)
+
+---
+
+## Vetting Process
+
+```
+Application
+    ↓
+Automated Screening
+├─ Domain reputation check
+├─ BBB rating lookup
+├─ Community blacklist scan
+└─ SSL/security audit
+    ↓
+Manual Review (against charter)
+├─ Category check
+├─ Ethical practices review
+└─ Founder approval
+    ↓
+Community Notice (7 days)
+├─ Public listing
+├─ Flag period (anyone can object)
+└─ Vote if contested (10+ flags)
+    ↓
+✅ APPROVED or ❌ REJECTED
+```
+
+**Rejection reasons are private** to the applicant but the fact of rejection isn't weaponized.
+
+---
+
+## Community Ranking
+
+Sponsors are ranked democratically:
+
+**Ranking Formula:**
+```
+ranking_score = (community_score × 0.6) + (normalized_ctr × 0.4)
+```
+
+- **60% Community Score** - Is this sponsor trusted?
+- **40% CTR** - Is this ad relevant to users?
+
+**What this means:**
+- High CTR but low trust (clickbait) → Lower ranking
+- High trust but low CTR (boring but honest) → Decent ranking
+- High trust + high CTR → Top placement
+
+**Community can flag sponsors** at any time. 10+ flags triggers review.
+
+---
+
+## Click Fraud Protection
+
+**We protect sponsors from fraud:**
+
+- **24-hour deduplication** - Same IP+UA can only click once per day
+- **Server-side tracking** - Not client-side (can't be spoofed)
+- **Pattern detection** - Bot-like behavior filtered
+- **Manual review** - Suspicious activity audited
+
+**If we detect fraud:**
+- Click not billed to sponsor
+- User account may be suspended
+- Sponsor notified of filtered clicks
+
+---
+
+## Transparency Dashboard
+
+**Sponsors get:**
+- Real-time impressions
+- Real-time clicks
+- CTR tracking
+- Community score
+- Monthly spend
+- Remaining clicks (for prepaid plans)
+
+**Users get:**
+- Why this sponsor is shown
+- Community score visible
+- Flag button
+- "Learn more" about ethical charter
+
+---
+
+## Privacy Promise
+
+**User data:**
+- Never sold to third parties
+- Only used for relevant sponsor matching
+- Aggregated for analytics (not individual)
+- Deleted on request
+
+**Sponsor data:**
+- Performance metrics private to sponsor
+- Community scores public
+- Billing private
+
+---
+
+## Appeal Process
+
+**Rejected?** You can appeal:
+1. Email appeals@skymoddereai.com
+2. Explain why you believe decision was wrong
+3. We review within 7 days
+4. Decision is final
+
+**Suspended?** Same process, plus:
+- Provide evidence of compliance
+- Fix any violations
+- Re-apply after 30 days
+
+---
+
+## Contact
+
+**Apply to sponsor:** sponsors@skymoddereai.com  
+**Report concern:** report@skymoddereai.com  
+**Appeal decision:** appeals@skymoddereai.com
+
+---
+
+## Legal
+
+This charter is part of our [Terms of Service](/terms) and [Privacy Policy](/privacy).
+
+By sponsoring SkyModderAI, you agree to:
+- This ethical charter
+- Our terms of service
+- Community guidelines
+- Pay-per-click pricing
+
+**We reserve the right to:**
+- Reject any sponsor for any reason
+- Remove sponsors violating charter
+- Adjust pricing with 30 days notice
+- Update charter (community input welcome)
+
+---
+
+**Last word:** We'd rather have 10 ethical sponsors than 100 shady ones. This is a community, not a cash grab.

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Under Construction - SkyModderAI</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 600px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .features {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .features h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .features ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .features li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .features li::before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+
+        .cta {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+        }
+
+        .donation-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .donation-link:hover {
+            text-decoration: underline;
+        }
+
+        .note {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🚧</div>
+        <h1>Under Construction</h1>
+        <p>
+            This feature is currently being built. We're working hard to bring you 
+            something awesome. Check back soon!
+        </p>
+
+        <div class="features">
+            <h2>What's Available Now:</h2>
+            <ul>
+                <li>Full mod compatibility analysis</li>
+                <li>Conflict detection & resolution</li>
+                <li>Load order optimization</li>
+                <li>Professional guide export (PDF/HTML/LaTeX)</li>
+                <li>Community builds & recommendations</li>
+                <li>100% free, no paywalls</li>
+            </ul>
+        </div>
+
+        <div class="cta">
+            <a href="/" class="btn">Go to Main Site</a>
+            <br>
+            <a href="https://www.buymeacoffee.com/skymodder" class="donation-link" target="_blank" rel="noopener">
+                ☕ Support the Project (Buy Me a Coffee)
+            </a>
+        </div>
+
+        <div class="note">
+            <p>
+                <strong>Note:</strong> SkyModderAI is 100% free and open source. 
+                We rely on voluntary donations from users who love the tool. 
+                No paywalls, no premium tiers, no bullshit.
+            </p>
+            <p style="margin-top: 1rem;">
+                Want to suggest a feature? 
+                <a href="mailto:chris@skymoddereai.com" style="color: var(--primary);">Email us</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

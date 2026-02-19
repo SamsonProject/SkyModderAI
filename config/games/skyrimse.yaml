@@ -1,0 +1,81 @@
+# Skyrim Special Edition Configuration
+# Verified: February 18, 2026
+
+game:
+  id: skyrimse
+  name: "Skyrim Special Edition"
+  short_name: "Skyrim SE"
+  versions:
+    - "1.6.1170"  # Latest AE
+    - "1.6.640"   # Previous AE
+    - "1.5.97"    # Last SE (pre-AE)
+  default_version: "1.6.1170"
+
+tools:
+  mod_managers:
+    - name: "Mod Organizer 2"
+      url: "https://www.nexusmods.com/skyrimspecialedition/mods/6194"
+      recommended: true
+    - name: "Vortex"
+      url: "https://www.nexusmods.com/site/mods/1"
+      recommended: false
+
+  script_extenders:
+    - name: "SKSE64"
+      url: "https://skse.silverlock.org/"
+      required: true
+      notes: "Must match game version exactly"
+
+  essential_tools:
+    - name: "LOOT"
+      url: "https://loot.github.io/"
+      description: "Load order optimization"
+    - name: "xEdit (SSEEdit)"
+      url: "https://www.nexusmods.com/skyrimspecialedition/mods/164"
+      description: "Mod editing and cleaning"
+
+essentials:
+  - name: "Unofficial Skyrim Special Edition Patch"
+    short_name: "USSEP"
+    url: "https://www.nexusmods.com/skyrimspecialedition/mods/266"
+    required: true
+    description: "Essential bug fixes"
+
+  - name: "Address Library for SKSE Plugins"
+    short_name: "Address Library"
+    url: "https://www.nexusmods.com/skyrimspecialedition/mods/32444"
+    required: true
+    description: "Required for many SKSE plugins"
+
+  - name: "Engine Fixes"
+    short_name: "Engine Fixes"
+    url: "https://www.nexusmods.com/skyrimspecialedition/mods/17230"
+    required: false
+    recommended: true
+    description: "Engine bug fixes not covered by USSEP"
+
+  - name: "SkyUI"
+    short_name: "SkyUI"
+    url: "https://www.nexusmods.com/skyrimspecialedition/mods/12604"
+    required: false
+    recommended: true
+    description: "Improved inventory and UI"
+
+paths:
+  appdata: "%LOCALAPPDATA%/Skyrim Special Edition"
+  plugins_txt: "%LOCALAPPDATA%/Skyrim Special Edition/plugins.txt"
+  ini: "SkyrimPrefs.ini"
+  saves: "%USERPROFILE%/Documents/My Games/Skyrim Special Edition/Saves"
+
+community:
+  nexus_slug: "skyrimspecialedition"
+  subreddits:
+    - "r/skyrimmods"
+    - "r/skyrim"
+  discords:
+    - "Skyrim Modding Community"
+
+notes:
+  - "SKSE64 version must match game version exactly"
+  - "AE (1.6.x) broke many SKSE plugins - check compatibility"
+  - "Downgrade to 1.5.97 possible but not recommended for new users"

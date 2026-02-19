@@ -1,0 +1,46 @@
+# Fallout 4 VR Configuration
+# Last Updated: February 2026
+
+game:
+  id: "fallout4vr"
+  name: "Fallout 4 VR"
+  short_name: "FO4 VR"
+  version: "1.4.11"
+  release_year: 2017
+  platform: ["PC VR", "PlayStation VR"]
+  
+paths:
+  data_folder: "Data"
+  plugins_file: "plugins.txt"
+  ini_file: "Fallout4VR.ini"
+  save_folder: "Saves"
+  
+limits:
+  max_plugins: 254
+  plugin_extension: ".esp"
+  light_plugin_extension: ".esl"
+  recommended_load_order: 150
+  vr_performance_note: "VR requires more conservative modding"
+  
+modding_tools:
+  script_extender:
+    name: "F4SE VR"
+    url: "http://f4se.silverlock.org/"
+    required_for: ["VR-specific mods", "script extensions"]
+  mod_manager:
+    recommended: ["Mod Organizer 2"]
+  essentials:
+    - "Fallout 4 VR Script Extender"
+    - "Address Library for F4SE Plugins (VR)"
+    - "Unofficial Fallout 4 Patch"
+    - "Fallout 4 VR Input Fixes"
+    
+communities:
+  nexus: "https://www.nexusmods.com/fallout4"
+  reddit: "https://reddit.com/r/fo4vr"
+  discord: "https://discord.gg/fallout4vr"
+  
+notes:
+  - "Based on pre-NG Fallout 4 - better mod compatibility"
+  - "Many flat FO4 mods work with VR input fixes"
+  - "VR performance considerations apply"

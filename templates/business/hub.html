@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Community - SkyModderAI</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container" style="max-width: 900px; margin: 3rem auto; padding: 0 2rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">🏢 Business Community</h1>
+        <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 2rem;">Free directory + Paid advertising. Trust-ranked, community-verified.</p>
+        
+        <!-- Red Box - Business is Approachable -->
+        <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1)); padding: 2rem; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.3); margin-bottom: 2rem;">
+            <h2 style="margin-bottom: 1rem; color: #d97706;">🌱 New to Community Marketing?</h2>
+            <p style="line-height: 1.6; margin-bottom: 1rem;">
+                If you've ever optimized a crafting supply chain in Fallout — balancing material costs, haul routes, 
+                and production timing under real constraints — or carefully sourced and forged a set of armor piece 
+                by piece, making tradeoffs at every step, you already understand operations. More than you think.
+            </p>
+            <p style="line-height: 1.6; font-weight: 600;">
+                The skills that make a great modder and the skills that make a great operator have more in common 
+                than most people realize. <strong style="color: #d97706;">The directory is free. Take a look.</strong>
+            </p>
+        </div>
+        
+        <!-- Two Paths: Directory (Free) + Advertising (Paid) -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Free Directory -->
+            <div style="background: var(--bg-secondary); padding: 2rem; border-radius: 12px; border: 2px solid var(--success);">
+                <h3 style="margin-bottom: 0.5rem; color: var(--success);">📖 Free Directory</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">List your business for free. Get discovered by modders.</p>
+                <ul style="margin-bottom: 1.5rem; line-height: 1.8;">
+                    <li>✅ Free forever</li>
+                    <li>✅ Trust-ranked</li>
+                    <li>✅ Community-verified</li>
+                    <li>✅ No paid tiers</li>
+                </ul>
+                <a href="/business/directory" class="primary-button" style="display: block; text-align: center; background: var(--success);">Browse Directory →</a>
+                <a href="/business/join" class="secondary-button" style="display: block; text-align: center; margin-top: 1rem;">Join Free →</a>
+            </div>
+            
+            <!-- Paid Advertising -->
+            <div style="background: var(--bg-secondary); padding: 2rem; border-radius: 12px; border: 2px solid #f59e0b;">
+                <h3 style="margin-bottom: 0.5rem; color: #f59e0b;">📢 Advertising</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Promote your business. Pay only for clicks.</p>
+                <ul style="margin-bottom: 1.5rem; line-height: 1.8;">
+                    <li>💰 $5 per 1,000 clicks</li>
+                    <li>💰 $50 for 10,000 clicks</li>
+                    <li>💰 Fraud-protected</li>
+                    <li>💰 Performance dashboard</li>
+                </ul>
+                <a href="/business/advertising" class="primary-button" style="display: block; text-align: center; background: #f59e0b;">View Pricing →</a>
+                <a href="/sponsors/apply" class="secondary-button" style="display: block; text-align: center; margin-top: 1rem;">Apply to Advertise →</a>
+            </div>
+        </div>
+        
+        <!-- Education Hub -->
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+            <h2 style="margin-bottom: 1rem;">📚 Education Hub</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Learn community marketing that actually works.</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                {% for cat in categories %}
+                <div style="background: var(--bg-primary); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
+                    <h4 style="margin-bottom: 0.5rem;">{{ cat.icon }} {{ cat.label }}</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">{{ cat.description }}</p>
+                    <a href="/business/hub/{{ cat.id }}" class="secondary-button" style="display: inline-block; font-size: 0.85rem;">Browse →</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <footer style="text-align: center; padding: 2rem; color: var(--text-secondary); margin-top: 3rem; border-top: 1px solid var(--border);">
+            <p>SkyModderAI © 2026 | <a href="/terms">Terms</a> | <a href="/privacy">Privacy</a> | <a href="/business">Business</a></p>
+        </footer>
+    </div>
+</body>
+</html>

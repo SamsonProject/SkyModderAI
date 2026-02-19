@@ -12,6 +12,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -361,6 +362,181 @@ class ConflictStat(Base):
     __table_args__ = (
         UniqueConstraint("game", "mod_a", "mod_b", "conflict_type", name="uq_conflict_stat"),
     )
+
+
+# =============================================================================
+# Reliability & Credibility Models
+# =============================================================================
+
+
+class SourceCredibility(Base):
+    """Source credibility tracking for reliability weighting."""
+
+    __tablename__ = "source_credibility"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source_url = Column(String(500), unique=True, nullable=False)
+    source_type = Column(String(50), nullable=False)  # nexus, reddit, forum, github, youtube
+    
+    # Credibility scores (0.0-1.0)
+    overall_score = Column(Float, default=0.5)
+    source_credibility = Column(Float, default=0.5)
+    content_freshness = Column(Float, default=0.5)
+    community_validation = Column(Float, default=0.5)
+    technical_accuracy = Column(Float, default=0.5)
+    author_reputation = Column(Float, default=0.5)
+    
+    # Metadata
+    confidence = Column(Float, default=0.0)
+    game_version = Column(String(50), nullable=True)
+    content_type = Column(String(50), nullable=True)  # mod, guide, fix, news
+    
+    # Tracking
+    last_verified = Column(DateTime, nullable=True)
+    verification_count = Column(Integer, default=0)
+    flags = Column(Text, nullable=True)  # JSON array of flags
+    
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        import json
+        return {
+            "source_url": self.source_url,
+            "source_type": self.source_type,
+            "overall_score": round(self.overall_score, 3) if self.overall_score else None,
+            "confidence": round(self.confidence, 3) if self.confidence else None,
+            "dimensions": {
+                "source_credibility": round(self.source_credibility, 3) if self.source_credibility else None,
+                "content_freshness": round(self.content_freshness, 3) if self.content_freshness else None,
+                "community_validation": round(self.community_validation, 3) if self.community_validation else None,
+                "technical_accuracy": round(self.technical_accuracy, 3) if self.technical_accuracy else None,
+                "author_reputation": round(self.author_reputation, 3) if self.author_reputation else None,
+            },
+            "flags": json.loads(self.flags) if self.flags else [],
+            "last_verified": self.last_verified.isoformat() if self.last_verified else None,
+        }
+
+
+class KnowledgeSource(Base):
+    """Indexed knowledge source with version tagging and categorization."""
+
+    __tablename__ = "knowledge_sources"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source_url = Column(String(500), nullable=False)
+    title = Column(String(500), nullable=False)
+    content_hash = Column(String(64), nullable=True)  # SHA256 of content
+    
+    # Version tagging (rigorous)
+    game = Column(String(50), nullable=False)  # skyrimse, fallout4, etc.
+    game_version = Column(String(50), nullable=True)  # 1.6.1170, etc.
+    mod_version = Column(String(50), nullable=True)
+    
+    # Categorization (AI-discoverable)
+    category = Column(String(100), nullable=True)
+    subcategory = Column(String(100), nullable=True)
+    tags = Column(Text, nullable=True)  # JSON array
+    
+    # Reliability
+    credibility_id = Column(Integer, ForeignKey("source_credibility.id"), nullable=True)
+    credibility = relationship("SourceCredibility", backref="knowledge_sources")
+    
+    # Content summary (shorthand, not full content)
+    summary = Column(Text, nullable=True)
+    key_points = Column(Text, nullable=True)  # JSON array of key points
+    
+    # Linking
+    conflicts_with = Column(Text, nullable=True)  # JSON array of mod IDs
+    requires = Column(Text, nullable=True)  # JSON array of requirements
+    compatible_with = Column(Text, nullable=True)  # JSON array
+    
+    # Deviation tracking
+    deviation_flags = Column(Text, nullable=True)  # JSON array
+    is_standard_approach = Column(Boolean, default=True)
+    
+    # Status
+    status = Column(String(50), default="active")  # active, trash, archived
+    trash_reason = Column(String(200), nullable=True)
+    
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+    last_accessed = Column(DateTime, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("source_url", "game", name="uq_knowledge_source"),
+    )
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        import json
+        return {
+            "id": self.id,
+            "source_url": self.source_url,
+            "title": self.title,
+            "game": self.game,
+            "game_version": self.game_version,
+            "category": self.category,
+            "subcategory": self.subcategory,
+            "tags": json.loads(self.tags) if self.tags else [],
+            "summary": self.summary,
+            "key_points": json.loads(self.key_points) if self.key_points else [],
+            "credibility": self.credibility.to_dict() if self.credibility else None,
+            "deviation_flags": json.loads(self.deviation_flags) if self.deviation_flags else [],
+            "is_standard_approach": self.is_standard_approach,
+            "status": self.status,
+        }
+
+
+class TrashBinItem(Base):
+    """Quarantined items pending review/deletion."""
+
+    __tablename__ = "trash_bin"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    item_type = Column(String(50), nullable=False)  # knowledge_source, conflict, category
+    item_id = Column(Integer, nullable=True)
+    original_data = Column(Text, nullable=False)  # JSON of original data
+    
+    # Reason for trashing
+    reason = Column(String(200), nullable=False)
+    auto_classified = Column(Boolean, default=False)
+    
+    # Actions taken
+    action_taken = Column(String(50), default="quarantine")  # quarantine, compacted, re-routed
+    action_data = Column(Text, nullable=True)  # JSON of action result
+    
+    # Review
+    reviewed = Column(Boolean, default=False)
+    reviewed_at = Column(DateTime, nullable=True)
+    reviewed_by = Column(String(255), nullable=True)  # user email or "system"
+    
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    expires_at = Column(DateTime, nullable=True)  # Auto-delete after this date
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        import json
+        return {
+            "id": self.id,
+            "item_type": self.item_type,
+            "item_id": self.item_id,
+            "reason": self.reason,
+            "auto_classified": self.auto_classified,
+            "action_taken": self.action_taken,
+            "reviewed": self.reviewed,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "expires_at": self.expires_at.isoformat() if self.expires_at else None,
+        }
 
 
 # =============================================================================
