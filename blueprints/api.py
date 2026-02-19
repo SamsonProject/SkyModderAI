@@ -256,13 +256,15 @@ def normalize_modlist() -> Any:
 
     Request Body:
         {
-            "mod_list": "string"
+            "mod_list": "string",
+            "game": "string"  # optional, default: "skyrimse"
         }
 
     Response:
         {
             "success": true,
             "normalized": "string",
+            "mod_count": number,
             "suggestions": [...]
         }
     """
@@ -272,23 +274,43 @@ def normalize_modlist() -> Any:
             raise ValidationError("Request body required")
 
         mod_list = data.get("mod_list", "")
+        game = data.get("game", "skyrimse")
+        
         if not mod_list:
             raise InvalidModListError()
 
         mod_list = validate_mod_list(mod_list)
 
-        # Normalize mod list
-        from conflict_detector import parse_mod_list_text
+        try:
+            game = validate_game_id(game)
+        except ValueError as e:
+            raise InvalidGameIDError(str(e))
+
+        # Normalize mod list and generate fuzzy suggestions
+        from conflict_detector import parse_mod_list_text, ConflictDetector
 
         mods = parse_mod_list_text(mod_list)
         normalized = "\n".join(mod["name"] for mod in mods if mod.get("enabled", True))
+
+        # Generate fuzzy matching suggestions for potentially misspelled mods
+        suggestions = []
+        detector = ConflictDetector(game)
+        for mod in mods:
+            if mod.get("enabled", True):
+                suggestion = detector.parser.get_fuzzy_suggestion(mod["name"])
+                if suggestion:
+                    suggestions.append({
+                        "original": mod["name"],
+                        "suggested": suggestion,
+                        "reason": "Possible typo or alternative name",
+                    })
 
         return jsonify(
             {
                 "success": True,
                 "normalized": normalized,
                 "mod_count": len(mods),
-                "suggestions": [],  # TODO: Add fuzzy matching suggestions
+                "suggestions": suggestions,
             }
         )
 

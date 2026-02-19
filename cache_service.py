@@ -44,20 +44,27 @@ except ImportError:
 
 class MemoryCache:
     """In-memory cache fallback when Redis is unavailable."""
-    
+
     def __init__(self):
         self._cache: Dict[str, Any] = {}
         self._expiry: Dict[str, float] = {}
-    
+        self._stats = {"hits": 0, "misses": 0}
+
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache."""
         import time
         if key in self._expiry and time.time() > self._expiry[key]:
             del self._cache[key]
             del self._expiry[key]
+            self._stats["misses"] += 1
             return None
-        return self._cache.get(key)
-    
+        value = self._cache.get(key)
+        if value is not None:
+            self._stats["hits"] += 1
+        else:
+            self._stats["misses"] += 1
+        return value
+
     def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
         """Set value in cache with TTL (seconds)."""
         import time
@@ -90,7 +97,7 @@ class MemoryCache:
 
 class RedisCache:
     """Redis-backed cache with serialization."""
-    
+
     def __init__(self, host: str = 'localhost', port: int = 6379, db: int = 0, password: Optional[str] = None):
         """Initialize Redis connection."""
         self._client = redis.Redis(
@@ -102,8 +109,9 @@ class RedisCache:
             socket_connect_timeout=5,
             socket_timeout=5
         )
+        self._stats = {"hits": 0, "misses": 0}
         self._test_connection()
-    
+
     def _test_connection(self):
         """Test Redis connection."""
         try:
@@ -112,18 +120,21 @@ class RedisCache:
         except redis.ConnectionError as e:
             logger.warning(f"Redis connection failed: {e}. Falling back to memory cache.")
             raise
-    
+
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache."""
         try:
             value = self._client.get(key)
             if value is None:
+                self._stats["misses"] += 1
                 return None
+            self._stats["hits"] += 1
             return json.loads(value)
         except Exception as e:
             logger.debug(f"Cache get error for {key}: {e}")
+            self._stats["misses"] += 1
             return None
-    
+
     def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
         """Set value in cache with TTL (seconds)."""
         try:
@@ -260,17 +271,25 @@ class CacheService:
     def rate_limit(self, key: str, limit: int, window: int) -> tuple:
         """
         Check and update rate limit counter.
-        
+
         Returns:
             (allowed: bool, current_count: int, reset_time: int)
         """
         import time
         current_time = int(time.time())
         window_key = f"ratelimit:{key}:{current_time // window}"
-        
+
         current = self._cache.increment(window_key)
         if current == 1:
             self._cache.expire(window_key, window)
+
+    def get_stats(self) -> Dict[str, int]:
+        """Get cache hit/miss statistics."""
+        return self._cache._stats.copy()
+
+    def reset_stats(self) -> None:
+        """Reset cache statistics."""
+        self._cache._stats = {"hits": 0, "misses": 0}
         
         allowed = current <= limit
         reset_time = ((current_time // window) + 1) * window - current_time

@@ -43,7 +43,7 @@
                 <div class="nav-links">
                     <a href="{{ url_for('index') }}" class="nav-link">Analysis</a>
                     <a href="{{ url_for('community.community_index') }}" class="nav-link">Community</a>
-                    <a href="{{ url_for('sponsors.sponsors_list') }}" class="nav-link">Sponsors</a>
+                    <a href="{{ url_for('business.hub_landing') }}" class="nav-link">Business</a>
                     <a href="{{ url_for('api_hub') }}" class="nav-link">API</a>
                     {% if current_user %}
                         <a href="{{ url_for('profile') }}" class="nav-link nav-link-user">Profile</a>
@@ -80,7 +80,7 @@
                     <ul>
                         <li><a href="{{ url_for('index') }}">Analysis</a></li>
                         <li><a href="{{ url_for('community.community_index') }}">Community</a></li>
-                        <li><a href="{{ url_for('sponsors.sponsors_index') }}">Sponsors</a></li>
+                        <li><a href="{{ url_for('business.hub_landing') }}">Business</a></li>
                         <li><a href="{{ url_for('api_hub') }}">API</a></li>
                     </ul>
                 </div>

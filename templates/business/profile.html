@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ business.name }} - SkyModderAI Business</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container" style="max-width: 900px; margin: 3rem auto; padding: 0 2rem;">
+        <!-- Business Header -->
+        <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border);">
+            {% if business.logo_url %}
+            <img src="{{ business.logo_url }}" alt="{{ business.name }}" style="width: 100px; height: 100px; object-fit: contain;">
+            {% endif %}
+            <div style="flex: 1;">
+                <h1 style="margin-bottom: 0.5rem;">{{ business.name }}</h1>
+                {% if business.tagline %}
+                <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 1rem;">{{ business.tagline }}</p>
+                {% endif %}
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    {% if trust.trust_score %}
+                    <span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 4px 12px; border-radius: 4px; font-weight: 600;">
+                        🏅 {{ trust.trust_score }}/100 - {{ trust.trust_tier|title }}
+                    </span>
+                    {% endif %}
+                    {% if business.verified %}
+                    <span style="background: var(--success); color: white; padding: 4px 12px; border-radius: 4px; font-weight: 600;">
+                        ✓ Verified
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <a href="{{ business.website }}" target="_blank" rel="noopener" class="primary-button">
+                    Visit Website ↗
+                </a>
+                {% if can_connect %}
+                <button type="button" class="secondary-button" onclick="requestConnection()" style="margin-top: 0.5rem;">
+                    🤝 Request Introduction
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Business Info -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            <!-- Main Content -->
+            <div>
+                <h2 style="margin-bottom: 1rem;">About</h2>
+                <p style="line-height: 1.6; color: var(--text-secondary);">{{ business.description or 'No description available.' }}</p>
+                
+                {% if business.secondary_categories %}
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Categories</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    <span style="background: var(--bg-secondary); padding: 6px 12px; border-radius: 4px; font-size: 0.9rem;">
+                        {{ business.primary_category|replace('_', ' ')|title }}
+                    </span>
+                    {% for cat in business.secondary_categories %}
+                    <span style="background: var(--bg-secondary); padding: 6px 12px; border-radius: 4px; font-size: 0.9rem;">
+                        {{ cat|replace('_', ' ')|title }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if business.relevant_games %}
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Relevant Games</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    {% for game in business.relevant_games %}
+                    <span style="background: var(--bg-secondary); padding: 6px 12px; border-radius: 4px; font-size: 0.9rem;">
+                        {{ game|replace('_', ' ')|title }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Sidebar -->
+            <div>
+                <!-- Trust Score Breakdown -->
+                {% if trust.trust_score %}
+                <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">🏅 Trust Score Breakdown</h3>
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Community Votes</span>
+                            <span>{{ (trust.components.community_votes * 100)|round(0) }}%</span>
+                        </div>
+                        <div style="background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="background: var(--success); height: 100%; width: {{ (trust.components.community_votes * 100)|round(0) }}%;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Longevity</span>
+                            <span>{{ (trust.components.longevity * 100)|round(0) }}%</span>
+                        </div>
+                        <div style="background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="background: var(--primary); height: 100%; width: {{ (trust.components.longevity * 100)|round(0) }}%;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Total Votes</span>
+                            <span>{{ trust.stats.total_votes }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Positive Votes</span>
+                            <span>{{ trust.stats.positive_votes }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Months Active</span>
+                            <span>{{ trust.stats.months_active }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Contact -->
+                {% if business.public_contact_method != 'form' %}
+                <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px;">
+                    <h3 style="margin-bottom: 1rem;">📧 Contact</h3>
+                    {% if business.public_contact_method == 'email' %}
+                    <a href="mailto:{{ business.public_contact_value }}" style="display: block; color: var(--primary); text-decoration: none; margin-bottom: 0.5rem;">
+                        ✉️ {{ business.public_contact_value }}
+                    </a>
+                    {% elif business.public_contact_method == 'discord' %}
+                    <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">Discord: <strong>{{ business.public_contact_value }}</strong></p>
+                    {% elif business.public_contact_method == 'twitter' %}
+                    <a href="https://twitter.com/{{ business.public_contact_value }}" target="_blank" style="display: block; color: var(--primary); text-decoration: none;">
+                        🐦 @{{ business.public_contact_value }}
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Voting -->
+        {% if can_vote %}
+        <div style="background: var(--bg-secondary); padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem;">⭐ Rate This Business</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Help the community by sharing your experience.</p>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                {% for i in range(1, 6) %}
+                <button type="button" class="secondary-button" onclick="vote({{ i }})" style="flex: 1; padding: 1rem; font-size: 1.5rem;">
+                    {{ ['⭐', '⭐⭐', '⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐⭐⭐'][i-1] }}
+                </button>
+                {% endfor %}
+            </div>
+            <textarea id="vote-context" placeholder="Why did you give this rating? (optional)" rows="3" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem;"></textarea>
+            <button type="button" class="primary-button" onclick="submitVote()">Submit Rating</button>
+        </div>
+        {% endif %}
+        
+        <!-- Flag -->
+        <div style="text-align: center; padding: 1rem; border-top: 1px solid var(--border);">
+            <button type="button" class="secondary-button" onclick="toggleFlagForm()" style="font-size: 0.85rem; color: var(--text-secondary);">
+                ⚠️ Report this business
+            </button>
+            <div id="flag-form" style="display: none; margin-top: 1rem; text-align: left; background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px;">
+                <h4 style="margin-bottom: 1rem;">Report Business</h4>
+                <select id="flag-reason" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem;">
+                    <option value="spam">Spam or misleading information</option>
+                    <option value="scam">Scam or fraudulent activity</option>
+                    <option value="inappropriate">Inappropriate content</option>
+                    <option value="other">Other</option>
+                </select>
+                <textarea id="flag-detail" placeholder="Please provide details..." rows="3" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem;"></textarea>
+                <button type="button" class="primary-button" onclick="submitFlag()" style="background: var(--error);">Submit Report</button>
+            </div>
+        </div>
+        
+        <footer style="text-align: center; padding: 2rem; color: var(--text-secondary); margin-top: 3rem; border-top: 1px solid var(--border);">
+            <p>SkyModderAI © 2026 | <a href="/terms">Terms</a> | <a href="/privacy">Privacy</a> | <a href="/business">Business</a></p>
+        </footer>
+    </div>
+    
+    <script>
+        const businessId = '{{ business.id }}';
+        
+        function vote(score) {
+            // Highlight selected rating
+            document.querySelectorAll('.vote-btn').forEach((btn, i) => {
+                btn.style.background = i < score ? 'var(--primary)' : 'var(--bg-secondary)';
+                btn.style.color = i < score ? 'white' : 'var(--text-primary)';
+            });
+        }
+        
+        function submitVote() {
+            const context = document.getElementById('vote-context').value;
+            const selectedRating = document.querySelector('.vote-btn[style*="white"]');
+            if (!selectedRating) {
+                alert('Please select a rating');
+                return;
+            }
+            const score = parseInt(selectedRating.textContent.replace('⭐', '')) || 1;
+            
+            fetch('/business/api/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ business_id: businessId, score: score, context: context })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Thank you for your rating!');
+                    location.reload();
+                } else {
+                    alert('Failed to submit rating: ' + data.error);
+                }
+            });
+        }
+        
+        function toggleFlagForm() {
+            const form = document.getElementById('flag-form');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function submitFlag() {
+            const reason = document.getElementById('flag-reason').value;
+            const detail = document.getElementById('flag-detail').value;
+            
+            fetch('/business/api/flag', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ business_id: businessId, reason: reason, detail: detail })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Thank you for your report. We\'ll review it shortly.');
+                    location.reload();
+                } else {
+                    alert('Failed to submit report: ' + data.error);
+                }
+            });
+        }
+        
+        function requestConnection() {
+            const message = prompt('Introduce yourself and explain why you\'d like to connect:');
+            if (!message) return;
+            
+            fetch('/business/api/connect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ target_id: businessId, message: message })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Connection request sent! They\'ll be notified via email.');
+                } else {
+                    alert('Failed to send request: ' + data.error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

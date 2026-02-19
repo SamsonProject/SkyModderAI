@@ -373,3 +373,132 @@ def refresh_session() -> Any:
 
     flash("Session refreshed.", "success")
     return redirect(url_for("index"))
+
+
+# =============================================================================
+# Password Reset
+# =============================================================================
+
+@auth_bp.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    """Request password reset email."""
+    from constants import PASSWORD_RESET_TOKEN_MAX_AGE
+    from db import create_password_reset_token, get_user_by_email
+    from itsdangerous import URLSafeTimedSerializer
+    import secrets
+    import time
+
+    if request.method == "POST":
+        data = request.get_json(silent=True) or request.form
+        email = data.get("email", "").strip().lower()
+
+        if not email:
+            if request.is_json:
+                return jsonify({"error": "Email is required"}), 400
+            flash("Email is required", "error")
+            return render_template("forgot-password.html")
+
+        # Check if user exists
+        user = get_user_by_email(email)
+        if not user:
+            # Don't reveal if email exists - show success either way
+            if request.is_json:
+                return jsonify({"success": True, "message": "If that email exists, we've sent a reset link."})
+            flash("If that email exists, we've sent a password reset link.", "info")
+            return render_template("forgot-password-sent.html")
+
+        # Generate reset token
+        secret_key = current_app.config["SECRET_KEY"]
+        s = URLSafeTimedSerializer(secret_key, salt="password-reset")
+        token = s.dumps({"email": email, "rnd": secrets.token_hex(16)})
+
+        # Calculate expiry timestamp
+        expires_at = int(time.time()) + PASSWORD_RESET_TOKEN_MAX_AGE
+
+        # Store token in database
+        create_password_reset_token(email, token, expires_at)
+
+        # Send email (if configured)
+        try:
+            reset_link = url_for("auth.reset_password", token=token, _external=True)
+            # Email sending would go here if SMTP is configured
+            logger.info(f"Password reset requested for {email}: {reset_link}")
+        except Exception as e:
+            logger.error(f"Failed to create reset link: {e}")
+
+        if request.is_json:
+            return jsonify({"success": True, "message": "If that email exists, we've sent a reset link."})
+        flash("If that email exists, we've sent a password reset link.", "info")
+        return render_template("forgot-password-sent.html")
+
+    # GET - show form
+    return render_template("forgot-password.html")
+
+
+@auth_bp.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    """Reset password with token from email."""
+    from constants import PASSWORD_RESET_TOKEN_MAX_AGE
+    from db import get_password_reset_token, reset_user_password, use_password_reset_token
+    from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+
+    token = request.args.get("token", "")
+    if not token:
+        flash("Missing reset token", "error")
+        return redirect(url_for("auth.forgot_password"))
+
+    # Verify token signature
+    secret_key = current_app.config["SECRET_KEY"]
+    s = URLSafeTimedSerializer(secret_key, salt="password-reset")
+    try:
+        token_data = s.loads(token, max_age=PASSWORD_RESET_TOKEN_MAX_AGE)
+        email = token_data.get("email")
+    except (BadSignature, SignatureExpired):
+        flash("Invalid or expired reset link", "error")
+        return redirect(url_for("auth.forgot_password"))
+
+    if not email:
+        flash("Invalid reset link", "error")
+        return redirect(url_for("auth.forgot_password"))
+
+    # Verify token exists in database and is valid
+    token_row = get_password_reset_token(token)
+    if not token_row:
+        flash("Invalid or expired reset link", "error")
+        return redirect(url_for("auth.forgot_password"))
+
+    if request.method == "POST":
+        data = request.get_json(silent=True) or request.form
+        password = data.get("password", "")
+        confirm = data.get("confirm_password", "")
+
+        # Validate password
+        if len(password) < 8:
+            if request.is_json:
+                return jsonify({"error": "Password must be at least 8 characters"}), 400
+            flash("Password must be at least 8 characters", "error")
+            return render_template("reset-password.html", token=token)
+
+        if password != confirm:
+            if request.is_json:
+                return jsonify({"error": "Passwords do not match"}), 400
+            flash("Passwords do not match", "error")
+            return render_template("reset-password.html", token=token)
+
+        # Reset password
+        if reset_user_password(email, password):
+            # Invalidate the token
+            use_password_reset_token(token)
+
+            if request.is_json:
+                return jsonify({"success": True, "message": "Password reset successfully"})
+            flash("Password reset successfully. Please log in.", "success")
+            return redirect(url_for("auth.login"))
+        else:
+            if request.is_json:
+                return jsonify({"error": "Failed to reset password"}), 500
+            flash("Failed to reset password. Please try again.", "error")
+
+    # GET - show form
+    return render_template("reset-password.html", token=token, email=email)
+

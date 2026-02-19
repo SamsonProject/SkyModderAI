@@ -150,19 +150,147 @@ def get_user_by_email(email: str) -> Optional[dict]:
     return None
 
 
-def save_user_session(user_email: str, session_data: dict) -> bool:
+def save_user_session(
+    email: str,
+    user_agent: str = "",
+    remember: bool = False,
+) -> bool:
     """
-    Save user session data.
-    
+    Save user session data to the database.
+    Creates a new session token and stores it for device management.
+
     Args:
-        user_email: User email
-        session_data: Session data to save
-        
+        email: User email
+        user_agent: User agent string from request
+        remember: If True, use longer session lifetime
+
     Returns:
-        True if successful
+        True if successful, False otherwise
     """
-    # This is a placeholder - actual implementation depends on session storage
-    return True
+    try:
+        # Use existing session_create function which handles all the logic
+        token, _ = session_create(email, remember_me=remember, user_agent=user_agent)
+        
+        if token:
+            # Store token in Flask session for immediate use
+            from flask import session
+            session["session_token"] = token
+            return True
+        return False
+    except Exception as e:
+        logger.error(f"save_user_session: Failed to save session - {e}")
+        return False
+
+
+def create_password_reset_token(email: str, token: str, expires_at: int) -> bool:
+    """
+    Create a password reset token for the given email.
+
+    Args:
+        email: User email address
+        token: Secure random token string
+        expires_at: Unix timestamp when token expires
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        db = get_db()
+        # Invalidate any existing tokens for this email
+        db.execute("UPDATE password_reset_tokens SET used = 1 WHERE email = ?", (email.lower(),))
+        # Create new token
+        db.execute(
+            "INSERT INTO password_reset_tokens (email, token, expires_at) VALUES (?, ?, ?)",
+            (email.lower(), token, expires_at)
+        )
+        db.commit()
+        return True
+    except sqlite3.Error as e:
+        logger.error(f"create_password_reset_token: Database error - {e}")
+        return False
+    except Exception as e:
+        logger.error(f"create_password_reset_token: Unexpected error - {e}")
+        return False
+
+
+def get_password_reset_token(token: str) -> Optional[sqlite3.Row]:
+    """
+    Get a password reset token if valid and not expired.
+
+    Args:
+        token: Token string to look up
+
+    Returns:
+        Token row if valid and not expired, None otherwise
+    """
+    try:
+        db = get_db()
+        import time
+        now = int(time.time())
+        row = db.execute(
+            """SELECT email, token, expires_at, used 
+               FROM password_reset_tokens 
+               WHERE token = ? AND expires_at > ? AND used = 0""",
+            (token, now)
+        ).fetchone()
+        return row
+    except sqlite3.Error as e:
+        logger.error(f"get_password_reset_token: Database error - {e}")
+        return None
+    except Exception as e:
+        logger.error(f"get_password_reset_token: Unexpected error - {e}")
+        return None
+
+
+def use_password_reset_token(token: str) -> bool:
+    """
+    Mark a password reset token as used.
+
+    Args:
+        token: Token string to invalidate
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        db = get_db()
+        db.execute("UPDATE password_reset_tokens SET used = 1 WHERE token = ?", (token,))
+        db.commit()
+        return db.total_changes > 0
+    except sqlite3.Error as e:
+        logger.error(f"use_password_reset_token: Database error - {e}")
+        return False
+    except Exception as e:
+        logger.error(f"use_password_reset_token: Unexpected error - {e}")
+        return False
+
+
+def reset_user_password(email: str, new_password: str) -> bool:
+    """
+    Reset a user's password.
+
+    Args:
+        email: User email address
+        new_password: New password to set
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        db = get_db()
+        pwhash = generate_password_hash(new_password, method="pbkdf2:sha256")
+        db.execute(
+            "UPDATE users SET password_hash = ?, last_updated = CURRENT_TIMESTAMP WHERE email = ?",
+            (pwhash, email.lower())
+        )
+        db.commit()
+        return db.total_changes > 0
+    except sqlite3.Error as e:
+        logger.error(f"reset_user_password: Database error - {e}")
+        return False
+    except Exception as e:
+        logger.error(f"reset_user_password: Unexpected error - {e}")
+        return False
 
 
 def _utc_ts() -> int:

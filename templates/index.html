@@ -193,7 +193,7 @@
                 <kbd class="header-search-kbd">⌘K</kbd>
             </button>
             <nav class="header-nav">
-                <a href="#community" class="nav-link" style="color: #f59e0b; font-weight: 700;">🔥 Community</a>
+                <a href="#panel-community" class="nav-link" style="color: #f59e0b; font-weight: 700;">🔥 Community</a>
                 <a href="/business" class="nav-link">Business</a>
                 {% if session.get('user_email') %}
                 <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
@@ -888,6 +888,25 @@ Supports:
     </div>
     <button type="button" id="feedback-fab" class="secondary-button"
         style="position:fixed;right:18px;bottom:18px;z-index:40;">Feedback</button>
+    
+    <script>
+        // Handle Community link in header
+        document.querySelectorAll('a[href="#panel-community"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Find and click the Community tab button
+                const communityTab = document.querySelector('.main-tab[data-tab="community"]');
+                if (communityTab) {
+                    communityTab.click();
+                }
+                // Scroll to community panel
+                const panel = document.getElementById('panel-community');
+                if (panel) {
+                    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
     <div id="feedback-modal" class="modal hidden" aria-hidden="true">
         <div class="modal-backdrop" id="feedback-modal-backdrop"></div>
         <div class="modal-content">
@@ -933,10 +952,11 @@ Supports:
                 If it saved you time or headaches, consider supporting:
             </p>
             <div class="donation-amounts">
-                <button type="button" class="donation-amount" data-amount="5">$5 — Coffee</button>
+                <button type="button" class="donation-amount" data-amount="5">$5 — Mead</button>
                 <button type="button" class="donation-amount" data-amount="10">$10 — Lunch</button>
                 <button type="button" class="donation-amount" data-amount="20">$20 — Keeps the lights on</button>
                 <button type="button" class="donation-amount" data-amount="50">$50 — You're amazing</button>
+                <button type="button" class="donation-amount" data-amount="100">$100 — Legendary</button>
             </div>
             <form id="checkout-form">
                 <label for="checkout-email">Email (for receipt)</label>
@@ -951,9 +971,13 @@ Supports:
             </form>
             <div class="donation-alternatives">
                 <p>Other ways to support:</p>
-                <a href="https://patreon.com/skymodderai" target="_blank" rel="noopener">Patreon (monthly)</a> ·
-                <a href="https://github.com/sponsors/samsonproject" target="_blank" rel="noopener">GitHub Sponsors</a> ·
-                <a href="https://paypal.me/skymodderai" target="_blank" rel="noopener">PayPal</a>
+                <ul>
+                    <li>⭐ Star the repo on GitHub</li>
+                    <li>📢 Tell your friends</li>
+                    <li>🐛 Report bugs</li>
+                    <li>💡 Suggest features</li>
+                </ul>
+                <p class="hint" style="margin-top: 1rem;">Your donation pays for servers, APIs, and my mead budget. Thank you. 🍯</p>
             </div>
         </div>
     </div>

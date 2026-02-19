@@ -106,9 +106,19 @@ class TransparencyService:
             "duration_ms": round(duration_ms, 2),
             "items_analyzed": len(result.get("mod_list", [])),
             "conflicts_found": len(result.get("conflicts", [])),
-            "cache_hits": 0,  # Will be updated by cache service
+            "cache_hits": 0,
             "cache_misses": 0
         }
+
+        # Get cache stats from cache service
+        try:
+            from cache_service import get_cache
+            cache = get_cache()
+            stats = cache.get_stats()
+            metadata.performance["cache_hits"] = stats.get("hits", 0)
+            metadata.performance["cache_misses"] = stats.get("misses", 0)
+        except Exception as e:
+            logger.debug(f"Could not get cache stats: {e}")
         
         # Calculate confidence
         metadata.confidence = self._calculate_confidence(result, metadata)
