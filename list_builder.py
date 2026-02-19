@@ -1,12 +1,18 @@
 """
 List Builder — Preference-based mod list generation.
 Standard options for all users; Pro: AI-generated multiple setups.
+
+All mod suggestions come from:
+1. LOOT data (search engine)
+2. Community builds (user-submitted, voted)
+3. User preferences mapped to search terms
+
+No hardcoded mod recommendations.
 """
 
 import logging
 from typing import Any, Dict, List, Optional
 
-from mod_recommendations import _CURATED_TOP_PICKS
 from search_engine import get_search_engine
 
 logger = logging.getLogger(__name__)
@@ -447,10 +453,20 @@ def build_list_from_preferences(
                 if len(out) >= limit:
                     return out[:limit]
 
-    # 3) Fallback: curated top picks (category -> list of search terms)
-    curated = _CURATED_TOP_PICKS.get(game, {})
-    for category, terms in list(curated.items())[:4]:
-        for term in (terms or [])[:2]:
+    # 3) Fallback: Search for popular mods by category
+    # No hardcoded recommendations - search LOOT data for common categories
+    category_searches = {
+        "utility": ["patch", "fix", "unofficial", "skyui", "skse", "loot", "xedit"],
+        "visuals": ["texture", "lighting", "weather", "enb"],
+        "gameplay": ["perk", "combat", "magic", "skill"],
+        "content": ["quest", "dungeon", "lands", "follower"],
+    }
+    for category, search_terms in category_searches.items():
+        if len(out) >= limit:
+            break
+        for term in search_terms[:3]:
+            if len(out) >= limit:
+                break
             for r in engine.search(term, limit=2):
                 name = r.mod_name
                 if not _is_plugin(name):
@@ -462,7 +478,7 @@ def build_list_from_preferences(
                 out.append(
                     {
                         "name": name,
-                        "reason": f"Top {category}",
+                        "reason": f"Popular {category}",
                         "nexus_url": nexus_base + _url_enc(name),
                         "image_url": MOD_PLACEHOLDER,
                     }

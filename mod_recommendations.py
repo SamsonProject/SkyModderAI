@@ -1,6 +1,7 @@
 """
 LOOT-Based Mod Suggestions — Only LOOT-sourced missing requirements and companion mods.
 No affiliate recommendations, no "popular" mods, no marketing suggestions.
+No hardcoded curation — all suggestions come from actual LOOT data and community builds.
 """
 
 import logging
@@ -8,46 +9,14 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-# Curated top picks per game — used as fallback by list_builder.py
-# These are well-known, stable mods for each game when no LOOT data is available
-_CURATED_TOP_PICKS = {
-    "skyrimse": {
-        "utility": ["unofficial patch", "skyui", "cutting room floor", "engine fixes"],
-        "design": ["smim", "noble skyrim", "cbbe", "cathedral weathers"],
-        "fun": ["ordinator", "alternate start", "relationship dialogue", "immersive creatures"],
-        "environmental": ["dyndolod", "obsidian weathers", "immersive citizens", "open cities"],
-    },
-    "skyrim": {
-        "utility": ["unofficial patch", "skyui", "cutting room floor"],
-        "design": ["smim", "noble skyrim", "cbbe"],
-        "fun": ["ordinator", "alternate start", "immersive creatures"],
-        "environmental": ["dyndolod", "immersive citizens"],
-    },
-    "skyrimvr": {
-        "utility": ["unofficial patch", "skyui", "vrik", "spell wheel"],
-        "design": ["smim", "vrik", "cbbe"],
-        "fun": ["vrik", "spell wheel", "alternate start"],
-        "environmental": ["dyndolod", "obsidian weathers"],
-    },
-    "fallout4": {
-        "utility": ["unofficial patch", "armor keywords", "sim settlements"],
-        "design": ["cvc", "enhanced lights", "body"],
-        "fun": ["sim settlements", "start me up", "weapon"],
-        "environmental": ["true storms", "vivid weathers", "better settlers"],
-    },
-    "falloutnv": {
-        "utility": ["yup", "nvac", "mod configuration"],
-        "design": ["nvr", "character"],
-        "fun": ["jsawyer", "weapon mods", "project nevada"],
-        "environmental": ["nvr", "weather", "settlements"],
-    },
-    "starfield": {
-        "utility": ["community patch", "starfield script"],
-        "design": ["texture", "character"],
-        "fun": ["grav jump", "ship"],
-        "environmental": ["weather", "planet"],
-    },
-}
+# NOTE: No hardcoded mod recommendations here.
+# All mod suggestions now come from:
+# 1. LOOT data (requirements, load_after rules)
+# 2. Community builds (user-submitted, voted)
+# 3. User's own mod list analysis
+#
+# See community_builds.py for the community-driven build database.
+# See /api/community-builds for browsing and submitting builds.
 
 
 def get_loot_based_suggestions(

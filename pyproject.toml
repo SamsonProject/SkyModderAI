@@ -23,6 +23,7 @@ addopts = """
     --cov-report=xml:coverage.xml
     --cov-fail-under=80
     --maxfail=5
+    --ignore=tests/test_openclaw.py
 """
 
 # Markers

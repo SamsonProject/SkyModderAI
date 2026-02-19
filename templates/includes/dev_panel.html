@@ -75,7 +75,7 @@
                         <button type="button" class="compat-tab-btn active" data-tab="search" style="padding: var(--space-sm) var(--space-md); background: var(--accent-primary); color: white; border: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer; font-weight: 600;">🔍 Search</button>
                         <button type="button" class="compat-tab-btn" data-tab="paste" style="padding: var(--space-sm) var(--space-md); background: var(--bg-input); color: var(--text-primary); border: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer;">📋 Paste List</button>
                         <button type="button" class="compat-tab-btn" data-tab="import" style="padding: var(--space-sm) var(--space-md); background: var(--bg-input); color: var(--text-primary); border: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer;">📁 Import File</button>
-                        <button type="button" class="compat-tab-btn" data-tab="popular" style="padding: var(--space-sm) var(--space-md); background: var(--bg-input); color: var(--text-primary); border: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer;">⭐ Popular Mods</button>
+                        <button type="button" class="compat-tab-btn" data-tab="community" style="padding: var(--space-sm) var(--space-md); background: var(--bg-input); color: var(--text-primary); border: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer;">🔥 Community Builds</button>
                     </div>
 
                     <!-- Search Tab -->
@@ -106,44 +106,28 @@
                         <button type="button" id="compat-add-file-btn" class="secondary-button" style="margin-top: var(--space-sm);">📁 Import and Add Mods</button>
                     </div>
 
-                    <!-- Popular Mods Tab -->
-                    <div id="compat-tab-popular" class="compat-tab-content" style="display: none;">
-                        <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Quick Add Popular Mods:</label>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--space-xs); max-height: 300px; overflow-y: auto; padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm);">
-                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                                <input type="checkbox" class="popular-mod" value="USSEP.esp" checked> 
-                                <span>USSEP.esp (Unofficial Patch)</span>
-                            </label>
-                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                                <input type="checkbox" class="popular-mod" value="SkyUI.esp"> 
-                                <span>SkyUI.esp</span>
-                            </label>
-                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                                <input type="checkbox" class="popular-mod" value="Ordinator - Perks of Skyrim.esp"> 
-                                <span>Ordinator (Perk Overhaul)</span>
-                            </label>
-                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                                <input type="checkbox" class="popular-mod" value="Immersive Citizens - AI Overhaul.esp"> 
-                                <span>Immersive Citizens (AI)</span>
-                            </label>
-                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                                <input type="checkbox" class="popular-mod" value="Open Cities Skyrim.esp"> 
-                                <span>Open Cities Skyrim</span>
-                            </label>
-                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                                <input type="checkbox" class="popular-mod" value="Alternate Start - Live Another Life.esp"> 
-                                <span>Alternate Start</span>
-                            </label>
-                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                                <input type="checkbox" class="popular-mod" value="Address Library for SKSE Plugins.esp"> 
-                                <span>Address Library (SKSE)</span>
-                            </label>
-                            <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs); cursor: pointer;">
-                                <input type="checkbox" class="popular-mod" value="SSE Display Tweaks.esp"> 
-                                <span>SSE Display Tweaks</span>
-                            </label>
+                    <!-- Community Builds Tab -->
+                    <div id="compat-tab-community" class="compat-tab-content" style="display: none;">
+                        <label style="display: block; margin-bottom: var(--space-xs); font-size: 0.9rem; color: var(--text-secondary);">Browse Community Builds:</label>
+                        <div style="margin-bottom: var(--space-sm);">
+                            <select id="community-build-game" style="padding: var(--space-sm); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); width: 100%;">
+                                <option value="">Select a game...</option>
+                                <option value="skyrimse">Skyrim SE</option>
+                                <option value="skyrim">Skyrim LE</option>
+                                <option value="skyrimvr">Skyrim VR</option>
+                                <option value="fallout4">Fallout 4</option>
+                                <option value="falloutnv">Fallout New Vegas</option>
+                                <option value="fallout3">Fallout 3</option>
+                                <option value="oblivion">Oblivion</option>
+                                <option value="starfield">Starfield</option>
+                            </select>
                         </div>
-                        <button type="button" id="compat-add-popular-btn" class="secondary-button" style="margin-top: var(--space-sm);">➕ Add Selected Popular Mods</button>
+                        <div id="community-builds-list" style="max-height: 400px; overflow-y: auto; padding: var(--space-sm); background: var(--bg-input); border-radius: var(--radius-sm);">
+                            <p style="color: var(--text-secondary); text-align: center; padding: var(--space-md);">Select a game to browse community-submitted builds. Builds are free, community-curated, and not for sale.</p>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: var(--space-xs);">
+                            💡 <strong>Note:</strong> These builds are submitted by the community. Some are seeded from popular Wabbajack/Nexus lists and will be replaced as users submit their own.
+                        </p>
                     </div>
                 </div>
 
@@ -535,13 +519,69 @@ document.addEventListener('DOMContentLoaded', function() {
         reader.readAsText(file);
     });
 
-    // Popular Mods - Add selected popular mods
-    document.getElementById('compat-add-popular-btn')?.addEventListener('click', function() {
-        const checkboxes = document.querySelectorAll('.popular-mod:checked');
-        checkboxes.forEach(cb => selectedMods.add(cb.value));
-        updateSelectedModsDisplay();
-        alert(`Added ${checkboxes.length} popular mod(s) to test list!`);
+    // Community Builds - Load builds for selected game
+    const communityBuildGameSelect = document.getElementById('community-build-game');
+    const communityBuildsListEl = document.getElementById('community-builds-list');
+    
+    communityBuildGameSelect?.addEventListener('change', async function() {
+        const game = this.value;
+        if (!game) {
+            communityBuildsListEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: var(--space-md);">Select a game to browse community-submitted builds.</p>';
+            return;
+        }
+        
+        communityBuildsListEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: var(--space-xl);">Loading community builds...</p>';
+        
+        try {
+            const response = await fetch(`/api/community-builds?game=${game}&limit=20`);
+            const data = await response.json();
+            
+            if (data.builds && data.builds.length > 0) {
+                communityBuildsListEl.innerHTML = data.builds.map(build => `
+                    <div style="padding: var(--space-md); background: var(--bg-dark); border-radius: var(--radius-sm); margin-bottom: var(--space-md); border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-sm);">
+                            <h4 style="margin: 0; color: var(--text-primary);">${build.name}</h4>
+                            <div style="display: flex; gap: var(--space-xs); align-items: center;">
+                                <span style="font-size: 0.85rem; color: var(--text-secondary);">👍 ${build.upvotes || 0}</span>
+                                <span style="font-size: 0.85rem; color: var(--text-secondary);">👎 ${build.downvotes || 0}</span>
+                            </div>
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: var(--space-sm);">${build.description}</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-sm);">
+                            <span style="font-size: 0.75rem; padding: var(--space-xs) var(--space-sm); background: var(--accent-primary); color: white; border-radius: 9999px;">${build.mod_count || '?'} mods</span>
+                            <span style="font-size: 0.75rem; padding: var(--space-xs) var(--space-sm); background: var(--bg-input); color: var(--text-secondary); border-radius: 9999px;">${build.performance_tier || 'mid'}</span>
+                            ${(build.playstyle_tags || []).slice(0, 3).map(tag => 
+                                `<span style="font-size: 0.75rem; padding: var(--space-xs) var(--space-sm); background: var(--bg-card); color: var(--text-secondary); border-radius: 9999px;">${tag.replace(/_/g, ' ')}</span>`
+                            ).join('')}
+                            ${build.is_seed ? '<span style="font-size: 0.75rem; padding: var(--space-xs) var(--space-sm); background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-radius: 9999px;" title="Seeded from popular free modlist">🌱 Seed</span>' : ''}
+                        </div>
+                        <div style="display: flex; gap: var(--space-xs); flex-wrap: wrap;">
+                            ${build.source_url ? `<a href="${build.source_url}" target="_blank" rel="noopener" style="font-size: 0.85rem; color: var(--accent-primary); text-decoration: none;">📄 Source</a>` : ''}
+                            ${build.wiki_url ? `<a href="${build.wiki_url}" target="_blank" rel="noopener" style="font-size: 0.85rem; color: var(--accent-primary); text-decoration: none;">📖 Wiki</a>` : ''}
+                            <button class="load-community-build" data-build-id="${build.id}" data-mod-count="${build.mod_count || 0}" style="font-size: 0.85rem; padding: var(--space-xs) var(--space-sm); background: var(--accent-secondary); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; margin-left: auto;">➕ Load Build</button>
+                        </div>
+                        ${build.seed_note ? `<p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--space-xs);">${build.seed_note}</p>` : ''}
+                    </div>
+                `).join('');
+                
+                // Add event listeners to Load buttons
+                document.querySelectorAll('.load-community-build').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const buildName = this.closest('[data-build-id]').querySelector('h4').textContent;
+                        const modCount = parseInt(this.dataset.modCount);
+                        alert(`Load build "${buildName}" with ~${modCount} mods? This will replace your current mod list.`);
+                        // TODO: Implement actual load functionality
+                    });
+                });
+            } else {
+                communityBuildsListEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: var(--space-xl);">No community builds yet for this game. Be the first to submit one!</p>';
+            }
+        } catch (e) {
+            communityBuildsListEl.innerHTML = `<p style="color: var(--error); text-align: center; padding: var(--space-xl);">Error loading builds: ${e.message}</p>`;
+        }
     });
+
+    // Popular Mods - Add selected popular mods (REMOVED - replaced with Community Builds)
 
     // Clear All button
     document.getElementById('compat-clear-all-btn')?.addEventListener('click', function() {

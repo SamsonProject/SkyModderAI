@@ -41,6 +41,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from config import config
 
 # Local modules
+from community_builds import (
+    get_community_builds_service,
+)
 from conflict_detector import ConflictDetector, parse_mod_list_text
 
 # Shared constants - imported from constants.py
@@ -5778,6 +5781,227 @@ def api_community_health():
     except Exception as e:
         logger.exception("Community health error: %s", e)
         return api_error("Could not load community health right now.", 500)
+
+
+# -------------------------------------------------------------------
+# Community Builds API - User-submitted mod lists (replaces hardcoded)
+# -------------------------------------------------------------------
+@app.route("/api/community-builds", methods=["GET"])
+def api_community_builds():
+    """
+    Get community-submitted builds.
+    
+    Query params:
+    - game: Filter by game (skyrimse, fallout4, etc.)
+    - playstyle: Filter by playstyle tag (vanilla_plus, hardcore, etc.)
+    - performance_tier: Filter by tier (low, mid, high)
+    - limit: Max results (default 50, max 100)
+    - include_seed: Whether to include seeded builds (default true)
+    """
+    try:
+        service = get_community_builds_service()
+        
+        game = request.args.get("game")
+        playstyle = request.args.get("playstyle")
+        performance_tier = request.args.get("performance_tier")
+        
+        try:
+            limit = min(max(1, int(request.args.get("limit", 50))), 100)
+        except (ValueError, TypeError):
+            limit = 50
+        
+        include_seed = request.args.get("include_seed", "true").lower() != "false"
+        
+        builds = service.get_builds(
+            game=game,
+            playstyle=playstyle,
+            performance_tier=performance_tier,
+            limit=limit,
+            include_seed=include_seed,
+        )
+        
+        # Get user's vote on each build if logged in
+        user_email = session.get("user_email")
+        for build in builds:
+            if user_email:
+                build["user_vote"] = service.get_user_vote(build["id"], user_email)
+            else:
+                build["user_vote"] = 0
+        
+        return jsonify({
+            "success": True,
+            "builds": builds,
+            "count": len(builds),
+        })
+        
+    except Exception as e:
+        logger.exception("Community builds API error: %s", e)
+        return api_error("Could not load community builds.", 500)
+
+
+@app.route("/api/community-builds/<int:build_id>", methods=["GET"])
+def api_community_build(build_id):
+    """Get a specific community build by ID."""
+    try:
+        service = get_community_builds_service()
+        build = service.get_build_by_id(build_id)
+        
+        if not build:
+            return api_error("Build not found.", 404)
+        
+        user_email = session.get("user_email")
+        if user_email:
+            build["user_vote"] = service.get_user_vote(build_id, user_email)
+        else:
+            build["user_vote"] = 0
+        
+        return jsonify({
+            "success": True,
+            "build": build,
+        })
+        
+    except Exception as e:
+        logger.exception("Community build API error: %s", e)
+        return api_error("Could not load build.", 500)
+
+
+@app.route("/api/community-builds", methods=["POST"])
+def api_community_build_submit():
+    """
+    Submit a new community build.
+    
+    Requires authentication.
+    
+    Body:
+    - game: Game ID (required)
+    - name: Build name (required)
+    - description: Build description (required)
+    - mod_list: Mod list text (required)
+    - author: Author name (optional, defaults to email or Anonymous)
+    - source: Source (optional, defaults to "Community")
+    - source_url: Source URL (optional)
+    - wiki_url: Wiki URL (optional)
+    - mod_count: Number of mods (optional)
+    - playstyle_tags: Array of tags (optional)
+    - performance_tier: low/mid/high (optional, defaults to "mid")
+    """
+    try:
+        user_email = session.get("user_email")
+        if not user_email:
+            return api_error("Authentication required.", 401)
+        
+        data = request.get_json()
+        if not data:
+            return api_error("Invalid JSON.", 400)
+        
+        # Validate required fields
+        for field in ["game", "name", "description", "mod_list"]:
+            if not data.get(field):
+                return api_error(f"Missing required field: {field}", 400)
+        
+        service = get_community_builds_service()
+        build_id = service.submit_build(data, user_email)
+        
+        if not build_id:
+            return api_error("Failed to submit build.", 500)
+        
+        return jsonify({
+            "success": True,
+            "build_id": build_id,
+            "message": "Build submitted! Thank you for contributing to the community.",
+        })
+        
+    except Exception as e:
+        logger.exception("Community build submit error: %s", e)
+        return api_error("Could not submit build.", 500)
+
+
+@app.route("/api/community-builds/<int:build_id>/vote", methods=["POST"])
+def api_community_build_vote(build_id):
+    """
+    Vote on a community build.
+    
+    Requires authentication.
+    
+    Body:
+    - vote: 1 for upvote, -1 for downvote (required)
+    """
+    try:
+        user_email = session.get("user_email")
+        if not user_email:
+            return api_error("Authentication required.", 401)
+        
+        data = request.get_json()
+        if not data or "vote" not in data:
+            return api_error("Missing vote field.", 400)
+        
+        vote = data["vote"]
+        if vote not in (1, -1):
+            return api_error("Vote must be 1 (upvote) or -1 (downvote).", 400)
+        
+        service = get_community_builds_service()
+        success = service.vote(build_id, user_email, vote)
+        
+        if not success:
+            return api_error("Failed to record vote.", 500)
+        
+        # Get updated build data
+        build = service.get_build_by_id(build_id)
+        build["user_vote"] = service.get_user_vote(build_id, user_email)
+        
+        return jsonify({
+            "success": True,
+            "build": build,
+        })
+        
+    except Exception as e:
+        logger.exception("Community build vote error: %s", e)
+        return api_error("Could not record vote.", 500)
+
+
+@app.route("/api/community-builds/<int:build_id>", methods=["DELETE"])
+def api_community_build_delete(build_id):
+    """
+    Delete a community build.
+    
+    Requires authentication. Only author or admin can delete.
+    """
+    try:
+        user_email = session.get("user_email")
+        if not user_email:
+            return api_error("Authentication required.", 401)
+        
+        service = get_community_builds_service()
+        success = service.delete_build(build_id, user_email)
+        
+        if not success:
+            return api_error("Failed to delete build.", 500)
+        
+        return jsonify({
+            "success": True,
+            "message": "Build deleted.",
+        })
+        
+    except Exception as e:
+        logger.exception("Community build delete error: %s", e)
+        return api_error("Could not delete build.", 500)
+
+
+@app.route("/api/community-builds/stats", methods=["GET"])
+def api_community_builds_stats():
+    """Get community builds statistics."""
+    try:
+        service = get_community_builds_service()
+        stats = service.get_stats()
+        
+        return jsonify({
+            "success": True,
+            "stats": stats,
+        })
+        
+    except Exception as e:
+        logger.exception("Community builds stats error: %s", e)
+        return api_error("Could not load stats.", 500)
 
 
 @app.route("/api/openclaw/policy", methods=["GET"])

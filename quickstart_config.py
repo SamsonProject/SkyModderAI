@@ -1,11 +1,18 @@
 """
 Quick Start config — Central source for game-specific links and resources.
 Used by /api/quickstart and avoids hard-coding in templates/docs.
+
+NOTE: No hardcoded mod recommendations. All mod suggestions come from:
+1. Community builds (user-submitted, voted)
+2. LOOT data (search engine)
+3. User's own analysis
+
+Tool links (Nexus, LOOT, xEdit) are universal utilities, not mod recommendations.
 """
 
 from typing import Any, Dict
 
-# Global tool links (not game-specific)
+# Global tool links (not game-specific) - These are universal utilities
 TOOLS = {
     "nexus": {
         "name": "Nexus Mods",
@@ -84,99 +91,63 @@ NOOB_JOURNEY = [
     {"step": "Use Build a List when starting fresh and send it to Analyze."},
 ]
 
-# Per-game quickstart data: SKSE/F4SE, unofficial patch, AppData path
+# Per-game quickstart data: Links to game pages on Nexus, AppData path
+# NOTE: No hardcoded mod recommendations (USSEP, SKSE, etc.)
+# Users should browse community builds or use the search engine
 GAME_QUICKSTART: Dict[str, Dict[str, Any]] = {
     "skyrimse": {
         "name": "Skyrim SE",
         "nexus_slug": "skyrimspecialedition",
-        "script_ext": {
-            "name": "SKSE",
-            "url": "https://www.nexusmods.com/skyrimspecialedition/mods/30379",
-            "abbrev": "SKSE",
-        },
-        "unofficial_patch": {
-            "name": "USSEP",
-            "url": "https://www.nexusmods.com/skyrimspecialedition/mods/266",
-        },
+        "nexus_mods_url": "https://www.nexusmods.com/skyrimspecialedition/mods",
         "appdata_path": "%LOCALAPPDATA%\\Skyrim Special Edition\\",
         "mo2_url": "https://www.nexusmods.com/skyrimspecialedition/mods/6194",
     },
     "skyrim": {
         "name": "Skyrim LE",
         "nexus_slug": "skyrim",
-        "script_ext": {"name": "SKSE", "url": "https://skse.silverlock.org/", "abbrev": "SKSE"},
-        "unofficial_patch": {
-            "name": "USLEEP",
-            "url": "https://www.nexusmods.com/skyrim/mods/71214",
-        },
+        "nexus_mods_url": "https://www.nexusmods.com/skyrim/mods",
         "appdata_path": "%LOCALAPPDATA%\\Skyrim\\",
         "mo2_url": "https://www.nexusmods.com/skyrim/mods/6194",
     },
     "skyrimvr": {
         "name": "Skyrim VR",
         "nexus_slug": "skyrimspecialedition",
-        "script_ext": {
-            "name": "SKSE VR",
-            "url": "https://www.nexusmods.com/skyrimspecialedition/mods/30379",
-            "abbrev": "SKSE",
-        },
-        "unofficial_patch": {
-            "name": "USSEP",
-            "url": "https://www.nexusmods.com/skyrimspecialedition/mods/266",
-        },
+        "nexus_mods_url": "https://www.nexusmods.com/skyrimspecialedition/mods",
         "appdata_path": "%LOCALAPPDATA%\\Skyrim VR\\",
         "mo2_url": "https://www.nexusmods.com/skyrimspecialedition/mods/6194",
     },
     "oblivion": {
         "name": "Oblivion",
         "nexus_slug": "oblivion",
-        "script_ext": None,
-        "unofficial_patch": {"name": "UOP", "url": "https://www.nexusmods.com/oblivion/mods/52923"},
+        "nexus_mods_url": "https://www.nexusmods.com/oblivion/mods",
         "appdata_path": "%LOCALAPPDATA%\\Oblivion\\",
         "mo2_url": "https://www.nexusmods.com/oblivion/mods/1334",
     },
     "fallout3": {
         "name": "Fallout 3",
         "nexus_slug": "fallout3",
-        "script_ext": None,
-        "unofficial_patch": {
-            "name": "UFO3P",
-            "url": "https://www.nexusmods.com/fallout3/mods/19122",
-        },
+        "nexus_mods_url": "https://www.nexusmods.com/fallout3/mods",
         "appdata_path": "%LOCALAPPDATA%\\Fallout3\\",
         "mo2_url": "https://www.nexusmods.com/fallout3/mods/6194",
     },
     "falloutnv": {
         "name": "Fallout New Vegas",
         "nexus_slug": "newvegas",
-        "script_ext": None,
-        "unofficial_patch": {"name": "YUP", "url": "https://www.nexusmods.com/newvegas/mods/51664"},
+        "nexus_mods_url": "https://www.nexusmods.com/newvegas/mods",
         "appdata_path": "%LOCALAPPDATA%\\FalloutNV\\",
         "mo2_url": "https://www.nexusmods.com/newvegas/mods/6194",
     },
     "fallout4": {
         "name": "Fallout 4",
         "nexus_slug": "fallout4",
-        "script_ext": {
-            "name": "F4SE",
-            "url": "https://www.nexusmods.com/fallout4/mods/42147",
-            "abbrev": "F4SE",
-        },
-        "unofficial_patch": {
-            "name": "UFO4P",
-            "url": "https://www.nexusmods.com/fallout4/mods/4598",
-        },
+        "nexus_mods_url": "https://www.nexusmods.com/fallout4/mods",
         "appdata_path": "%LOCALAPPDATA%\\Fallout4\\",
         "mo2_url": "https://www.nexusmods.com/fallout4/mods/6194",
     },
     "starfield": {
         "name": "Starfield",
         "nexus_slug": "starfield",
-        "script_ext": None,
-        "unofficial_patch": {
-            "name": "Community Patch",
-            "url": "https://www.nexusmods.com/starfield/mods/1",
-        },
+        "nexus_mods_url": "https://www.nexusmods.com/starfield/mods",
         "appdata_path": "%LOCALAPPDATA%\\Starfield\\",
         "mo2_url": "https://www.nexusmods.com/starfield/mods/6194",
     },
