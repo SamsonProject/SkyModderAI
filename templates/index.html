@@ -361,6 +361,7 @@
                 <span class="pro-badge">✨ AI-Powered</span>
                 <span class="pro-badge" style="background: linear-gradient(135deg, #10b981, #059669);">✓ 100% Free</span>
                 <span class="pro-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🔥 Community-Driven</span>
+                <span class="pro-badge" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">🛒 Ads only in Shopping tab</span>
             </div>
             <h2 class="hero-title">Your modding powerhouse</h2>
             <p class="hero-subtitle">AI-powered conflict detection, intelligent load order optimization, and community-driven insights for Skyrim, Fallout, and Starfield. Built on LOOT data, enhanced with machine learning.</p>
@@ -501,7 +502,7 @@ Supports:
                         <div id="recommendations-strip" class="recommendations-strip hidden" aria-live="polite">
                             <div id="recommendations-warnings" class="recommendations-warnings" aria-live="polite">
                             </div>
-                            <p class="recommendations-label">Recommended for you</p>
+                            <p class="recommendations-label">Missing requirements detected</p>
                             <div id="recommendations-cards" class="recommendations-cards"></div>
                         </div>
                         <p id="action-feedback" class="hint" aria-live="polite"></p>
@@ -593,6 +594,16 @@ Supports:
                         <div class="fix-guide-header">
                             <h4>Your Fix Guide</h4>
                             <p class="fix-guide-subtitle">Step-by-step guide that updates as you chat with the AI</p>
+                            {% if not session.get('user_email') %}
+                            <div class="pro-feature-banner" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-top: 1rem; font-size: 0.875rem;">
+                                <span style="font-size: 1.1rem;">💡</span>
+                                <span style="margin-left: 0.5rem;">
+                                    <strong>AI chat &amp; Fix Guide are Pro features.</strong>
+                                    Pro is $5/mo and keeps this tool free for everyone.
+                                    <a href="/profile" style="color: #3b82f6; text-decoration: underline;">[Support the project →]</a>
+                                </span>
+                            </div>
+                            {% endif %}
                             <div class="fix-guide-actions">
                                 <button type="button" id="download-fix-guide-btn" class="secondary-button"
                                     title="Download as beautiful HTML">Download guide</button>
@@ -654,16 +665,27 @@ Supports:
                     </div>
                     <div id="chat-section" class="chat-section hidden">
                         <h4>Ask about your results</h4>
-                        
+
+                        {% if not session.get('user_email') %}
+                        <div class="pro-feature-banner" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                            <span style="font-size: 1.25rem;">💡</span>
+                            <span style="margin-left: 0.5rem;">
+                                <strong>AI chat &amp; Fix Guide are Pro features.</strong>
+                                Pro is $5/mo and keeps this tool free for everyone.
+                                <a href="/profile" style="color: #3b82f6; text-decoration: underline;">[Support the project →]</a>
+                            </span>
+                        </div>
+                        {% endif %}
+
                         <!-- User Guidance Tag -->
                         <div class="ai-guidance-tag">
                             <span class="ai-guidance-icon">💡</span>
                             <span class="ai-guidance-text">
-                                <strong>Tip:</strong> SkyModderAI works best when conversations stay focused on modding. 
+                                <strong>Tip:</strong> SkyModderAI works best when conversations stay focused on modding.
                                 Casual chat is welcome, but may reduce result precision.
                             </span>
                         </div>
-                        
+
                         <div id="chat-messages" class="chat-messages"></div>
                         <form id="chat-form" class="chat-form">
                             <input type="text" id="chat-input" placeholder="e.g. How do I fix the load order for USSEP?"
@@ -1030,20 +1052,6 @@ Supports:
                     <a href="{{ url_for('business.hub_landing') }}" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;">Learn More</a>
                 </div>
 
-                <!-- Donation -->
-                <div class="pricing-card featured" id="donate">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">🍺</div>
-                    <h3>Support SkyModderAI</h3>
-                    <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1.5rem;">100% free forever. No paywalls, no premium tiers.</p>
-                    <ul>
-                        <li>Free access to all features</li>
-                        <li>Community-funded development</li>
-                        <li>Server & API costs covered</li>
-                        <li>Support ongoing improvements</li>
-                    </ul>
-                    <a href="#donate" class="btn btn-success" style="margin-top: 1.5rem; width: 100%;">🍺 Buy Me a Mead</a>
-                </div>
-
                 <!-- Community CTA -->
                 <div class="pricing-card">
                     <div style="font-size: 3rem; margin-bottom: 1rem;">🔥</div>
@@ -1145,38 +1153,31 @@ Supports:
         <div class="modal-backdrop" id="checkout-modal-backdrop"></div>
         <div class="modal-content">
             <button type="button" class="modal-close" id="checkout-modal-close" aria-label="Close">&times;</button>
-            <h3>☕ Keep SkyModderAI Free</h3>
+            <h3>🍺 Buy me a mead</h3>
             <p class="modal-tagline">
-                This tool is 100% free. No paywalls. No premium tiers.<br>
-                If it saved you time or headaches, consider supporting:
+                SkyModderAI is free, forever. If it saved your load order, I won't say no to a mead.
             </p>
             <div class="donation-amounts">
-                <button type="button" class="donation-amount" data-amount="5">$5 — Mead</button>
-                <button type="button" class="donation-amount" data-amount="10">$10 — Lunch</button>
-                <button type="button" class="donation-amount" data-amount="20">$20 — Keeps the lights on</button>
-                <button type="button" class="donation-amount" data-amount="50">$50 — You're amazing</button>
-                <button type="button" class="donation-amount" data-amount="100">$100 — Legendary</button>
+                <button type="button" class="donation-amount" data-amount="5">$5 — A mead</button>
+                <button type="button" class="donation-amount" data-amount="15">$15 — A round</button>
             </div>
             <form id="checkout-form">
                 <label for="checkout-email">Email (for receipt)</label>
                 <input type="email" id="checkout-email" placeholder="you@example.com" required>
                 <label for="checkout-amount">Amount</label>
                 <input type="number" id="checkout-amount" min="1" max="1000" value="5" required>
-                <p class="hint">Your donation pays for servers, APIs, and my ramen budget. Thank you. 🍜</p>
                 <div class="modal-actions">
-                    <button type="button" class="secondary-button" id="checkout-modal-cancel">Cancel</button>
+                    <button type="button" class="secondary-button" id="checkout-modal-cancel">Nah, I'm good</button>
                     <button type="submit" class="primary-button" id="checkout-submit-btn">Donate with Stripe</button>
                 </div>
             </form>
             <div class="donation-alternatives">
                 <p>Other ways to support:</p>
                 <ul>
+                    <li><a href="https://patreon.com/skymodderai" target="_blank" rel="noopener">Monthly on Patreon</a></li>
                     <li>⭐ Star the repo on GitHub</li>
                     <li>📢 Tell your friends</li>
-                    <li>🐛 Report bugs</li>
-                    <li>💡 Suggest features</li>
                 </ul>
-                <p class="hint" style="margin-top: 1rem;">Your donation pays for servers, APIs, and my mead budget. Thank you. 🍯</p>
             </div>
         </div>
     </div>

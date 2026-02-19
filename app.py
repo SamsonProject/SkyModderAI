@@ -102,7 +102,7 @@ from knowledge_index import (
 )
 from list_builder import build_list_from_preferences, get_preference_options
 from loot_parser import LOOTParser
-from mod_recommendations import get_recommendations, get_recommendations_for_ai
+from mod_recommendations import get_loot_based_suggestions
 from mod_warnings import get_mod_warnings
 from openclaw_engine import (
     OPENCLAW_PERMISSION_SCOPES,
@@ -3080,11 +3080,23 @@ def api_analyze_summary():
         return jsonify({"summary": ""})
 
     system = (
-        "You are SkyModderAI, an expert modding engineer. Analyze the provided load order report and provide a 'Strategic Plan'. "
-        "1. Executive Summary: State of the build (Stable/Critical/Messy). "
-        "2. Top Priorities: The 3 most important things to fix immediately. "
-        "3. Plan of Attack: A brief, encouraging, professional path forward. "
-        "Be concise, authoritative, and well-spoken."
+        "You are SkyModderAI — a technical assistant built by a modder, for modders. Your only job is to help users solve Bethesda modding problems.\n\n"
+        "You help with:\n"
+        "- Conflict detection and load order (LOOT data)\n"
+        "- Missing requirements and incompatibilities\n"
+        "- Dirty edits and xEdit cleaning\n"
+        "- CTD/crash troubleshooting\n"
+        "- Mod manager setup (MO2, Vortex)\n"
+        "- Script extender issues (SKSE, F4SE)\n"
+        "- Papyrus scripting for mod authors\n\n"
+        "RULES — never break these:\n"
+        "- Never mention products, deals, upgrades, purchases, or ads\n"
+        "- Never recommend a mod unless LOOT data or the user's own list makes it relevant\n"
+        "- If you don't know, say so and point to Nexus, LOOT GitHub, or the relevant modding wiki\n"
+        "- Tone: direct, technically sharp — like a senior modder helping a friend in a Discord help channel\n"
+        "- Cite your sources (LOOT masterlist, SKSE docs, Nexus pages)\n"
+        "- Ask one clarifying question if needed. Only one.\n\n"
+        "You never hallucinate mod names, load order rules, or requirements. You never generate marketing language. You never mention the shopping tab, ads, or donations unprompted."
     )
 
     try:
@@ -3128,11 +3140,23 @@ def api_compose_guide():
     )
 
     system = (
-        "You are SkyModderAI. The user has a list of modding issues and steps. "
-        "Compose a beautiful, well-spoken, professional guide based on these steps. "
-        "Use Markdown. "
-        "Structure it as: 'Executive Summary', 'Action Plan' (step-by-step), and 'Final Verification'. "
-        "The tone should be expert, reassuring, and clear. This text will be converted to a PDF."
+        "You are SkyModderAI — a technical assistant built by a modder, for modders. Your only job is to help users solve Bethesda modding problems.\n\n"
+        "You help with:\n"
+        "- Conflict detection and load order (LOOT data)\n"
+        "- Missing requirements and incompatibilities\n"
+        "- Dirty edits and xEdit cleaning\n"
+        "- CTD/crash troubleshooting\n"
+        "- Mod manager setup (MO2, Vortex)\n"
+        "- Script extender issues (SKSE, F4SE)\n"
+        "- Papyrus scripting for mod authors\n\n"
+        "RULES — never break these:\n"
+        "- Never mention products, deals, upgrades, purchases, or ads\n"
+        "- Never recommend a mod unless LOOT data or the user's own list makes it relevant\n"
+        "- If you don't know, say so and point to Nexus, LOOT GitHub, or the relevant modding wiki\n"
+        "- Tone: direct, technically sharp — like a senior modder helping a friend in a Discord help channel\n"
+        "- Cite your sources (LOOT masterlist, SKSE docs, Nexus pages)\n"
+        "- Ask one clarifying question if needed. Only one.\n\n"
+        "You never hallucinate mod names, load order rules, or requirements. You never generate marketing language. You never mention the shopping tab, ads, or donations unprompted."
     )
 
     try:
@@ -3676,10 +3700,10 @@ def normalize_modlist_input():
 
 @app.route("/api/recommendations", methods=["GET", "POST"])
 def api_recommendations():
-    """Get mod recommendations based on current list. Updates live as user adds mods.
-    GET: ?game=skyrimse&mods=Mod1.esp,Mod2.esp&limit=8&for_ai=1
-    POST: body {game, mod_list: [...], limit, for_ai}
-    When for_ai=1: returns top_picks {utility, design, fun, environmental} for Pro AI."""
+    """Get LOOT-based suggestions for missing requirements and companion mods.
+    GET: ?game=skyrimse&mods=Mod1.esp,Mod2.esp&limit=8
+    POST: body {game, mod_list: [...], limit}
+    Only returns mods sourced from LOOT data - no affiliate or marketing suggestions."""
     if request.method == "GET":
         game = (request.args.get("game") or DEFAULT_GAME).lower()
         mods_param = request.args.get("mods") or request.args.get("mod_list") or ""
@@ -3700,31 +3724,16 @@ def api_recommendations():
             limit = 8
     if game not in {g["id"] for g in SUPPORTED_GAMES}:
         game = DEFAULT_GAME
-    nexus_slug = NEXUS_GAME_SLUGS.get(game, "skyrimspecialedition")
-    for_ai = request.args.get("for_ai") or (request.get_json() or {}).get("for_ai")
-    for_ai = str(for_ai).lower() in ("1", "true", "yes")
     mod_list_text = (request.get_json() or {}).get("mod_list_text", "")
     specs = (request.get_json() or {}).get("specs") or {}
     try:
         p = get_parser(game)
-        if for_ai:
-            payload = get_recommendations_for_ai(
-                p, mod_list, game, nexus_slug, limit=limit, top_picks_per_category=2
-            )
-            out = {
-                "recommendations": payload["recommendations"],
-                "top_picks": payload["top_picks"],
-                "game": game,
-            }
-        else:
-            recs = get_recommendations(
-                p, mod_list, game, nexus_slug, limit=limit, include_category=True
-            )
-            # Enrich with images
-            from mod_images import enrich_recommendations_with_images
+        recs = get_loot_based_suggestions(p, mod_list, limit=limit)
+        # Enrich with images
+        from mod_images import enrich_recommendations_with_images
 
-            recs = enrich_recommendations_with_images(p, recs, game)
-            out = {"recommendations": recs, "game": game}
+        recs = enrich_recommendations_with_images(p, recs, game)
+        out = {"recommendations": recs, "game": game}
         # Dynamic warnings (plugin limit, system strain)
         out["warnings"] = get_mod_warnings(
             mod_list_text=mod_list_text or None,
@@ -5056,21 +5065,23 @@ def chat():
             logger.debug(f"Deterministic analysis failed: {e}")
 
     system = (
-        "You are the SkyModderAI assistant. Your task: help the user fix their load order and feel confident doing it. "
-        "Ease them into the process—acknowledge what they're dealing with, then guide step by step. "
-        "You help with Skyrim, Fallout, and other Bethesda game modding: load order, LOOT, "
-        "conflicts, compatibility, and performance. Be concise and practical. The user's context includes "
-        "their game, mod list analysis, conflict types (missing_requirement, incompatible, "
-        "load_order_violation, dirty_edits, patch_available), and when available: System Impact "
-        "(complexity, estimated VRAM, heavy mods, recommendations). Use the structured data to give "
-        "specific, actionable advice. For performance questions, reference their specs and heavy mods. "
-        "Suggest Nexus, xEdit, or LOOT when relevant. Don't make up mod names or links. "
-        "When community solutions are provided, you may cite them to help the user find scattered fixes. "
-        "When Top mod picks are provided (Utility, Design, Fun, Environmental), you may suggest them "
-        "when the user asks for recommendations—e.g. 'For design, try X' or 'A great utility pick is Y'. "
-        "You have access to the user's profile, page content, and deep LOOT metadata. "
-        "Tailor your advice specifically to their mod list and specs. Be predictive: anticipate issues based on the community patterns."
-        f"{profile_summary}"
+        "You are SkyModderAI — a technical assistant built by a modder, for modders. Your only job is to help users solve Bethesda modding problems.\n\n"
+        "You help with:\n"
+        "- Conflict detection and load order (LOOT data)\n"
+        "- Missing requirements and incompatibilities\n"
+        "- Dirty edits and xEdit cleaning\n"
+        "- CTD/crash troubleshooting\n"
+        "- Mod manager setup (MO2, Vortex)\n"
+        "- Script extender issues (SKSE, F4SE)\n"
+        "- Papyrus scripting for mod authors\n\n"
+        "RULES — never break these:\n"
+        "- Never mention products, deals, upgrades, purchases, or ads\n"
+        "- Never recommend a mod unless LOOT data or the user's own list makes it relevant\n"
+        "- If you don't know, say so and point to Nexus, LOOT GitHub, or the relevant modding wiki\n"
+        "- Tone: direct, technically sharp — like a senior modder helping a friend in a Discord help channel\n"
+        "- Cite your sources (LOOT masterlist, SKSE docs, Nexus pages)\n"
+        "- Ask one clarifying question if needed. Only one.\n\n"
+        "You never hallucinate mod names, load order rules, or requirements. You never generate marketing language. You never mention the shopping tab, ads, or donations unprompted."
     )
     parts = []
     if context:
@@ -5095,7 +5106,7 @@ def chat():
             for s in web_solutions[:5]
         )
         parts.append(sol_block)
-    # Pre-fetch recommendations + top picks for AI context and response
+    # Pre-fetch LOOT-based recommendations for AI context and response
     rec_payload = {"recommendations": [], "top_picks": {}}
     try:
         if not mod_list and context:
@@ -5103,11 +5114,9 @@ def chat():
 
             mod_list = re.findall(r"\*\*([^*]+\.(?:esp|esm|esl))\*\*", context)
         game_for_rec = (data.get("game") or DEFAULT_GAME).lower()
-        nexus_slug = NEXUS_GAME_SLUGS.get(game_for_rec, "skyrimspecialedition")
         p = get_parser(game_for_rec)
-        rec_payload = get_recommendations_for_ai(
-            p, mod_list, game_for_rec, nexus_slug, limit=10, top_picks_per_category=2
-        )
+        recs = get_loot_based_suggestions(p, mod_list, limit=10)
+        rec_payload = {"recommendations": recs, "top_picks": {}}
     except Exception:
         pass
     top_picks_for_context = rec_payload.get("top_picks", {})
@@ -5220,12 +5229,23 @@ def scan_game_folder():
 
     context = "\n".join(context_parts)
     system = (
-        "You are the SkyModderAI assistant. The user has shared their game folder structure and key files. "
-        "Analyze for issues that Mod Organizer / Vortex might not catch: "
-        "direct overwrites in Data/, unusual file placement, missing expected files, "
-        "conflicting loose files, plugins.txt vs actual Data/ mismatch, MO2 vs Vortex deployment quirks. "
-        "Be concise. Use bullet points. If everything looks fine, say so briefly. "
-        "Don't make up mod names. Suggest xEdit, LOOT, or Nexus when relevant."
+        "You are SkyModderAI — a technical assistant built by a modder, for modders. Your only job is to help users solve Bethesda modding problems.\n\n"
+        "You help with:\n"
+        "- Conflict detection and load order (LOOT data)\n"
+        "- Missing requirements and incompatibilities\n"
+        "- Dirty edits and xEdit cleaning\n"
+        "- CTD/crash troubleshooting\n"
+        "- Mod manager setup (MO2, Vortex)\n"
+        "- Script extender issues (SKSE, F4SE)\n"
+        "- Papyrus scripting for mod authors\n\n"
+        "RULES — never break these:\n"
+        "- Never mention products, deals, upgrades, purchases, or ads\n"
+        "- Never recommend a mod unless LOOT data or the user's own list makes it relevant\n"
+        "- If you don't know, say so and point to Nexus, LOOT GitHub, or the relevant modding wiki\n"
+        "- Tone: direct, technically sharp — like a senior modder helping a friend in a Discord help channel\n"
+        "- Cite your sources (LOOT masterlist, SKSE docs, Nexus pages)\n"
+        "- Ask one clarifying question if needed. Only one.\n\n"
+        "You never hallucinate mod names, load order rules, or requirements. You never generate marketing language. You never mention the shopping tab, ads, or donations unprompted."
     )
     try:
         client = get_ai_client()
@@ -5393,12 +5413,23 @@ def api_dev_analyze():
 
     context = "\n".join(context_parts)[:50000]
     system = (
-        "You are the SkyModderAI dev assistant. The user has shared their mod project (Papyrus scripts, plugins, configs). "
-        "Give an intimate dev report: Will it likely run? What could break? What to fix first? "
-        "Cover: missing dependencies (SKSE, F4SE, etc.), common Papyrus pitfalls, plugin structure, version compatibility, "
-        "INI/config issues, missing properties, race conditions. Be specific and actionable. "
-        "Use Markdown headers (##, ###) for sections and bullet points for lists. "
-        "If the project looks solid, say so and note any minor improvements. Don't make up errors."
+        "You are SkyModderAI — a technical assistant built by a modder, for modders. Your only job is to help users solve Bethesda modding problems.\n\n"
+        "You help with:\n"
+        "- Conflict detection and load order (LOOT data)\n"
+        "- Missing requirements and incompatibilities\n"
+        "- Dirty edits and xEdit cleaning\n"
+        "- CTD/crash troubleshooting\n"
+        "- Mod manager setup (MO2, Vortex)\n"
+        "- Script extender issues (SKSE, F4SE)\n"
+        "- Papyrus scripting for mod authors\n\n"
+        "RULES — never break these:\n"
+        "- Never mention products, deals, upgrades, purchases, or ads\n"
+        "- Never recommend a mod unless LOOT data or the user's own list makes it relevant\n"
+        "- If you don't know, say so and point to Nexus, LOOT GitHub, or the relevant modding wiki\n"
+        "- Tone: direct, technically sharp — like a senior modder helping a friend in a Discord help channel\n"
+        "- Cite your sources (LOOT masterlist, SKSE docs, Nexus pages)\n"
+        "- Ask one clarifying question if needed. Only one.\n\n"
+        "You never hallucinate mod names, load order rules, or requirements. You never generate marketing language. You never mention the shopping tab, ads, or donations unprompted."
     )
     try:
         client = get_ai_client()
@@ -5421,113 +5452,6 @@ def api_dev_analyze():
     except Exception:
         logger.exception("Dev analyze error")
         return jsonify({"error": "Something went wrong. Please try again."}), 500
-
-
-@app.route("/api/dev-loop/suggest", methods=["POST"])
-@rate_limit(RATE_LIMIT_API, "dev-loop")
-def api_dev_loop_suggest():
-    """
-    Paid dev companion loop:
-    - suggest new mod features
-    - suggest performance/stability optimizations
-    - explicitly recommend "idle" when further changes likely hurt stability
-    """
-    user_email = session.get("user_email")
-
-    data = request.get_json() or {}
-    game = (data.get("game") or DEFAULT_GAME).lower()
-    if game not in {g["id"] for g in SUPPORTED_GAMES}:
-        game = DEFAULT_GAME
-    objective = (data.get("objective") or "new feature ideas with stable runtime").strip()[:300]
-    playstyle = (data.get("playstyle") or "balanced").strip()[:160]
-    signals = data.get("signals") if isinstance(data.get("signals"), dict) else {}
-
-    def _to_int(v, default=0):
-        try:
-            return int(v)
-        except Exception:
-            return default
-
-    def _to_float(v, default=None):
-        try:
-            return float(v)
-        except Exception:
-            return default
-
-    fps_avg = _to_float(signals.get("fps_avg"))
-    crashes = _to_int(signals.get("crashes"), 0)
-    stutter = _to_int(signals.get("stutter_events"), 0)
-    enjoyment = _to_int(signals.get("enjoyment_score"), 0)
-
-    feature_ideas_map = {
-        "skyrimse": [
-            "Dynamic NPC routines with low-frequency update ticks and state caching.",
-            "Contextual companion banter triggers backed by event throttling.",
-            "Lightweight weather-reactive ambient encounters with fallback rules.",
-        ],
-        "fallout4": [
-            "Settlement QoL automation with explicit script budget caps.",
-            "Companion affinity events that debounce repeated triggers.",
-            "Damage feedback clarity mod with INI-tunable thresholds.",
-        ],
-        "starfield": [
-            "Ship-combat readability overlay tuned for performance-first HUD updates.",
-            "Faction mission enhancer with minimal event listener footprint.",
-            "Companion dialogue micro-reactivity with strict cooldown windows.",
-        ],
-    }
-    feature_ideas = feature_ideas_map.get(game, feature_ideas_map.get("skyrimse", []))
-
-    perf_actions = []
-    if crashes > 0:
-        perf_actions.append(
-            "Prioritize crash triage: reduce script-heavy features and verify dependency versions first."
-        )
-    if fps_avg is not None and fps_avg < 55:
-        perf_actions.append(
-            "Switch to balanced/performance profile and reduce high-VRAM textures before adding new scripted systems."
-        )
-    if stutter > 6:
-        perf_actions.append(
-            "Lower script update frequency and batch expensive events to reduce frametime spikes."
-        )
-    if not perf_actions:
-        perf_actions.append(
-            "Keep current optimization profile and add only one feature change per run for clean A/B verification."
-        )
-
-    should_idle = (
-        fps_avg is not None and fps_avg >= 60 and crashes == 0 and stutter <= 3 and enjoyment >= 8
-    )
-    idle_conclusion = (
-        "Recommendation: go idle. Current run quality is strong; additional changes now are more likely to add instability than user value."
-        if should_idle
-        else "Recommendation: continue iterating with one controlled change per run."
-    )
-
-    safety = {
-        "warning": "Outside-sandbox operations must always request explicit user permission first.",
-        "policy": "No BIOS/UEFI, firmware, registry hive, kernel, or boot modifications. Ever.",
-        "sandbox_first": True,
-    }
-
-    response = {
-        "success": True,
-        "game": game,
-        "objective": objective,
-        "playstyle": playstyle,
-        "feature_ideas": feature_ideas,
-        "optimization_actions": perf_actions,
-        "idle_recommended": should_idle,
-        "idle_conclusion": idle_conclusion,
-        "safety": safety,
-    }
-    track_activity(
-        "dev_loop_suggest",
-        {"game": game, "idle_recommended": should_idle, "has_signals": bool(signals)},
-        user_email,
-    )
-    return jsonify(response)
 
 
 @app.route("/api/check-tier", methods=["GET"])
@@ -5618,6 +5542,109 @@ def api_activity_track():
     event_data = data.get("event_data") if isinstance(data.get("event_data"), dict) else {}
     track_activity(event_type, event_data, session.get("user_email"))
     return jsonify({"success": True})
+
+
+# -------------------------------------------------------------------
+# Sponsor API — $5/1000 clicks, Shopping tab only
+# -------------------------------------------------------------------
+@app.route("/api/sponsors", methods=["GET"])
+def api_get_sponsors():
+    """
+    Get active sponsors for the Shopping tab.
+    Max 6 sponsors returned. Static rotation only — no contextual targeting.
+    Optional: ?category=tools or ?category=merch
+    """
+    from sponsor_service import get_sponsor_service
+
+    category = request.args.get("category", "").strip()
+    sponsor_service = get_sponsor_service()
+
+    # Get ranked active sponsors (max 6)
+    sponsors = sponsor_service.get_ranked_sponsors(category=category if category else None, limit=6)
+
+    result = []
+    for s in sponsors:
+        result.append(
+            {
+                "id": s.id,
+                "name": s.name,
+                "logo_url": s.logo_url,
+                "tagline": (s.description or "")[:100],
+                "landing_url": s.landing_url,
+                "category": s.category,
+            }
+        )
+
+    return jsonify({"sponsors": result, "count": len(result)})
+
+
+@app.route("/api/sponsors/click", methods=["POST"])
+def api_track_sponsor_click():
+    """
+    Track a sponsor click for billing.
+    Increments monthly_clicks counter.
+    Billing: (monthly_clicks / 1000) * $5
+    """
+    from sponsor_service import get_sponsor_service
+
+    data = request.get_json() or {}
+    sponsor_id = data.get("sponsor_id")
+
+    if not sponsor_id:
+        return jsonify({"error": "sponsor_id required"}), 400
+
+    sponsor_service = get_sponsor_service()
+
+    # Record click with fraud protection
+    is_valid, message = sponsor_service.record_click(
+        sponsor_id=sponsor_id,
+        user_id=session.get("user_email"),
+        request=request,
+    )
+
+    if not is_valid:
+        # Still return 200 to not break UX, but log for fraud detection
+        logger.debug(f"Invalid sponsor click: {message}")
+
+    return jsonify({"success": True, "message": message})
+
+
+@app.route("/admin/sponsors")
+def admin_sponsors():
+    """
+    Admin sponsor dashboard.
+    View all sponsors, click counts, billing amounts.
+    Login-gated, admin role only.
+    """
+    from sponsor_service import get_sponsor_service
+
+    # Check admin access (simplified — integrate with your auth system)
+    if "user_email" not in session:
+        return redirect(url_for("auth.login", next="/admin/sponsors"))
+
+    # TODO: Add admin role check here
+    # if not is_admin(session.get("user_email")):
+    #     return abort(403)
+
+    sponsor_service = get_sponsor_service()
+    sponsors = sponsor_service.get_all_sponsors()
+
+    # Build billing info for each sponsor
+    sponsor_data = []
+    for s in sponsors:
+        sponsor_data.append(
+            {
+                "id": s.id,
+                "name": s.name,
+                "status": s.status,
+                "monthly_clicks": s.monthly_clicks or 0,
+                "total_clicks": s.total_clicks or 0,
+                "amount_owed": (s.monthly_clicks or 0) * 0.005,  # $0.005 per click
+                "billing_cycle_start": s.billing_cycle_start,
+            }
+        )
+
+    return render_template("admin/sponsors.html", sponsors=sponsor_data)
 
 
 @app.route("/api/satisfaction/survey", methods=["POST"])

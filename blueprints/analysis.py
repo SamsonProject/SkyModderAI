@@ -83,10 +83,11 @@ def analyze() -> Any:
         detector = ConflictDetector(game)
         analysis_result = detector.analyze(mods)
 
-        # Get recommendations
-        from mod_recommendations import get_recommendations
+        # Get LOOT-based recommendations (missing requirements and companion mods)
+        from mod_recommendations import get_loot_based_suggestions
 
-        recommendations = get_recommendations(analysis_result, game)
+        mod_names = [m.get("name", "") for m in mods]
+        recommendations = get_loot_based_suggestions(detector.parser, mod_names)
 
         # Get system impact
         from system_impact import get_system_impact

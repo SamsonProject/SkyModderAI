@@ -1,16 +1,91 @@
 # Web search fallback for mod discovery.
 # Uses DuckDuckGo via duckduckgo-search (no API key required).
-# Pro-only feature: expands search when LOOT database has few/no matches.
+# Filters out sponsored/commercial results before AI sees them.
 # Graceful degradation: retries once on failure, returns partial results.
 
 import logging
 import re
 import time
-from typing import List
+from typing import Dict, List
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
 WEB_SEARCH_RETRY_DELAY = 1.5  # seconds between retries
+
+# Allowed domains for search results — only trusted modding sources
+ALLOWED_DOMAINS = [
+    'nexusmods.com',
+    'reddit.com',
+    'github.com',
+    'loot.github.io',
+    'skse.silverlock.org',
+    'f4se.silverlock.org',
+    'tes5edit.github.io',
+    'bethesda.net',
+    'creationkit.com',
+    'stepmodifications.org',
+    'wiki.nexusmods.com',
+    'afkmods.com',
+    'loverslab.com',
+    'moddb.com',
+    'tesseractmodding.wordpress.com',
+]
+
+# Blocked phrases that indicate sponsored/commercial content
+BLOCKED_PHRASES = [
+    'buy now',
+    'on sale',
+    'discount',
+    'best price',
+    'deal',
+    'promo',
+    'coupon',
+    'sponsored',
+    'advertisement',
+    'shop now',
+    'limited time',
+    'special offer',
+]
+
+
+def extract_domain(url: str) -> str:
+    """Extract domain from URL."""
+    if not url:
+        return ""
+    try:
+        parsed = urlparse(url)
+        return parsed.netloc.lower()
+    except Exception:
+        return ""
+
+
+def filter_search_results(results: List[Dict]) -> List[Dict]:
+    """
+    Filter search results to remove sponsored/commercial content.
+    Only allows results from trusted modding domains.
+    Blocks results with commercial phrases in snippets.
+    """
+    clean = []
+    for r in results:
+        url = r.get('url', '') or r.get('href', '')
+        domain = extract_domain(url)
+        snippet = (r.get('snippet', '') or r.get('body', '') or '').lower()
+        title = (r.get('title', '') or '').lower()
+
+        # Check if domain is allowed
+        if not any(domain.endswith(d) for d in ALLOWED_DOMAINS):
+            continue
+
+        # Check for blocked phrases in snippet or title
+        combined_text = snippet + ' ' + title
+        if any(phrase in combined_text for phrase in BLOCKED_PHRASES):
+            continue
+
+        clean.append(r)
+
+    return clean
+
 
 # Plugin extensions we care about (.esm, .esp, .esl)
 PLUGIN_EXT = re.compile(r"\.(esm|esp|esl)\b", re.I)
@@ -118,7 +193,8 @@ def search_mods_web(
                 if attempt == 0:
                     time.sleep(WEB_SEARCH_RETRY_DELAY)
 
-    return out[:max_results]
+    # Filter results to remove sponsored/commercial content before AI sees them
+    return filter_search_results(out)[:max_results]
 
 
 def search_solutions_web(
@@ -130,6 +206,7 @@ def search_solutions_web(
     Search for scattered solutions (Reddit, forums, Nexus posts).
     Use for: "ctd skyrim", "infinite loading fix", "purple textures".
     Returns list of {title, url, snippet, source}.
+    Results are filtered to remove sponsored/commercial content.
     """
     if not query or len(query.strip()) < 2:
         return []
@@ -196,4 +273,5 @@ def search_solutions_web(
             if attempt == 0:
                 time.sleep(WEB_SEARCH_RETRY_DELAY)
 
-    return out[:max_results]
+    # Filter results to remove sponsored/commercial content before AI sees them
+    return filter_search_results(out)[:max_results]

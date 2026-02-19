@@ -58,6 +58,16 @@
     </div>
     {% endif %}
 
+    <!-- Sponsors Section — $5/1000 clicks, max 6 cards -->
+    <div class="sponsors-section">
+        <h2 class="sponsors-heading">📢 Sponsored Partners</h2>
+        <p class="sponsors-subtitle">Support SkyModderAI by checking out our partners. Ads fund this free tool.</p>
+        <div id="sponsor-cards" class="sponsor-cards-grid">
+            <!-- Loaded via JS from /api/sponsors -->
+            <p class="hint">Loading sponsors…</p>
+        </div>
+    </div>
+
     <!-- Products Grid -->
     {% if products %}
     <div class="products-grid">
@@ -367,5 +377,173 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Sponsor Cards — $5/1000 clicks */
+.sponsors-section {
+    margin: 2rem 0 3rem;
+    padding: 2rem;
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+}
+
+.sponsors-heading {
+    font-size: 1.25rem;
+    margin: 0 0 0.5rem;
+    color: var(--color-text-primary);
+}
+
+.sponsors-subtitle {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin: 0 0 1.5rem;
+}
+
+.sponsor-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.sponsor-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.sponsor-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sponsor-label {
+    display: inline-block;
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    align-self: flex-start;
+}
+
+.sponsor-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.sponsor-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: contain;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.25rem;
+}
+
+.sponsor-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.sponsor-tagline {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.sponsor-visit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    padding: 0.625rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: auto;
+}
+
+.sponsor-visit-btn:hover {
+    opacity: 0.9;
+}
 </style>
+
+<script>
+// Load sponsors from API and render with [Sponsor] label
+async function loadSponsors() {
+    const container = document.getElementById('sponsor-cards');
+    if (!container) return;
+
+    try {
+        const res = await fetch('/api/sponsors');
+        const data = await res.json();
+        const sponsors = data.sponsors || [];
+
+        if (sponsors.length === 0) {
+            container.innerHTML = '<p class="hint">No active sponsors at the moment.</p>';
+            return;
+        }
+
+        container.innerHTML = sponsors.map(s => `
+            <div class="sponsor-card">
+                <span class="sponsor-label">[Sponsor]</span>
+                <div class="sponsor-header">
+                    ${s.logo_url ? `<img src="${escapeHtml(s.logo_url)}" alt="${escapeHtml(s.name)}" class="sponsor-logo" onerror="this.style.display='none'">` : ''}
+                    <h3 class="sponsor-name">${escapeHtml(s.name)}</h3>
+                </div>
+                <p class="sponsor-tagline">${escapeHtml(s.tagline)}</p>
+                <a href="/sponsors/click/${escapeHtml(s.id)}" class="sponsor-visit-btn" onclick="trackSponsorClick('${escapeHtml(s.id)}'); return false;">
+                    Visit →
+                </a>
+            </div>
+        `).join('');
+    } catch (e) {
+        container.innerHTML = '<p class="hint">Could not load sponsors.</p>';
+    }
+}
+
+// Track sponsor click for billing
+async function trackSponsorClick(sponsorId) {
+    try {
+        await fetch('/api/sponsors/click', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sponsor_id: sponsorId })
+        });
+    } catch (e) {
+        // Silently fail - don't break UX
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Load sponsors on page load
+document.addEventListener('DOMContentLoaded', loadSponsors);
+</script>
 {% endblock %}

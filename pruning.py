@@ -19,12 +19,18 @@ Philosophy:
   - WHAT we're exploring (branch)
   - WHEN to return (return condition)
 
+  Message Pruning: When maintaining conversation history, NEVER prune system
+  messages or the first message. Only remove middle-of-conversation user/
+  assistant turns to stay within token limits.
+
 Invariants (we never cut):
   - Error-level conflicts and their suggested actions
   - Warning-level conflicts and their suggested actions
   - Mod names that appear in conflicts
   - The user's question or message
   - Game name and core identifiers
+  - System messages (role="system") - defines AI identity
+  - The first message in any conversation
 
 Config:
   PRUNING_ENABLED=1 (default) — set 0 to bypass
@@ -35,11 +41,76 @@ Config:
 import logging
 import os
 import re
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 PRUNING_ENABLED = os.environ.get("PRUNING_ENABLED", "1").strip() in ("1", "true", "yes")
+
+
+def _estimate_tokens(text: str) -> int:
+    """Rough token estimation: ~4 chars per token for English text."""
+    return len(text) // 4 if text else 0
+
+
+def _message_tokens(message: Dict[str, str]) -> int:
+    """Estimate tokens in a single message."""
+    content = message.get("content", "")
+    return _estimate_tokens(content)
+
+
+def prune_context(
+    messages: List[Dict[str, str]],
+    max_tokens: int = 4000,
+    min_exchanges: int = 2,
+) -> List[Dict[str, str]]:
+    """
+    Prune AI conversation messages while protecting system prompt and first message.
+
+    Invariants:
+    - NEVER prune messages with role="system"
+    - NEVER prune the first message in the array
+    - Only remove middle-of-conversation user/assistant turns
+    - Keep at least min_exchanges of the most recent conversation
+
+    Args:
+        messages: List of message dicts with 'role' and 'content' keys
+        max_tokens: Maximum tokens to stay under (default: 4000)
+        min_exchanges: Minimum user/assistant exchanges to keep (default: 2)
+
+    Returns:
+        Pruned list of messages that stays within token limit
+    """
+    if not messages:
+        return []
+
+    # Separate protected and prunable messages
+    # Protected: system messages + first message
+    protected = []
+    prunable = []
+
+    for i, msg in enumerate(messages):
+        if i == 0 or msg.get("role") == "system":
+            protected.append(msg)
+        else:
+            prunable.append(msg)
+
+    # Calculate current token count
+    def total_tokens():
+        return sum(_message_tokens(m) for m in protected + prunable)
+
+    # Trim from oldest prunable messages first
+    while total_tokens() > max_tokens and len(prunable) > min_exchanges:
+        prunable.pop(0)
+
+    # Ensure we have at least one exchange if possible
+    if len(prunable) < 2 and len(prunable) > 0:
+        # Keep what we have, even if over limit
+        pass
+
+    return protected + prunable
+
+
 PRUNING_MAX_CONTEXT_CHARS = int(os.environ.get("PRUNING_MAX_CONTEXT_CHARS", "12000"))
 CONTEXT_THREADING_ENABLED = os.environ.get("CONTEXT_THREADING_ENABLED", "1").strip() in (
     "1",

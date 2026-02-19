@@ -1061,7 +1061,7 @@ async function refreshInputMatchPreview(options = {}) {
 }
 
 /**
- * Fetch and display mod recommendations (live as you add mods).
+ * Fetch and display LOOT-based suggestions (missing requirements and companion mods).
  */
 async function fetchAndShowRecommendations() {
     const strip = document.getElementById('recommendations-strip');
@@ -1115,10 +1115,9 @@ async function fetchAndShowRecommendations() {
         }
 
         renderNextActions(data.next_actions || []);
-        const catLabel = (c) => (c || '').charAt(0).toUpperCase() + (c || '').slice(1);
+        // Render LOOT-based suggestions - no categories, just name and reason
         cards.innerHTML = recs.map(r => `
             <div class="mod-preview-card" data-mod-name="${escapeHtml(r.name)}">
-                ${r.category ? `<span class="mod-preview-tag mod-preview-tag-${escapeHtml(r.category)}">${escapeHtml(catLabel(r.category))}</span>` : ''}
                 <a href="${escapeHtml(r.nexus_url || '#')}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(r.name)}">
                     <img src="${escapeHtml(r.image_url || '/static/icons/mod-placeholder.svg')}" alt="" loading="lazy">
                     <span class="mod-preview-name">${escapeHtml(r.name)}</span>
@@ -3817,13 +3816,11 @@ function initDevTools() {
     const fileInput = document.getElementById('dev-file-input');
     const copyBtn = document.getElementById('dev-copy-report-btn');
     const downloadBtn = document.getElementById('dev-download-report-btn');
-    const loopSuggestBtn = document.getElementById('dev-loop-suggest-btn');
 
     if (analyzeBtn) analyzeBtn.addEventListener('click', runDevAnalyze);
     if (sampleBtn) sampleBtn.addEventListener('click', showDevSampleReport);
     if (copyBtn) copyBtn.addEventListener('click', copyDevReport);
     if (downloadBtn) downloadBtn.addEventListener('click', downloadDevReport);
-    if (loopSuggestBtn) loopSuggestBtn.addEventListener('click', runDevLoopSuggest);
 
     document.querySelectorAll('.dev-input-tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -3854,63 +3851,6 @@ function initDevTools() {
             runDevAnalyze();
         }
     });
-}
-
-async function runDevLoopSuggest() {
-    const outEl = document.getElementById('dev-loop-output');
-    const btn = document.getElementById('dev-loop-suggest-btn');
-    const game = (document.getElementById('dev-game-select')?.value || 'skyrimse');
-    const objective = (document.getElementById('dev-loop-objective')?.value || '').trim();
-    const playstyle = (document.getElementById('dev-loop-playstyle')?.value || '').trim();
-    const fpsAvg = Number(document.getElementById('dev-loop-fps')?.value || 0) || 0;
-    const crashes = Number(document.getElementById('dev-loop-crashes')?.value || 0) || 0;
-    const stutter = Number(document.getElementById('dev-loop-stutter')?.value || 0) || 0;
-    const enjoyment = Number(document.getElementById('dev-loop-enjoyment')?.value || 0) || 0;
-    if (!outEl) return;
-    outEl.classList.remove('hidden');
-    outEl.textContent = 'Samson is building your next loop...';
-    if (btn) btn.disabled = true;
-    try {
-        const res = await fetch('/api/dev-loop/suggest', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                game,
-                objective,
-                playstyle,
-                signals: {
-                    fps_avg: fpsAvg || undefined,
-                    crashes,
-                    stutter_events: stutter,
-                    enjoyment_score: enjoyment || undefined,
-                }
-            })
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || 'Could not build dev loop suggestions.');
-        const features = (data.feature_ideas || []).map((x, i) => `${i + 1}. ${x}`).join('\n');
-        const perf = (data.optimization_actions || []).map((x, i) => `${i + 1}. ${x}`).join('\n');
-        const idle = data.idle_conclusion || 'No idle conclusion available.';
-        const safety = data.safety?.policy || '';
-        outEl.textContent = [
-            `Samson Companion Loop — ${data.game || game}`,
-            '',
-            'Feature ideas:',
-            features || '- None',
-            '',
-            'Optimization actions:',
-            perf || '- None',
-            '',
-            `Idle decision: ${idle}`,
-            '',
-            `Safety: ${safety}`,
-        ].join('\n');
-        trackClientActivity('dev_loop_suggest', { game, idle_recommended: !!data.idle_recommended });
-    } catch (e) {
-        outEl.textContent = e.message || 'Could not build loop suggestions.';
-    } finally {
-        if (btn) btn.disabled = false;
-    }
 }
 
 function showDevSampleReport() {

@@ -16,7 +16,7 @@ from exceptions import (
     InvalidGameIDError,
     InvalidModListError,
 )
-from mod_recommendations import get_recommendations
+from mod_recommendations import get_loot_based_suggestions
 from security_utils import validate_game_id, validate_mod_list
 from system_impact import get_system_impact
 
@@ -90,8 +90,9 @@ class AnalysisService:
             detector = ConflictDetector(self.game)
             analysis = detector.analyze(mods)
 
-            # Get recommendations
-            recommendations = get_recommendations(analysis, self.game)
+            # Get LOOT-based recommendations (missing requirements and companion mods)
+            mod_names = [m.get("name", "") for m in mods]
+            recommendations = get_loot_based_suggestions(detector.parser, mod_names)
 
             # Get system impact
             impact = get_system_impact(mods, self.game)
