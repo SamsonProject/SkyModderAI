@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- Background Circle -->
+  <circle cx="200" cy="200" r="190" fill="#1a1a2e"/>
+  <circle cx="200" cy="200" r="180" fill="none" stroke="#e94560" stroke-width="3"/>
+  
+  <!-- Shield Shape -->
+  <path d="M 200 80 L 280 120 L 280 200 Q 280 280 200 320 Q 120 280 120 200 L 120 120 Z" 
+        fill="#16213e" stroke="#0f3460" stroke-width="4"/>
+  
+  <!-- Inner Shield Detail -->
+  <path d="M 200 100 L 265 130 L 265 200 Q 265 265 200 300 Q 135 265 135 200 L 135 130 Z" 
+        fill="#0f3460" opacity="0.5"/>
+  
+  <!-- Dragon/Serpent Abstract Design -->
+  <path d="M 170 150 Q 180 140 200 150 Q 220 140 230 150" 
+        fill="none" stroke="#e94560" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="185" cy="155" r="3" fill="#e94560"/>
+  <circle cx="215" cy="155" r="3" fill="#e94560"/>
+  
+  <!-- Mod Icon (Gear) -->
+  <g transform="translate(200, 220)">
+    <circle cx="0" cy="0" r="25" fill="none" stroke="#e94560" stroke-width="3"/>
+    <circle cx="0" cy="0" r="10" fill="#e94560"/>
+    <!-- Gear teeth -->
+    <line x1="0" y1="-25" x2="0" y2="-30" stroke="#e94560" stroke-width="4" stroke-linecap="round"/>
+    <line x1="0" y1="25" x2="0" y2="30" stroke="#e94560" stroke-width="4" stroke-linecap="round"/>
+    <line x1="-25" y1="0" x2="-30" y2="0" stroke="#e94560" stroke-width="4" stroke-linecap="round"/>
+    <line x1="25" y1="0" x2="30" y2="0" stroke="#e94560" stroke-width="4" stroke-linecap="round"/>
+    <line x1="-18" y1="-18" x2="-22" y2="-22" stroke="#e94560" stroke-width="4" stroke-linecap="round"/>
+    <line x1="18" y1="18" x2="22" y2="22" stroke="#e94560" stroke-width="4" stroke-linecap="round"/>
+    <line x1="-18" y1="18" x2="-22" y2="22" stroke="#e94560" stroke-width="4" stroke-linecap="round"/>
+    <line x1="18" y1="-18" x2="22" y2="-22" stroke="#e94560" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Decorative Elements -->
+  <path d="M 140 180 L 155 185" stroke="#e94560" stroke-width="2" opacity="0.6"/>
+  <path d="M 260 180 L 245 185" stroke="#e94560" stroke-width="2" opacity="0.6"/>
+  
+  <!-- Text -->
+  <text x="200" cy="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#e94560">
+    SkyModderAI
+  </text>
+  <text x="200" cy="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">
+    Mod Safely
+  </text>
+</svg>
