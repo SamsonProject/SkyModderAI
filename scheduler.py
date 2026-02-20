@@ -20,10 +20,12 @@ Usage:
     scheduler.start()
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +45,7 @@ class BasicScheduler:
     """Basic threading-based scheduler fallback."""
 
     def __init__(self):
-        self._jobs: Dict[str, dict] = {}
+        self._jobs: dict[str, dict] = {}
         self._running = False
 
     def schedule_daily(self, name: str, func: Callable, hour: int = 2, minute: int = 0):
@@ -103,7 +105,7 @@ class BasicScheduler:
             return True
         return False
 
-    def list_jobs(self) -> List[Dict[str, Any]]:
+    def list_jobs(self) -> list[dict[str, Any]]:
         """List all scheduled jobs."""
         return [{"name": name, **info} for name, info in self._jobs.items()]
 
@@ -151,7 +153,7 @@ class APScheduler:
         self._scheduler.shutdown(wait=wait)
         logger.info("APScheduler stopped")
 
-    def get_job(self, name: str) -> Optional[Dict[str, Any]]:
+    def get_job(self, name: str) -> Optional[dict[str, Any]]:
         """Get job info."""
         job = self._scheduler.get_job(name)
         if job:
@@ -167,10 +169,11 @@ class APScheduler:
         try:
             self._scheduler.remove_job(name)
             return True
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to remove job '{name}': {e}")
             return False
 
-    def list_jobs(self) -> List[Dict[str, Any]]:
+    def list_jobs(self) -> list[dict[str, Any]]:
         """List all scheduled jobs."""
         return [
             {
@@ -218,7 +221,7 @@ class SchedulerService:
         """Stop the scheduler."""
         self._scheduler.shutdown(wait)
 
-    def get_job(self, name: str) -> Optional[Dict[str, Any]]:
+    def get_job(self, name: str) -> Optional[dict[str, Any]]:
         """Get job info."""
         return self._scheduler.get_job(name)
 
@@ -226,7 +229,7 @@ class SchedulerService:
         """Remove a scheduled job."""
         return self._scheduler.remove_job(name)
 
-    def list_jobs(self) -> List[Dict[str, Any]]:
+    def list_jobs(self) -> list[dict[str, Any]]:
         """List all scheduled jobs."""
         return self._scheduler.list_jobs()
 
@@ -400,7 +403,7 @@ def run_model_retraining():
 # =============================================================================
 
 
-def track_curation_run(results: Dict[str, Any]):
+def track_curation_run(results: dict[str, Any]):
     """Track curation run in database."""
     try:
         from db import get_db_session
@@ -416,7 +419,7 @@ def track_curation_run(results: Dict[str, Any]):
         logger.debug(f"Failed to track curation run: {e}")
 
 
-def send_weekly_email(report: Dict[str, Any]):
+def send_weekly_email(report: dict[str, Any]):
     """Send weekly report email."""
     try:
         import smtplib
@@ -455,42 +458,42 @@ def send_weekly_email(report: Dict[str, Any]):
         logger.exception(f"Failed to send weekly report email: {e}")
 
 
-def build_weekly_report_html(report: Dict[str, Any]) -> str:
+def build_weekly_report_html(report: dict[str, Any]) -> str:
     """Build HTML email for weekly report."""
     return f"""
     <html>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">
         <h1 style="color: #333;">SkyModderAI Weekly Report</h1>
         <p style="color: #666;">{datetime.now().strftime("%Y-%m-%d")}</p>
-        
+
         <h2 style="color: #2ecc71;">✅ What Worked Well</h2>
         <ul>
             {"".join(f"<li>{item}</li>" for item in report.get("worked_well", []))}
         </ul>
-        
+
         <h2 style="color: #e74c3c;">⚠️ What Needs Improvement</h2>
         <ul>
             {"".join(f"<li>{item}</li>" for item in report.get("needs_improvement", []))}
         </ul>
-        
+
         <h2 style="color: #3498db;">💡 Optimization Suggestions</h2>
         <ol>
             {"".join(f"<li>{item}</li>" for item in report.get("suggestions", []))}
         </ol>
-        
+
         <h2 style="color: #9b59b6;">📊 New Knowledge Added</h2>
         <ul>
             {"".join(f"<li>{item}</li>" for item in report.get("new_knowledge", []))}
         </ul>
-        
+
         <h2 style="color: #f39c12;">❓ Questions for Chris</h2>
         <ol>
             {"".join(f"<li>{item}</li>" for item in report.get("questions", []))}
         </ol>
-        
+
         <hr style="border: none; border-top: 1px solid #ddd; margin: 2rem 0;">
         <p style="color: #999; font-size: 0.9rem;">
-            This is an automated report from SkyModderAI. 
+            This is an automated report from SkyModderAI.
             To adjust report settings, modify the scheduler configuration.
         </p>
     </body>

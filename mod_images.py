@@ -4,11 +4,13 @@ Fetches mod images from Nexus API, caches them, and provides fallbacks.
 Also handles inline embedding for Imgur, videos, and guides.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import re
 import time
-from typing import Dict, List, Optional
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -192,7 +194,7 @@ def cache_result(cache_key: str, image_url: str):
         logger.warning(f"Cache write failed for {cache_key}: {e}")
 
 
-def extract_embed_info(text: str) -> List[Dict]:
+def extract_embed_info(text: str) -> list[dict]:
     """
     Extract embeddable content from text (Imgur, YouTube, etc.).
 
@@ -271,25 +273,25 @@ def generate_embed_html(embed_type: str, embed_url: str, thumbnail: Optional[str
         return f'<img src="{embed_url}" alt="Imgur image" class="embed-image" loading="lazy">'
 
     elif embed_type == "youtube":
-        return f'''
+        return f"""
         <div class="embed-video embed-youtube">
             <iframe src="{embed_url}" frameborder="0" allowfullscreen loading="lazy"></iframe>
         </div>
-        '''
+        """
 
     elif embed_type == "vimeo":
-        return f'''
+        return f"""
         <div class="embed-video embed-vimeo">
             <iframe src="{embed_url}" frameborder="0" allowfullscreen loading="lazy"></iframe>
         </div>
-        '''
+        """
 
     elif embed_type == "twitch":
-        return f'''
+        return f"""
         <div class="embed-video embed-twitch">
             <iframe src="{embed_url}" frameborder="0" allowfullscreen loading="lazy"></iframe>
         </div>
-        '''
+        """
 
     return ""
 
@@ -329,9 +331,9 @@ def enrich_mod_with_image(parser, mod_entry: dict, game_id: str) -> dict:
 # Batch image fetching for recommendations
 def enrich_recommendations_with_images(
     parser,
-    recommendations: List[dict],
+    recommendations: list[dict],
     game_id: str,
-) -> List[dict]:
+) -> list[dict]:
     """
     Enrich multiple mod recommendations with images.
     Uses batching and caching for efficiency.

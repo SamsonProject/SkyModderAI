@@ -4,7 +4,7 @@ Shopping Service - Business Advertising with Pay-Per-Click
 Features:
 - First month FREE for new businesses (automatic upon approval)
 - After first month: $5 per 1,000 clicks ($0.005 per click)
-- Prepaid click credits: $50 = 10,000 clicks
+- Simple meter charge (no packages)
 - Server-side click tracking with fraud protection
 - Automatic ad placement on directory and shopping pages
 - Democratic ranking (community score + CTR)
@@ -12,13 +12,14 @@ Features:
 Privacy-first: User data never sold, only used for ad relevance.
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import time
-import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -36,23 +37,23 @@ class AdCampaign:
     spent_amount: float = 0.0
     click_credits: int = 0
     click_price_per_thousand: float = 5.00
-    
+
     # First month free tracking
     first_month_free: bool = False
     first_month_start: Optional[datetime] = None
     first_month_end: Optional[datetime] = None
-    
+
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
+
     # Computed fields
     total_impressions: int = 0
     total_clicks: int = 0
     ctr: float = 0.0
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "business_id": self.business_id,
@@ -64,7 +65,9 @@ class AdCampaign:
             "click_credits": self.click_credits,
             "click_price_per_thousand": self.click_price_per_thousand,
             "first_month_free": self.first_month_free,
-            "first_month_start": self.first_month_start.isoformat() if self.first_month_start else None,
+            "first_month_start": (
+                self.first_month_start.isoformat() if self.first_month_start else None
+            ),
             "first_month_end": self.first_month_end.isoformat() if self.first_month_end else None,
             "start_date": self.start_date.isoformat() if self.start_date else None,
             "end_date": self.end_date.isoformat() if self.end_date else None,
@@ -93,8 +96,8 @@ class AdCreative:
     clicks: int = 0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "campaign_id": self.campaign_id,
@@ -127,8 +130,8 @@ class AdClick:
     rejection_reason: Optional[str]
     cost: float
     timestamp: float
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "creative_id": self.creative_id,
@@ -148,12 +151,11 @@ class ShoppingService:
 
     # Pricing: $5 per 1,000 clicks
     CPM_RATE = 5.00
-    CLICKS_PER_PLAN = 10000
-    PLAN_PRICE = 50.00
-    
+    METER_MODEL = True  # Simple meter charge, no packages
+
     # Fraud protection: 24-hour dedup window
     FRAUD_WINDOW = 86400  # seconds
-    
+
     # First month free period
     FIRST_MONTH_DAYS = 30
 
@@ -163,16 +165,9 @@ class ShoppingService:
 
     def _get_db(self):
         """Get database connection from Flask g object."""
-        from flask import g
-        
-        if "db" not in g:
-            # Import app's get_db which handles SQLite connection
-            import sqlite3
-            from flask import current_app
-            db_path = current_app.config.get('DATABASE_PATH', 'instance/app.db')
-            g.db = sqlite3.connect(db_path)
-            g.db.row_factory = sqlite3.Row
-        return g.db
+        from db import get_db
+
+        return get_db()
 
     def _hash_fingerprint(self, ip: str, user_agent: str) -> str:
         """Create SHA256 hash of IP + User Agent."""
@@ -201,15 +196,15 @@ class ShoppingService:
     ) -> Optional[AdCampaign]:
         """
         Create a new ad campaign for a business.
-        
+
         First month is FREE - automatic upon business approval.
         """
         now = datetime.now()
         first_month_end = now + timedelta(days=self.FIRST_MONTH_DAYS) if first_month_free else None
-        
+
         # Calculate click credits based on budget
         click_credits = int((budget_amount / self.CPM_RATE) * 1000) if budget_amount > 0 else 0
-        
+
         campaign = AdCampaign(
             id=0,  # Will be set by DB
             business_id=business_id,
@@ -224,7 +219,7 @@ class ShoppingService:
             created_at=now,
             updated_at=now,
         )
-        
+
         try:
             db = self._get_db()
             cursor = db.execute(
@@ -260,29 +255,27 @@ class ShoppingService:
     def get_campaign(self, campaign_id: int) -> Optional[AdCampaign]:
         """Get campaign by ID."""
         db = self._get_db()
-        row = db.execute(
-            "SELECT * FROM ad_campaigns WHERE id = ?", (campaign_id,)
-        ).fetchone()
-        
+        row = db.execute("SELECT * FROM ad_campaigns WHERE id = ?", (campaign_id,)).fetchone()
+
         if not row:
             return None
-        
+
         return self._row_to_campaign(row)
 
-    def get_campaigns_for_business(self, business_id: str) -> List[AdCampaign]:
+    def get_campaigns_for_business(self, business_id: str) -> list[AdCampaign]:
         """Get all campaigns for a business."""
         db = self._get_db()
         rows = db.execute(
             """
-            SELECT * FROM ad_campaigns 
-            WHERE business_id = ? 
+            SELECT * FROM ad_campaigns
+            WHERE business_id = ?
             ORDER BY created_at DESC
             """,
             (business_id,),
         ).fetchall()
-        
+
         campaigns = [self._row_to_campaign(row) for row in rows]
-        
+
         # Update stats for each campaign
         for campaign in campaigns:
             stats = self.get_campaign_stats(campaign.id)
@@ -290,7 +283,7 @@ class ShoppingService:
             campaign.total_clicks = stats.get("clicks", 0)
             if campaign.total_impressions > 0:
                 campaign.ctr = (campaign.total_clicks / campaign.total_impressions) * 100
-        
+
         return campaigns
 
     def _row_to_campaign(self, row) -> AdCampaign:
@@ -306,8 +299,16 @@ class ShoppingService:
             click_credits=row["click_credits"],
             click_price_per_thousand=row["click_price_per_thousand"],
             first_month_free=bool(row["first_month_free"]),
-            first_month_start=datetime.fromisoformat(row["first_month_start"]) if row.get("first_month_start") else None,
-            first_month_end=datetime.fromisoformat(row["first_month_end"]) if row.get("first_month_end") else None,
+            first_month_start=(
+                datetime.fromisoformat(row["first_month_start"])
+                if row.get("first_month_start")
+                else None
+            ),
+            first_month_end=(
+                datetime.fromisoformat(row["first_month_end"])
+                if row.get("first_month_end")
+                else None
+            ),
             start_date=datetime.fromisoformat(row["start_date"]) if row.get("start_date") else None,
             end_date=datetime.fromisoformat(row["end_date"]) if row.get("end_date") else None,
             created_at=datetime.fromisoformat(row["created_at"]) if row.get("created_at") else None,
@@ -319,7 +320,7 @@ class ShoppingService:
         db = self._get_db()
         db.execute(
             """
-            UPDATE ad_campaigns 
+            UPDATE ad_campaigns
             SET status = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
             """,
@@ -331,16 +332,16 @@ class ShoppingService:
     def add_click_credits(self, campaign_id: int, amount: float) -> bool:
         """
         Add click credits to a campaign.
-        
-        $50 = 10,000 clicks
+
+        Simple meter charge: $5 per 1,000 clicks.
         """
         click_credits_to_add = int((amount / self.CPM_RATE) * 1000)
-        
+
         db = self._get_db()
         db.execute(
             """
-            UPDATE ad_campaigns 
-            SET click_credits = click_credits + ?, 
+            UPDATE ad_campaigns
+            SET click_credits = click_credits + ?,
                 budget_amount = budget_amount + ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
@@ -350,32 +351,32 @@ class ShoppingService:
         db.commit()
         return db.total_changes > 0
 
-    def get_campaign_stats(self, campaign_id: int) -> Dict[str, Any]:
+    def get_campaign_stats(self, campaign_id: int) -> dict[str, Any]:
         """Get campaign statistics."""
         db = self._get_db()
-        
+
         # Get impressions count
         impressions = db.execute(
             "SELECT COUNT(*) as count FROM ad_impressions WHERE campaign_id = ?",
             (campaign_id,),
         ).fetchone()["count"]
-        
+
         # Get clicks count
         clicks = db.execute(
             "SELECT COUNT(*) as count FROM ad_clicks WHERE campaign_id = ?",
             (campaign_id,),
         ).fetchone()["count"]
-        
+
         # Get billable clicks and total cost
         billable = db.execute(
             """
-            SELECT COUNT(*) as count, SUM(cost) as total_cost 
-            FROM ad_clicks 
+            SELECT COUNT(*) as count, SUM(cost) as total_cost
+            FROM ad_clicks
             WHERE campaign_id = ? AND billable = 1
             """,
             (campaign_id,),
         ).fetchone()
-        
+
         return {
             "impressions": impressions,
             "clicks": clicks,
@@ -397,7 +398,7 @@ class ShoppingService:
     ) -> Optional[AdCreative]:
         """Create a new ad creative."""
         now = datetime.now()
-        
+
         creative = AdCreative(
             id=0,
             campaign_id=campaign_id,
@@ -411,7 +412,7 @@ class ShoppingService:
             created_at=now,
             updated_at=now,
         )
-        
+
         try:
             db = self._get_db()
             cursor = db.execute(
@@ -442,14 +443,14 @@ class ShoppingService:
             logger.error(f"Failed to create creative: {e}")
             return None
 
-    def get_creatives(self, campaign_id: int, status: str = None) -> List[AdCreative]:
+    def get_creatives(self, campaign_id: int, status: str = None) -> list[AdCreative]:
         """Get all creatives for a campaign."""
         db = self._get_db()
-        
+
         if status:
             rows = db.execute(
                 """
-                SELECT * FROM ad_creatives 
+                SELECT * FROM ad_creatives
                 WHERE campaign_id = ? AND status = ?
                 ORDER BY impressions ASC
                 """,
@@ -458,13 +459,13 @@ class ShoppingService:
         else:
             rows = db.execute(
                 """
-                SELECT * FROM ad_creatives 
+                SELECT * FROM ad_creatives
                 WHERE campaign_id = ?
                 ORDER BY impressions ASC
                 """,
                 (campaign_id,),
             ).fetchall()
-        
+
         return [self._row_to_creative(row) for row in rows]
 
     def _row_to_creative(self, row) -> AdCreative:
@@ -497,10 +498,10 @@ class ShoppingService:
             """,
             (campaign_id,),
         ).fetchone()
-        
+
         if not row:
             return None
-        
+
         return self._row_to_creative(row)
 
     def update_creative_status(self, creative_id: int, status: str) -> bool:
@@ -508,7 +509,7 @@ class ShoppingService:
         db = self._get_db()
         db.execute(
             """
-            UPDATE ad_creatives 
+            UPDATE ad_creatives
             SET status = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
             """,
@@ -530,9 +531,9 @@ class ShoppingService:
     ) -> bool:
         """Record an ad impression."""
         now = time.time()
-        
+
         db = self._get_db()
-        
+
         # Log impression
         db.execute(
             """
@@ -543,17 +544,17 @@ class ShoppingService:
             """,
             (creative_id, campaign_id, business_id, placement, user_id, session_id, now),
         )
-        
+
         # Update creative impressions
         db.execute(
             """
-            UPDATE ad_creatives 
+            UPDATE ad_creatives
             SET impressions = impressions + 1
             WHERE id = ?
             """,
             (creative_id,),
         )
-        
+
         db.commit()
         return True
 
@@ -563,11 +564,11 @@ class ShoppingService:
         campaign_id: int,
         business_id: str,
         user_id: str = None,
-        request = None,
-    ) -> Tuple[bool, str, Optional[AdClick]]:
+        request=None,
+    ) -> tuple[bool, str, Optional[AdClick]]:
         """
         Record click with fraud protection.
-        
+
         Returns:
             (is_billable, message, click_record)
             - True, "Click recorded", AdClick(billable=True) = billable click
@@ -577,12 +578,12 @@ class ShoppingService:
         ip = request.remote_addr if request else "0.0.0.0"
         user_agent = request.headers.get("User-Agent", "") if request else ""
         fingerprint_hash = self._hash_fingerprint(ip, user_agent)
-        
+
         now = time.time()
         cost = self._calculate_click_cost()
-        
+
         db = self._get_db()
-        
+
         # Check for duplicate within 24h window
         last_click = db.execute(
             """
@@ -594,7 +595,7 @@ class ShoppingService:
             """,
             (fingerprint_hash, campaign_id, now - self.FRAUD_WINDOW),
         ).fetchone()
-        
+
         if last_click:
             # Duplicate click - log but mark as non-billable
             click = AdClick(
@@ -612,15 +613,15 @@ class ShoppingService:
             self._log_click(click)
             logger.debug(f"Duplicate click filtered: campaign {campaign_id}")
             return False, "Duplicate click (24h window)", click
-        
+
         # Check if campaign has credits or is in first month free
         campaign = self.get_campaign(campaign_id)
         if not campaign:
             return False, "Campaign not found", None
-        
+
         is_free_click = self._is_first_month_free(campaign)
         has_credits = campaign.click_credits > 0
-        
+
         if not is_free_click and not has_credits:
             # No credits and not in free period - log but don't bill
             click = AdClick(
@@ -638,7 +639,7 @@ class ShoppingService:
             self._log_click(click)
             logger.warning(f"Click rejected: campaign {campaign_id} has no credits")
             return False, "No click credits remaining", click
-        
+
         # Valid billable click
         click = AdClick(
             id=0,
@@ -653,22 +654,22 @@ class ShoppingService:
             timestamp=now,
         )
         self._log_click(click)
-        
+
         # Update creative clicks
         db.execute(
             """
-            UPDATE ad_creatives 
+            UPDATE ad_creatives
             SET clicks = clicks + 1
             WHERE id = ?
             """,
             (creative_id,),
         )
-        
+
         # Deduct credits if not free
         if not is_free_click:
             db.execute(
                 """
-                UPDATE ad_campaigns 
+                UPDATE ad_campaigns
                 SET click_credits = click_credits - 1,
                     spent_amount = spent_amount + ?,
                     updated_at = CURRENT_TIMESTAMP
@@ -676,9 +677,9 @@ class ShoppingService:
                 """,
                 (cost, campaign_id),
             )
-        
+
         db.commit()
-        
+
         logger.info(f"Click recorded: campaign {campaign_id} (free: {is_free_click})")
         return True, "Click recorded", click
 
@@ -708,19 +709,19 @@ class ShoppingService:
 
     # ==================== Ad Serving ====================
 
-    def get_featured_ads(self, limit: int = 6, placement: str = None) -> List[Dict[str, Any]]:
+    def get_featured_ads(self, limit: int = 6, placement: str = None) -> list[dict[str, Any]]:
         """
         Get featured ads for display.
-        
+
         Returns active ads from businesses with good standing,
         prioritizing those with remaining credits or in first month free.
         """
         db = self._get_db()
-        
+
         # Get active campaigns with remaining credits or in first month free
         rows = db.execute(
             """
-            SELECT 
+            SELECT
                 c.id as campaign_id,
                 c.business_id,
                 c.name as campaign_name,
@@ -741,10 +742,10 @@ class ShoppingService:
             FROM ad_campaigns c
             JOIN businesses b ON c.business_id = b.id
             JOIN ad_creatives cr ON cr.campaign_id = c.id
-            WHERE c.status = 'active' 
+            WHERE c.status = 'active'
                 AND cr.status = 'active'
                 AND (c.click_credits > 0 OR c.first_month_free = 1)
-            ORDER BY 
+            ORDER BY
                 c.first_month_free DESC,
                 c.click_credits DESC,
                 cr.impressions ASC
@@ -752,35 +753,37 @@ class ShoppingService:
             """,
             (limit,),
         ).fetchall()
-        
+
         ads = []
         for row in rows:
-            ads.append({
-                "campaign_id": row["campaign_id"],
-                "business_id": row["business_id"],
-                "business_name": row["business_name"],
-                "business_slug": row["business_slug"],
-                "business_website": row["website"],
-                "campaign_name": row["campaign_name"],
-                "creative_id": row["creative_id"],
-                "headline": row["headline"],
-                "body_copy": row["body_copy"],
-                "cta_text": row["cta_text"],
-                "landing_url": row["landing_url"],
-                "image_url": row["image_url"],
-                "first_month_free": bool(row["first_month_free"]),
-            })
-        
+            ads.append(
+                {
+                    "campaign_id": row["campaign_id"],
+                    "business_id": row["business_id"],
+                    "business_name": row["business_name"],
+                    "business_slug": row["business_slug"],
+                    "business_website": row["website"],
+                    "campaign_name": row["campaign_name"],
+                    "creative_id": row["creative_id"],
+                    "headline": row["headline"],
+                    "body_copy": row["body_copy"],
+                    "cta_text": row["cta_text"],
+                    "landing_url": row["landing_url"],
+                    "image_url": row["image_url"],
+                    "first_month_free": bool(row["first_month_free"]),
+                }
+            )
+
         return ads
 
-    def get_ads_for_business_slug(self, business_slug: str, limit: int = 3) -> List[Dict[str, Any]]:
+    def get_ads_for_business_slug(self, business_slug: str, limit: int = 3) -> list[dict[str, Any]]:
         """Get ads to display on a business profile page (competitors)."""
         db = self._get_db()
-        
+
         # Get ads from same category (excluding the current business)
         rows = db.execute(
             """
-            SELECT 
+            SELECT
                 c.id as campaign_id,
                 c.business_id,
                 b.name as business_name,
@@ -792,7 +795,7 @@ class ShoppingService:
             FROM ad_campaigns c
             JOIN businesses b ON c.business_id = b.id
             JOIN ad_creatives cr ON cr.campaign_id = c.id
-            WHERE c.status = 'active' 
+            WHERE c.status = 'active'
                 AND cr.status = 'active'
                 AND b.slug != ?
                 AND (c.click_credits > 0 OR c.first_month_free = 1)
@@ -801,20 +804,22 @@ class ShoppingService:
             """,
             (business_slug, limit),
         ).fetchall()
-        
+
         ads = []
         for row in rows:
-            ads.append({
-                "campaign_id": row["campaign_id"],
-                "business_id": row["business_id"],
-                "business_name": row["business_name"],
-                "business_slug": row["business_slug"],
-                "business_website": row["website"],
-                "headline": row["headline"],
-                "landing_url": row["landing_url"],
-                "image_url": row["image_url"],
-            })
-        
+            ads.append(
+                {
+                    "campaign_id": row["campaign_id"],
+                    "business_id": row["business_id"],
+                    "business_name": row["business_name"],
+                    "business_slug": row["business_slug"],
+                    "business_website": row["website"],
+                    "headline": row["headline"],
+                    "landing_url": row["landing_url"],
+                    "image_url": row["image_url"],
+                }
+            )
+
         return ads
 
 

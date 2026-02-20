@@ -5,10 +5,13 @@ This module is designed to avoid circular imports.
 
 from __future__ import annotations
 
+import logging
 import secrets
 from typing import Any, Optional
 
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+
+logger = logging.getLogger(__name__)
 
 
 def make_state_token(secret_key: str, salt: str, next_url: str = "") -> str:
@@ -50,7 +53,8 @@ def verify_state_token(
         return s.loads(state, max_age=max_age)  # type: ignore[no-any-return]
     except (BadSignature, SignatureExpired):
         return None
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Unexpected error verifying state token: {e}")
         return None
 
 
@@ -68,5 +72,6 @@ def verify_verification_token(token: str, secret_key: str, max_age: int = 86400)
         return s.loads(token, max_age=max_age)  # type: ignore[no-any-return]
     except (BadSignature, SignatureExpired):
         return None
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Unexpected error verifying verification token: {e}")
         return None

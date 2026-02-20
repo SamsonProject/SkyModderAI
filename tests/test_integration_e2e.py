@@ -309,9 +309,11 @@ class TestFullUserWorkflow(unittest.TestCase):
                     "content": f"Found {len(mod_list)} mods in load order",
                 }
             ],
-            warnings=[{"level": "medium", "message": "Review conflicts below"}]
-            if analysis["conflicts"]
-            else [],
+            warnings=(
+                [{"level": "medium", "message": "Review conflicts below"}]
+                if analysis["conflicts"]
+                else []
+            ),
             recommendations=[
                 {"priority": "high", "content": rec["content"]}
                 for rec in analysis.get("recommendations", [])

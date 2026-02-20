@@ -7,7 +7,7 @@ Professional-grade ORM models for database operations.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any
 
 from sqlalchemy import (
     Boolean,
@@ -57,7 +57,7 @@ class User(Base):
     posts = relationship("CommunityPost", back_populates="user", cascade="all, delete-orphan")
     replies = relationship("CommunityReply", back_populates="user", cascade="all, delete-orphan")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "email": self.email,
@@ -404,7 +404,7 @@ class SourceCredibility(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         import json
 
@@ -414,21 +414,21 @@ class SourceCredibility(Base):
             "overall_score": round(self.overall_score, 3) if self.overall_score else None,
             "confidence": round(self.confidence, 3) if self.confidence else None,
             "dimensions": {
-                "source_credibility": round(self.source_credibility, 3)
-                if self.source_credibility
-                else None,
-                "content_freshness": round(self.content_freshness, 3)
-                if self.content_freshness
-                else None,
-                "community_validation": round(self.community_validation, 3)
-                if self.community_validation
-                else None,
-                "technical_accuracy": round(self.technical_accuracy, 3)
-                if self.technical_accuracy
-                else None,
-                "author_reputation": round(self.author_reputation, 3)
-                if self.author_reputation
-                else None,
+                "source_credibility": (
+                    round(self.source_credibility, 3) if self.source_credibility else None
+                ),
+                "content_freshness": (
+                    round(self.content_freshness, 3) if self.content_freshness else None
+                ),
+                "community_validation": (
+                    round(self.community_validation, 3) if self.community_validation else None
+                ),
+                "technical_accuracy": (
+                    round(self.technical_accuracy, 3) if self.technical_accuracy else None
+                ),
+                "author_reputation": (
+                    round(self.author_reputation, 3) if self.author_reputation else None
+                ),
             },
             "flags": json.loads(self.flags) if self.flags else [],
             "last_verified": self.last_verified.isoformat() if self.last_verified else None,
@@ -486,7 +486,7 @@ class KnowledgeSource(Base):
 
     __table_args__ = (UniqueConstraint("source_url", "game", name="uq_knowledge_source"),)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         import json
 
@@ -534,7 +534,7 @@ class TrashBinItem(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     expires_at = Column(DateTime, nullable=True)  # Auto-delete after this date
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,
@@ -565,7 +565,9 @@ class Product(Base):
     description = Column(Text, nullable=True)
     price = Column(Float, nullable=False)
     image_url = Column(String(500), nullable=True)
-    category = Column(String(100), nullable=False, default="general")  # Hardware, Mods, Apparel, etc.
+    category = Column(
+        String(100), nullable=False, default="general"
+    )  # Hardware, Mods, Apparel, etc.
     stock = Column(Integer, default=0)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -575,7 +577,7 @@ class Product(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,

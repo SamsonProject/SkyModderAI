@@ -11,11 +11,13 @@ Handles:
 Run daily at 2 AM UTC via scheduler.
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from db import get_db_session
 from models import KnowledgeSource, TrashBinItem
@@ -23,7 +25,7 @@ from models import KnowledgeSource, TrashBinItem
 logger = logging.getLogger(__name__)
 
 
-def run_curation_pipeline() -> Dict[str, Any]:
+def run_curation_pipeline() -> dict[str, Any]:
     """
     Run full curation pipeline.
 
@@ -50,7 +52,7 @@ def run_curation_pipeline() -> Dict[str, Any]:
     return results
 
 
-def run_semantic_clustering() -> Dict[str, Any]:
+def run_semantic_clustering() -> dict[str, Any]:
     """
     Cluster related knowledge entries semantically.
 
@@ -72,7 +74,7 @@ def run_semantic_clustering() -> Dict[str, Any]:
         sources = session.query(KnowledgeSource).filter(KnowledgeSource.status == "active").all()
 
         # Group by game + category
-        clusters: Dict[str, List[KnowledgeSource]] = {}
+        clusters: dict[str, list[KnowledgeSource]] = {}
         for source in sources:
             key = f"{source.game}:{source.category or 'uncategorized'}"
             if key not in clusters:
@@ -86,7 +88,7 @@ def run_semantic_clustering() -> Dict[str, Any]:
                 continue
 
             # Group by version compatibility
-            version_groups: Dict[str, List[KnowledgeSource]] = {}
+            version_groups: dict[str, list[KnowledgeSource]] = {}
             for source in cluster_sources:
                 version_key = source.game_version or "any"
                 if version_key not in version_groups:
@@ -118,7 +120,7 @@ def run_semantic_clustering() -> Dict[str, Any]:
         return {"processed": 0, "clusters_found": 0, "error": str(e)}
 
 
-def run_information_compaction() -> Dict[str, Any]:
+def run_information_compaction() -> dict[str, Any]:
     """
     Compact duplicate or near-duplicate entries.
 
@@ -141,7 +143,7 @@ def run_information_compaction() -> Dict[str, Any]:
         space_saved = 0
 
         # Group by content hash
-        hash_groups: Dict[str, List[KnowledgeSource]] = {}
+        hash_groups: dict[str, list[KnowledgeSource]] = {}
         sources = (
             session.query(KnowledgeSource)
             .filter(KnowledgeSource.status == "active", KnowledgeSource.content_hash.isnot(None))
@@ -204,7 +206,7 @@ def run_information_compaction() -> Dict[str, Any]:
         return {"duplicates_removed": 0, "space_saved_bytes": 0, "error": str(e)}
 
 
-def run_cross_linking() -> Dict[str, Any]:
+def run_cross_linking() -> dict[str, Any]:
     """
     Add cross-references between related entries.
 
@@ -228,7 +230,7 @@ def run_cross_linking() -> Dict[str, Any]:
         sources = session.query(KnowledgeSource).filter(KnowledgeSource.status == "active").all()
 
         # Build index by mod name
-        mod_index: Dict[str, List[int]] = {}
+        mod_index: dict[str, list[int]] = {}
         for source in sources:
             # Index by requires
             if source.requires:
@@ -293,7 +295,7 @@ def run_cross_linking() -> Dict[str, Any]:
         return {"links_added": 0, "error": str(e)}
 
 
-def run_trash_audit() -> Dict[str, Any]:
+def run_trash_audit() -> dict[str, Any]:
     """
     Audit trash bin items.
 
@@ -377,7 +379,7 @@ def run_trash_audit() -> Dict[str, Any]:
         return {"reviewed": 0, "deleted": 0, "compacted": 0, "re_routed": 0, "error": str(e)}
 
 
-def run_category_discovery() -> Dict[str, Any]:
+def run_category_discovery() -> dict[str, Any]:
     """
     Discover new categories from emerging patterns.
 
@@ -407,7 +409,7 @@ def run_category_discovery() -> Dict[str, Any]:
         )
 
         # Group by category
-        category_sources: Dict[str, List[KnowledgeSource]] = {}
+        category_sources: dict[str, list[KnowledgeSource]] = {}
         for source in sources:
             cat = source.category or "uncategorized"
             if cat not in category_sources:
@@ -420,7 +422,7 @@ def run_category_discovery() -> Dict[str, Any]:
                 continue
 
             # Count tag frequency
-            tag_counts: Dict[str, int] = {}
+            tag_counts: dict[str, int] = {}
             for source in cat_sources:
                 if source.tags:
                     try:
@@ -471,7 +473,7 @@ def compute_content_hash(title: str, summary: str, game: str) -> str:
     return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 
-def suggest_category(title: str, summary: str, tags: List[str]) -> Optional[str]:
+def suggest_category(title: str, summary: str, tags: list[str]) -> Optional[str]:
     """Suggest category based on content analysis."""
     title_lower = title.lower()
     summary_lower = summary.lower()
@@ -485,7 +487,7 @@ def suggest_category(title: str, summary: str, tags: List[str]) -> Optional[str]
     }
 
     # Count matches
-    scores: Dict[str, int] = {}
+    scores: dict[str, int] = {}
     for category, keywords in category_keywords.items():
         score = sum(1 for kw in keywords if kw in title_lower or kw in summary_lower)
         if score > 0:

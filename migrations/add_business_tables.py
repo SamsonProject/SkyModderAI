@@ -47,7 +47,8 @@ def migrate():
 
         # Businesses table
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS businesses (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -71,12 +72,14 @@ def migrate():
                 last_active TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """
+            )
         )
 
         # Business trust scores table
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS business_trust_scores (
                 business_id TEXT PRIMARY KEY,
                 community_vote_score REAL DEFAULT 0.0,
@@ -96,12 +99,14 @@ def migrate():
                 last_calculated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (business_id) REFERENCES businesses(id)
             )
-        """)
+        """
+            )
         )
 
         # Business votes table
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS business_votes (
                 id {serial_type} {auto_increment} PRIMARY KEY,
                 business_id TEXT NOT NULL,
@@ -112,12 +117,14 @@ def migrate():
                 FOREIGN KEY (business_id) REFERENCES businesses(id),
                 UNIQUE(business_id, voter_user_id)
             )
-        """)
+        """
+            )
         )
 
         # Business flags table
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS business_flags (
                 id {serial_type} {auto_increment} PRIMARY KEY,
                 business_id TEXT NOT NULL,
@@ -130,12 +137,14 @@ def migrate():
                 reviewed_by TEXT,
                 FOREIGN KEY (business_id) REFERENCES businesses(id)
             )
-        """)
+        """
+            )
         )
 
         # Business connections table
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS business_connections (
                 id {serial_type} {auto_increment} PRIMARY KEY,
                 requester_id TEXT NOT NULL,
@@ -148,12 +157,14 @@ def migrate():
                 FOREIGN KEY (target_id) REFERENCES businesses(id),
                 UNIQUE(requester_id, target_id)
             )
-        """)
+        """
+            )
         )
 
         # Hub resources table
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS hub_resources (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
@@ -168,34 +179,45 @@ def migrate():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (contributed_by_business_id) REFERENCES businesses(id)
             )
-        """)
+        """
+            )
         )
 
         # Create indexes
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_businesses_status ON businesses(status)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_businesses_category ON businesses(primary_category)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_business_votes_business ON business_votes(business_id)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_business_flags_business ON business_flags(business_id)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_hub_resources_category ON hub_resources(category)
-        """)
+        """
+            )
         )
 
         # Seed sample businesses
@@ -255,7 +277,8 @@ def migrate():
 
         for biz in sample_businesses:
             conn.execute(
-                text("""
+                text(
+                    """
                 INSERT INTO businesses
                 (id, name, slug, tagline, description, website, logo_url, contact_email,
                  public_contact_method, public_contact_value, primary_category,
@@ -264,7 +287,8 @@ def migrate():
                         :contact_email, :public_contact_method, :public_contact_value,
                         :primary_category, :secondary_categories, :relevant_games, :status, :verified)
                 ON CONFLICT (id) DO NOTHING
-            """),
+            """
+                ),
                 {
                     **biz,
                     "public_contact_value": biz.get("public_contact_value", ""),  # Ensure it's set
@@ -273,11 +297,13 @@ def migrate():
 
             # Create trust score for each business
             conn.execute(
-                text("""
+                text(
+                    """
                 INSERT INTO business_trust_scores (business_id, trust_score, trust_tier, total_votes, positive_votes)
                 VALUES (:id, 85.0, 'trusted', 50, 48)
                 ON CONFLICT (business_id) DO NOTHING
-            """),
+            """
+                ),
                 {"id": biz["id"]},
             )
 

@@ -3,6 +3,8 @@ SkyModderAI - Mod Compatibility Checker
 Main Flask application with improved security, error handling, and Stripe integration.
 """
 
+from __future__ import annotations
+
 import hashlib
 import html
 import json
@@ -12,13 +14,13 @@ import re
 import secrets
 import smtplib
 import sqlite3
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
 from time import time as _time
-from typing import Optional
+from typing import Any, Optional
 from urllib.parse import quote, urlencode, urljoin, urlparse
 
 import requests
@@ -38,58 +40,22 @@ from itsdangerous import URLSafeTimedSerializer
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from config import config
-
 # Local modules
 from community_builds import (
     get_community_builds_service,
 )
+from config import config
 from conflict_detector import ConflictDetector, parse_mod_list_text
 
 # Shared constants - imported from constants.py
 from constants import (
     MAX_INPUT_SIZE,
-    MAX_MOD_LIST_SIZE,
-    MAX_SEARCH_QUERY_LENGTH,
     PLUGIN_LIMIT,
     PLUGIN_LIMIT_WARN_THRESHOLD,
     RATE_LIMIT_ANALYZE,
     RATE_LIMIT_API,
-    RATE_LIMIT_AUTH,
-    RATE_LIMIT_DEFAULT,
     RATE_LIMIT_SEARCH,
-    RATE_LIMIT_WINDOW,
 )
-
-# Security utilities
-from security_utils import (
-    RateLimiter,
-    constant_time_compare,
-    generate_secure_token,
-    get_client_ip,
-    get_key_prefix,
-    hash_api_key,
-    rate_limit,
-    validate_email,
-    validate_game_id,
-    validate_list_name,
-    validate_mod_list,
-    validate_password,
-    validate_search_query,
-)
-
-# Logging utilities
-from logging_utils import (
-    RequestLoggingMiddleware,
-    SensitiveDataFilter,
-    StructuredFormatter,
-    get_request_id,
-    log_with_context,
-    redact_api_key,
-    redact_email,
-    setup_logging,
-)
-
 from deterministic_analysis import (
     analyze_load_order_deterministic,
     generate_bespoke_setups_deterministic,
@@ -104,6 +70,13 @@ from knowledge_index import (
     get_resolution_for_conflict,
 )
 from list_builder import build_list_from_preferences, get_preference_options
+
+# Logging utilities
+from logging_utils import (
+    RequestLoggingMiddleware,
+    SensitiveDataFilter,
+    setup_logging,
+)
 from loot_parser import LOOTParser
 from mod_recommendations import get_loot_based_suggestions
 from mod_warnings import get_mod_warnings
@@ -114,6 +87,17 @@ from openclaw_engine import (
 )
 from result_consolidator import consolidate_conflicts
 from search_engine import get_search_engine
+
+# Security utilities
+from security_utils import (
+    RateLimiter,
+    rate_limit,
+    validate_email,
+    validate_game_id,
+    validate_list_name,
+    validate_mod_list,
+    validate_search_query,
+)
 from system_impact import (
     format_system_impact_for_ai,
     format_system_impact_report,
@@ -126,33 +110,37 @@ from walkthrough_manager import WalkthroughManager
 # -------------------------------------------------------------------
 # Game Version Helpers (Replaces game_versions.py dependency)
 # -------------------------------------------------------------------
-def _load_game_versions_data():
+def _load_game_versions_data() -> dict[str, Any]:
     """Load game versions from JSON file."""
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "game_versions.json")
     try:
         with open(path) as f:
-            return json.load(f)
+            return json.load(f)  # type: ignore[no-any-return]
     except Exception as e:
         logger.error(f"Failed to load game versions: {e}")
         return {}
 
 
-def get_versions_for_game(game_id):
+def get_versions_for_game(game_id: str) -> dict[str, Any]:
+    """Get all versions for a specific game."""
     data = _load_game_versions_data()
     return data.get(game_id, {}).get("versions", {})
 
 
-def get_default_version(game_id):
+def get_default_version(game_id: str) -> str:
+    """Get the default version for a specific game."""
     data = _load_game_versions_data()
     return data.get(game_id, {}).get("default", "")
 
 
-def get_version_info(game_id, version):
+def get_version_info(game_id: str, version: str) -> Optional[dict[str, Any]]:
+    """Get version information for a specific game and version."""
     versions = get_versions_for_game(game_id)
     return versions.get(version)
 
 
-def get_version_warning(game_id, version):
+def get_version_warning(game_id: str, version: str) -> Optional[dict[str, str]]:
+    """Get version warning if applicable."""
     info = get_version_info(game_id, version)
     if info and info.get("warning"):
         return {"message": info["warning"], "link": info.get("warning_link")}
@@ -162,7 +150,7 @@ def get_version_warning(game_id, version):
 # -------------------------------------------------------------------
 # PII redaction for logs (never log emails, tokens, or customer data)
 # -------------------------------------------------------------------
-def _redact_email(email):
+def _redact_email(email: Optional[str]) -> str:
     """Redact email for safe logging. Returns e.g. 'u***@***'."""
     if not email or not isinstance(email, str):
         return "***"
@@ -188,7 +176,9 @@ logger = setup_logging(
 
 logger.info("SkyModderAI starting up...")
 logger.info(f"Environment: {config.FLASK_ENV}")
-logger.info(f"Database: {'PostgreSQL' if config.SQLALCHEMY_DATABASE_URI.startswith('postgresql') else 'SQLite'}")
+logger.info(
+    f"Database: {'PostgreSQL' if config.SQLALCHEMY_DATABASE_URI.startswith('postgresql') else 'SQLite'}"
+)
 
 # Initialize global rate limiter
 _app_rate_limiter = RateLimiter()
@@ -497,16 +487,16 @@ PAID_TIERS = frozenset({"pro", "pro_plus", "claw"})
 DB_FILE = "users.db"
 
 
-def get_db():
+def get_db() -> sqlite3.Connection:
     """Get a database connection (stored in Flask's g)."""
     if "db" not in g:
         g.db = sqlite3.connect(DB_FILE)
         g.db.row_factory = sqlite3.Row
-    return g.db
+    return g.db  # type: ignore[no-any-return]
 
 
 @app.teardown_appcontext
-def close_db(error):
+def close_db(error: Optional[Exception]) -> None:
     """Close the database connection at the end of the request."""
     db = g.pop("db", None)
     if db is not None:
@@ -1833,9 +1823,12 @@ def server_error(e):
     logger.exception("Server error: %s", e)
     if request.path.startswith("/api/"):
         return api_error("Internal server error", 500)
-    return render_template(
-        "error.html", code=500, message="Something went wrong. We've been notified."
-    ), 500
+    return (
+        render_template(
+            "error.html", code=500, message="Something went wrong. We've been notified."
+        ),
+        500,
+    )
 
 
 # -------------------------------------------------------------------
@@ -2178,9 +2171,14 @@ def login_submit():
         return jsonify({"error": "Password required."}), 400
     row = get_user_row(email)
     if not row or not row.get("password_hash"):
-        return jsonify(
-            {"error": "No account with that email, or account has no password set. Sign up first."}
-        ), 401
+        return (
+            jsonify(
+                {
+                    "error": "No account with that email, or account has no password set. Sign up first."
+                }
+            ),
+            401,
+        )
     if not check_password_hash(row["password_hash"], password):
         return jsonify({"error": "Incorrect password."}), 401
     next_param = request.args.get("next", "").strip()
@@ -3336,11 +3334,14 @@ def api_community_posts_create():
     if tag not in COMMUNITY_TAGS:
         tag = "general"
     if not _community_content_ok(content):
-        return jsonify(
-            {
-                "error": "Post must be 3–2000 characters and follow community guidelines. See the guidelines in the Community tab."
-            }
-        ), 400
+        return (
+            jsonify(
+                {
+                    "error": "Post must be 3–2000 characters and follow community guidelines. See the guidelines in the Community tab."
+                }
+            ),
+            400,
+        )
     try:
         db = get_db()
         db.execute(
@@ -3368,9 +3369,10 @@ def api_community_reply(post_id):
     data = request.get_json() or {}
     content = (data.get("content") or "").strip()
     if not _community_content_ok(content):
-        return jsonify(
-            {"error": "Reply must be 3–2000 characters and follow community guidelines."}
-        ), 400
+        return (
+            jsonify({"error": "Reply must be 3–2000 characters and follow community guidelines."}),
+            400,
+        )
     try:
         db = get_db()
         exists = db.execute(
@@ -4550,11 +4552,9 @@ def analyze_mods():
                 {
                     "affected_mod": getattr(c, "affected_mod", ""),
                     "type": getattr(c, "type", "unknown"),
-                    "severity": "critical"
-                    if c in err_list
-                    else "warning"
-                    if c in warn_list
-                    else "info",
+                    "severity": (
+                        "critical" if c in err_list else "warning" if c in warn_list else "info"
+                    ),
                     "message": str(getattr(c, "message", "")),
                     "suggested_action": getattr(c, "suggested_action", ""),
                     "related_mod": getattr(c, "related_mod", ""),
@@ -5000,9 +5000,10 @@ def _get_community_intelligence(game, user_mod_list):
 def chat():
     """Pro: chat about your load order / conflicts. Key from LLM_API_KEY env only."""
     if not AI_CHAT_ENABLED:
-        return jsonify(
-            {"error": "AI chat is not configured. Set LLM_API_KEY in your environment."}
-        ), 503
+        return (
+            jsonify({"error": "AI chat is not configured. Set LLM_API_KEY in your environment."}),
+            503,
+        )
     user_email = session.get("user_email")
     data = request.get_json() or {}
     message = (data.get("message") or "").strip()
@@ -5398,9 +5399,12 @@ def api_dev_analyze():
             logger.warning("Dev analyze GitHub fetch: %s", e)
             return jsonify({"error": "Could not fetch repo. Is it public?"}), 502
         if not files_content:
-            return jsonify(
-                {"error": "No relevant files found (look for .psc, .esp, .ini, README, etc.)"}
-            ), 400
+            return (
+                jsonify(
+                    {"error": "No relevant files found (look for .psc, .esp, .ini, README, etc.)"}
+                ),
+                400,
+            )
     else:
         for f in files_data[:30]:
             path = (f.get("path") or f.get("name") or "file").strip()
@@ -5790,7 +5794,7 @@ def api_community_health():
 def api_community_builds():
     """
     Get community-submitted builds.
-    
+
     Query params:
     - game: Filter by game (skyrimse, fallout4, etc.)
     - playstyle: Filter by playstyle tag (vanilla_plus, hardcore, etc.)
@@ -5800,18 +5804,18 @@ def api_community_builds():
     """
     try:
         service = get_community_builds_service()
-        
+
         game = request.args.get("game")
         playstyle = request.args.get("playstyle")
         performance_tier = request.args.get("performance_tier")
-        
+
         try:
             limit = min(max(1, int(request.args.get("limit", 50))), 100)
         except (ValueError, TypeError):
             limit = 50
-        
+
         include_seed = request.args.get("include_seed", "true").lower() != "false"
-        
+
         builds = service.get_builds(
             game=game,
             playstyle=playstyle,
@@ -5819,7 +5823,7 @@ def api_community_builds():
             limit=limit,
             include_seed=include_seed,
         )
-        
+
         # Get user's vote on each build if logged in
         user_email = session.get("user_email")
         for build in builds:
@@ -5827,13 +5831,15 @@ def api_community_builds():
                 build["user_vote"] = service.get_user_vote(build["id"], user_email)
             else:
                 build["user_vote"] = 0
-        
-        return jsonify({
-            "success": True,
-            "builds": builds,
-            "count": len(builds),
-        })
-        
+
+        return jsonify(
+            {
+                "success": True,
+                "builds": builds,
+                "count": len(builds),
+            }
+        )
+
     except Exception as e:
         logger.exception("Community builds API error: %s", e)
         return api_error("Could not load community builds.", 500)
@@ -5845,21 +5851,23 @@ def api_community_build(build_id):
     try:
         service = get_community_builds_service()
         build = service.get_build_by_id(build_id)
-        
+
         if not build:
             return api_error("Build not found.", 404)
-        
+
         user_email = session.get("user_email")
         if user_email:
             build["user_vote"] = service.get_user_vote(build_id, user_email)
         else:
             build["user_vote"] = 0
-        
-        return jsonify({
-            "success": True,
-            "build": build,
-        })
-        
+
+        return jsonify(
+            {
+                "success": True,
+                "build": build,
+            }
+        )
+
     except Exception as e:
         logger.exception("Community build API error: %s", e)
         return api_error("Could not load build.", 500)
@@ -5869,9 +5877,9 @@ def api_community_build(build_id):
 def api_community_build_submit():
     """
     Submit a new community build.
-    
+
     Requires authentication.
-    
+
     Body:
     - game: Game ID (required)
     - name: Build name (required)
@@ -5889,28 +5897,30 @@ def api_community_build_submit():
         user_email = session.get("user_email")
         if not user_email:
             return api_error("Authentication required.", 401)
-        
+
         data = request.get_json()
         if not data:
             return api_error("Invalid JSON.", 400)
-        
+
         # Validate required fields
         for field in ["game", "name", "description", "mod_list"]:
             if not data.get(field):
                 return api_error(f"Missing required field: {field}", 400)
-        
+
         service = get_community_builds_service()
         build_id = service.submit_build(data, user_email)
-        
+
         if not build_id:
             return api_error("Failed to submit build.", 500)
-        
-        return jsonify({
-            "success": True,
-            "build_id": build_id,
-            "message": "Build submitted! Thank you for contributing to the community.",
-        })
-        
+
+        return jsonify(
+            {
+                "success": True,
+                "build_id": build_id,
+                "message": "Build submitted! Thank you for contributing to the community.",
+            }
+        )
+
     except Exception as e:
         logger.exception("Community build submit error: %s", e)
         return api_error("Could not submit build.", 500)
@@ -5920,9 +5930,9 @@ def api_community_build_submit():
 def api_community_build_vote(build_id):
     """
     Vote on a community build.
-    
+
     Requires authentication.
-    
+
     Body:
     - vote: 1 for upvote, -1 for downvote (required)
     """
@@ -5930,30 +5940,32 @@ def api_community_build_vote(build_id):
         user_email = session.get("user_email")
         if not user_email:
             return api_error("Authentication required.", 401)
-        
+
         data = request.get_json()
         if not data or "vote" not in data:
             return api_error("Missing vote field.", 400)
-        
+
         vote = data["vote"]
         if vote not in (1, -1):
             return api_error("Vote must be 1 (upvote) or -1 (downvote).", 400)
-        
+
         service = get_community_builds_service()
         success = service.vote(build_id, user_email, vote)
-        
+
         if not success:
             return api_error("Failed to record vote.", 500)
-        
+
         # Get updated build data
         build = service.get_build_by_id(build_id)
         build["user_vote"] = service.get_user_vote(build_id, user_email)
-        
-        return jsonify({
-            "success": True,
-            "build": build,
-        })
-        
+
+        return jsonify(
+            {
+                "success": True,
+                "build": build,
+            }
+        )
+
     except Exception as e:
         logger.exception("Community build vote error: %s", e)
         return api_error("Could not record vote.", 500)
@@ -5963,25 +5975,27 @@ def api_community_build_vote(build_id):
 def api_community_build_delete(build_id):
     """
     Delete a community build.
-    
+
     Requires authentication. Only author or admin can delete.
     """
     try:
         user_email = session.get("user_email")
         if not user_email:
             return api_error("Authentication required.", 401)
-        
+
         service = get_community_builds_service()
         success = service.delete_build(build_id, user_email)
-        
+
         if not success:
             return api_error("Failed to delete build.", 500)
-        
-        return jsonify({
-            "success": True,
-            "message": "Build deleted.",
-        })
-        
+
+        return jsonify(
+            {
+                "success": True,
+                "message": "Build deleted.",
+            }
+        )
+
     except Exception as e:
         logger.exception("Community build delete error: %s", e)
         return api_error("Could not delete build.", 500)
@@ -5993,12 +6007,14 @@ def api_community_builds_stats():
     try:
         service = get_community_builds_service()
         stats = service.get_stats()
-        
-        return jsonify({
-            "success": True,
-            "stats": stats,
-        })
-        
+
+        return jsonify(
+            {
+                "success": True,
+                "stats": stats,
+            }
+        )
+
     except Exception as e:
         logger.exception("Community builds stats error: %s", e)
         return api_error("Could not load stats.", 500)
@@ -6959,9 +6975,9 @@ def api_profile_dashboard():
                     "replies_count": replies_count,
                     "votes_cast": votes_cast,
                     "feedback_count": feedback_count,
-                    "avg_helpfulness": round(float(avg_helpfulness), 2)
-                    if avg_helpfulness is not None
-                    else None,
+                    "avg_helpfulness": (
+                        round(float(avg_helpfulness), 2) if avg_helpfulness is not None else None
+                    ),
                 },
                 "top_tags": top_tags,
                 "recent_activity": recent_activity,
@@ -7345,9 +7361,9 @@ def health():
             "default_game": DEFAULT_GAME,
             "payments_enabled": PAYMENTS_ENABLED,
             "stripe_configured": bool(stripe_price_id) if PAYMENTS_ENABLED else False,
-            "stripe_openclaw_configured": bool(stripe_openclaw_price_id)
-            if PAYMENTS_ENABLED
-            else False,
+            "stripe_openclaw_configured": (
+                bool(stripe_openclaw_price_id) if PAYMENTS_ENABLED else False
+            ),
             "ai_configured": AI_CHAT_ENABLED,
             "openclaw_enabled": OPENCLAW_ENABLED,
             "offline_mode": OFFLINE_MODE,
@@ -7373,7 +7389,7 @@ def openclaw_learning_record():
     from dev.openclaw.learner import SessionData
 
     data = request.get_json() or {}
-    
+
     # Hash session ID for anonymity
     session_id = data.get("session_id", str(_time()))
     session_hash = hashlib.sha256(session_id.encode()).hexdigest()[:16]
@@ -7477,7 +7493,7 @@ def openclaw_learning_stats():
     from dev.openclaw import get_learner
 
     # Everything is free - no tier check needed
-    
+
     learner = get_learner()
     game = request.args.get("game", DEFAULT_GAME)
 
@@ -7520,13 +7536,15 @@ def openclaw_learning_compatibility():
             "interpretation": (
                 "highly_compatible"
                 if score > 0.8
-                else "compatible"
-                if score > 0.6
-                else "neutral"
-                if score > 0.4
-                else "conflict_likely"
-                if score > 0.2
-                else "incompatible"
+                else (
+                    "compatible"
+                    if score > 0.6
+                    else (
+                        "neutral"
+                        if score > 0.4
+                        else "conflict_likely" if score > 0.2 else "incompatible"
+                    )
+                )
             ),
         }
     )

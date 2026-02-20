@@ -33,8 +33,12 @@ def upgrade() -> None:
         sa.Column("subscription_id", sa.String(255), nullable=True),
         sa.Column("email_verified", sa.Boolean, default=False),
         sa.Column("password_hash", sa.String(255), nullable=True),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
-        sa.Column("last_updated", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
+        sa.Column(
+            "last_updated", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.PrimaryKeyConstraint("email"),
     )
 
@@ -45,8 +49,12 @@ def upgrade() -> None:
         sa.Column("display_id", sa.String(50), nullable=False),
         sa.Column("user_email", sa.String(255), nullable=False),
         sa.Column("user_agent", sa.String(500), nullable=True),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
-        sa.Column("last_seen", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
+        sa.Column(
+            "last_seen", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.Column("expires_at", sa.Integer, nullable=False),
         sa.PrimaryKeyConstraint("token"),
         sa.UniqueConstraint("display_id"),
@@ -61,7 +69,9 @@ def upgrade() -> None:
         sa.Column("key_hash", sa.String(255), nullable=False),
         sa.Column("key_prefix", sa.String(20), nullable=False),
         sa.Column("label", sa.String(100), nullable=True),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("key_hash"),
         sa.ForeignKeyConstraint(["user_email"], ["users.email"]),
@@ -83,8 +93,12 @@ def upgrade() -> None:
         sa.Column("source", sa.String(50), nullable=True),
         sa.Column("list_text", sa.Text, nullable=False),
         sa.Column("analysis_snapshot", sa.Text, nullable=True),
-        sa.Column("saved_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
-        sa.Column("updated_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "saved_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("user_email", "name", name="uq_user_list_name"),
         sa.ForeignKeyConstraint(["user_email"], ["users.email"]),
@@ -98,7 +112,9 @@ def upgrade() -> None:
         sa.Column("user_email", sa.String(255), nullable=False),
         sa.Column("content", sa.Text, nullable=False),
         sa.Column("tag", sa.String(50), nullable=True, default="general"),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.Column("moderated", sa.Boolean, default=False),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(["user_email"], ["users.email"]),
@@ -112,7 +128,9 @@ def upgrade() -> None:
         sa.Column("post_id", sa.Integer, nullable=False),
         sa.Column("user_email", sa.String(255), nullable=False),
         sa.Column("content", sa.Text, nullable=False),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.Column("moderated", sa.Boolean, default=False),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(["post_id"], ["community_posts.id"]),
@@ -141,7 +159,9 @@ def upgrade() -> None:
         sa.Column("reason", sa.Text, nullable=False),
         sa.Column("details", sa.Text, nullable=True),
         sa.Column("status", sa.String(50), nullable=True, default="open"),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(["post_id"], ["community_posts.id"]),
         sa.ForeignKeyConstraint(["reporter_email"], ["users.email"]),
@@ -175,7 +195,9 @@ def upgrade() -> None:
         sa.Column("allowed", sa.Boolean, nullable=True, default=False),
         sa.Column("reasons_json", sa.Text, nullable=True),
         sa.Column("ip_hash", sa.String(100), nullable=True),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(["user_email"], ["users.email"]),
     )
@@ -187,7 +209,9 @@ def upgrade() -> None:
         sa.Column("user_email", sa.String(255), nullable=False),
         sa.Column("scope", sa.String(100), nullable=False),
         sa.Column("granted", sa.Boolean, nullable=True, default=False),
-        sa.Column("granted_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "granted_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.PrimaryKeyConstraint("user_email", "scope"),
         sa.ForeignKeyConstraint(["user_email"], ["users.email"]),
     )
@@ -202,7 +226,9 @@ def upgrade() -> None:
         sa.Column("objective", sa.Text, nullable=True),
         sa.Column("status", sa.String(50), nullable=True, default="proposed"),
         sa.Column("plan_json", sa.Text, nullable=False),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.Column("executed_at", sa.DateTime, nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("plan_id"),
@@ -222,7 +248,9 @@ def upgrade() -> None:
         sa.Column("enjoyment_score", sa.Integer, nullable=True),
         sa.Column("notes", sa.Text, nullable=True),
         sa.Column("feedback_json", sa.Text, nullable=True),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(["user_email"], ["users.email"]),
     )
@@ -239,7 +267,9 @@ def upgrade() -> None:
         sa.Column("context_json", sa.Text, nullable=True),
         sa.Column("status", sa.String(50), nullable=True, default="open"),
         sa.Column("priority", sa.Integer, nullable=True, default=0),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.Column("resolved_at", sa.DateTime, nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(["user_email"], ["users.email"]),
@@ -255,7 +285,9 @@ def upgrade() -> None:
         sa.Column("event_data", sa.Text, nullable=True),
         sa.Column("session_id", sa.String(100), nullable=True),
         sa.Column("ip_hash", sa.String(100), nullable=True),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(["user_email"], ["users.email"]),
     )
@@ -269,11 +301,15 @@ def upgrade() -> None:
         sa.Column("rating", sa.Integer, nullable=False),
         sa.Column("feedback_text", sa.Text, nullable=True),
         sa.Column("context_json", sa.Text, nullable=True),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(["user_email"], ["users.email"]),
     )
-    op.create_index(op.f("ix_satisfaction_surveys_id"), "satisfaction_surveys", ["id"], unique=False)
+    op.create_index(
+        op.f("ix_satisfaction_surveys_id"), "satisfaction_surveys", ["id"], unique=False
+    )
 
     # Conflict stats table
     op.create_table(
@@ -283,7 +319,9 @@ def upgrade() -> None:
         sa.Column("mod_a", sa.String(255), nullable=True),
         sa.Column("mod_b", sa.String(255), nullable=True),
         sa.Column("conflict_type", sa.String(100), nullable=True),
-        sa.Column("last_seen", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "last_seen", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.Column("occurrence_count", sa.Integer, nullable=True, default=1),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("game", "mod_a", "mod_b", "conflict_type", name="uq_conflict_stat"),

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 from conflict_detector import ConflictDetector, parse_mod_list_text
 from exceptions import (
@@ -30,13 +30,13 @@ class AnalysisResult:
     game: str
     mod_count: int
     enabled_count: int
-    conflicts: List[Dict[str, Any]] = field(default_factory=list)
-    recommendations: List[Dict[str, Any]] = field(default_factory=list)
-    system_impact: Dict[str, Any] = field(default_factory=dict)
-    summary: Dict[str, Any] = field(default_factory=dict)
-    warnings: List[Dict[str, Any]] = field(default_factory=list)
+    conflicts: list[dict[str, Any]] = field(default_factory=list)
+    recommendations: list[dict[str, Any]] = field(default_factory=list)
+    system_impact: dict[str, Any] = field(default_factory=dict)
+    summary: dict[str, Any] = field(default_factory=dict)
+    warnings: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "game": self.game,
@@ -124,7 +124,7 @@ class AnalysisService:
             logger.error(f"Analysis failed: {e}")
             raise ConflictDetectionError(str(e))
 
-    def analyze_mod(self, mod_name: str) -> Dict[str, Any]:
+    def analyze_mod(self, mod_name: str) -> dict[str, Any]:
         """
         Analyze a single mod.
 
@@ -151,7 +151,7 @@ class AnalysisService:
             "incompatibilities": mod_data.get("incompatibilities", []),
         }
 
-    def get_load_order(self, mod_list: str) -> List[str]:
+    def get_load_order(self, mod_list: str) -> list[str]:
         """
         Get optimized load order for mod list.
 
@@ -169,7 +169,7 @@ class AnalysisService:
         self,
         mod_list_a: str,
         mod_list_b: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Compare two load orders.
 
@@ -194,7 +194,7 @@ class AnalysisService:
             "count_b": len(names_b),
         }
 
-    def get_analysis_summary(self, mod_list: str) -> Dict[str, Any]:
+    def get_analysis_summary(self, mod_list: str) -> dict[str, Any]:
         """
         Get quick analysis summary without full details.
 

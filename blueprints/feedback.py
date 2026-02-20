@@ -8,6 +8,8 @@ User feedback collection endpoints:
 - GET /api/feedback/summary - Get feedback summary (admin)
 """
 
+from __future__ import annotations
+
 import logging
 
 from flask import Blueprint, jsonify, request, session

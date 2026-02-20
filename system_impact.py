@@ -17,9 +17,11 @@ Engine flow:
   3. format_system_impact_for_ai() — Token-efficient AI context
 """
 
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 # =============================================================================
 # GPU Performance Database (100+ GPUs)
@@ -221,7 +223,7 @@ class HeavyMod:
 # =============================================================================
 
 
-def _detect_gpu(gpu_name: str) -> Tuple[int, int, int]:
+def _detect_gpu(gpu_name: str) -> tuple[int, int, int]:
     """Detect GPU tier from name. Returns: (tier, vram_typical, performance_score)"""
     if not gpu_name:
         return (0, 0, 0)
@@ -232,7 +234,7 @@ def _detect_gpu(gpu_name: str) -> Tuple[int, int, int]:
     return (2, 4, 30)  # Default budget tier
 
 
-def _detect_cpu(cpu_name: str) -> Tuple[int, int, int]:
+def _detect_cpu(cpu_name: str) -> tuple[int, int, int]:
     """Detect CPU tier from name. Returns: (tier, cores, performance_score)"""
     if not cpu_name:
         return (0, 0, 0)
@@ -243,7 +245,7 @@ def _detect_cpu(cpu_name: str) -> Tuple[int, int, int]:
     return (2, 4, 35)  # Default budget tier
 
 
-def _calculate_bottleneck(gpu_score: int, cpu_score: int, game: str) -> Dict:
+def _calculate_bottleneck(gpu_score: int, cpu_score: int, game: str) -> dict:
     """Determine primary bottleneck."""
     if not gpu_score or not cpu_score:
         return {
@@ -271,11 +273,11 @@ def _calculate_bottleneck(gpu_score: int, cpu_score: int, game: str) -> Dict:
 
 def _estimate_fps(
     base_fps: int,
-    heavy_mods: List[HeavyMod],
+    heavy_mods: list[HeavyMod],
     gpu_score: int,
     cpu_score: int,
     resolution: str = "1080p",
-) -> Dict:
+) -> dict:
     """Estimate FPS with mod load."""
     total_fps_impact = sum(mod.fps_impact for mod in heavy_mods)
     hardware_factor = (gpu_score + cpu_score) / 200
@@ -297,8 +299,8 @@ def _estimate_fps(
 
 
 def _generate_optimization_suggestions(
-    heavy_mods: List[HeavyMod], specs: Dict, estimated_vram: float, game: str
-) -> List[Dict]:
+    heavy_mods: list[HeavyMod], specs: dict, estimated_vram: float, game: str
+) -> list[dict]:
     """Generate personalized optimization suggestions."""
     suggestions = []
 
@@ -400,11 +402,11 @@ def _generate_optimization_suggestions(
 
 
 def get_system_impact(
-    mod_names: List[str],
+    mod_names: list[str],
     enabled_count: int,
-    specs: Optional[Dict] = None,
+    specs: Optional[dict] = None,
     game: Optional[str] = None,
-) -> Dict:
+) -> dict:
     """
     Analyze mod list for system/performance impact with detailed hardware analysis.
 
@@ -419,7 +421,7 @@ def get_system_impact(
     """
     specs = specs or {}
     game = (game or "").lower()
-    heavy_mods: List[HeavyMod] = []
+    heavy_mods: list[HeavyMod] = []
 
     for name in mod_names:
         name_lower = name.lower()
@@ -527,7 +529,7 @@ def get_system_impact(
     }
 
 
-def format_system_impact_for_ai(si: Dict) -> str:
+def format_system_impact_for_ai(si: dict) -> str:
     """Compact system impact summary for AI agent context."""
     if not si:
         return ""
@@ -560,7 +562,7 @@ def format_system_impact_for_ai(si: Dict) -> str:
     return "\n".join(lines)
 
 
-def format_system_impact_report(si: Dict) -> str:
+def format_system_impact_report(si: dict) -> str:
     """Format system impact as detailed plain text report."""
     if not si:
         return ""

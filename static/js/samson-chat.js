@@ -39,11 +39,11 @@
     function addMessage(text, isUser = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `samson-message ${isUser ? 'samson-message-user' : 'samson-message-bot'}`;
-        
+
         const paragraph = document.createElement('p');
         paragraph.textContent = text;
         messageDiv.appendChild(paragraph);
-        
+
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
@@ -53,13 +53,13 @@
         const typingDiv = document.createElement('div');
         typingDiv.className = 'samson-typing';
         typingDiv.id = 'samson-typing';
-        
+
         for (let i = 0; i < 3; i++) {
             const dot = document.createElement('div');
             dot.className = 'samson-typing-dot';
             typingDiv.appendChild(dot);
         }
-        
+
         messagesContainer.appendChild(typingDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
@@ -75,10 +75,10 @@
     // Send message to AI
     async function sendMessage(message) {
         if (isLoading) return;
-        
+
         isLoading = true;
         showTyping();
-        
+
         try {
             // Call the AI chat API
             const response = await fetch('/api/chat', {
@@ -91,9 +91,9 @@
                     context: window.location.pathname,
                 }),
             });
-            
+
             hideTyping();
-            
+
             if (response.ok) {
                 const data = await response.json();
                 addMessage(data.response || data.message || "I'm not sure how to help with that.");
@@ -112,16 +112,16 @@
     // Handle form submission
     function handleSubmit(event) {
         event.preventDefault();
-        
+
         const message = chatInput.value.trim();
         if (!message) return;
-        
+
         // Add user message
         addMessage(message, true);
-        
+
         // Clear input
         chatInput.value = '';
-        
+
         // Send to AI
         sendMessage(message);
     }

@@ -3,11 +3,13 @@ SkyModderAI - Sponsors Blueprint
 
 Ethical, pay-per-click advertising system.
 - $5 CPM (cost per 1,000 clicks)
-- $50 prepaid = 10,000 clicks
+- Simple meter charge (no packages)
 - Server-side click tracking
 - Fraud protection (IP+UA dedup, 24h window)
 - Community-curated, democratic ranking
 """
+
+from __future__ import annotations
 
 from flask import Blueprint, redirect, render_template, request, session, url_for
 
@@ -85,6 +87,12 @@ def track_click(sponsor_id):
     return redirect(url_for("sponsors.sponsors_list"))
 
 
+@sponsors_bp.route("/charter")
+def charter():
+    """Sponsor ethical charter - full documentation."""
+    return render_template("sponsors/charter.html")
+
+
 # Helper functions
 
 
@@ -107,7 +115,6 @@ def get_pricing_info():
     """Get pricing information."""
     return {
         "cpm_rate": 5.00,  # $5 per 1,000 clicks
-        "plan_clicks": 10000,  # 10,000 clicks
-        "plan_price": 50.00,  # $50
         "cost_per_click": 0.005,  # $0.005 per click
+        "meter_model": True,  # Simple meter charge, no packages
     }

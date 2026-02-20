@@ -121,9 +121,9 @@ def analyze() -> Any:
                     "system_impact": impact,
                     "mod_count": len(mods),
                     "game": game,
-                    "transparency": metadata.to_dict()
-                    if hasattr(metadata, "to_dict")
-                    else metadata,
+                    "transparency": (
+                        metadata.to_dict() if hasattr(metadata, "to_dict") else metadata
+                    ),
                 }
             )
 

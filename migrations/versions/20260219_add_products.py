@@ -23,7 +23,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Create products table for shopping marketplace."""
-    
+
     # Products table
     op.create_table(
         "products",
@@ -36,8 +36,12 @@ def upgrade() -> None:
         sa.Column("category", sa.String(100), nullable=False, default="general"),
         sa.Column("stock", sa.Integer, nullable=True, default=0),
         sa.Column("is_active", sa.Boolean, nullable=True, default=True),
-        sa.Column("created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
-        sa.Column("updated_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column(
+            "created_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime, nullable=True, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_products_id"), "products", ["id"], unique=False)

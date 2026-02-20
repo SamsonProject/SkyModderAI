@@ -1,6 +1,6 @@
 # SkyModderAI — What We Are (And What We're Not)
 
-**Date**: February 17, 2026  
+**Date**: February 17, 2026
 **Architecture Decision**: Focused specialization over comprehensive database
 
 ---
@@ -284,6 +284,6 @@ Instead of storing data, we LINK to it:
 
 ---
 
-**Built by modders, for modders.**  
-**Focused, not comprehensive.**  
+**Built by modders, for modders.**
+**Focused, not comprehensive.**
 **Specialized, not generic.**

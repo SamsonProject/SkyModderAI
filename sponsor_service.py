@@ -3,7 +3,7 @@ Sponsor Service - Ethical, Pay-Per-Click Sponsorship System
 
 Features:
 - $5 CPM (cost per 1,000 clicks)
-- $50 prepaid plan (10,000 clicks)
+- Simple meter charge (no packages)
 - Server-side click tracking with fraud protection
 - Ad creative rotation (lowest-impressions first)
 - Separate community score + CTR in ranking
@@ -12,13 +12,15 @@ Features:
 Privacy-first: User data never sold, only used for relevant sponsor matching.
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +41,7 @@ class SponsorCreative:
     clicks: int = 0
     created_at: Optional[datetime] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "sponsor_id": self.sponsor_id,
@@ -101,7 +103,7 @@ class Sponsor:
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,
@@ -148,7 +150,7 @@ class ClickRecord:
     rejection_reason: Optional[str]
     timestamp: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "sponsor_id": self.sponsor_id,
             "creative_id": self.creative_id,
@@ -312,22 +314,22 @@ class SponsorService:
             community_votes=row.get("community_votes", 0),
             ranking_score=row.get("ranking_score", 0.0),
             status=row["status"],
-            verified_date=datetime.fromisoformat(row["verified_date"])
-            if row.get("verified_date")
-            else None,
-            approved_at=datetime.fromisoformat(row["approved_at"])
-            if row.get("approved_at")
-            else None,
+            verified_date=(
+                datetime.fromisoformat(row["verified_date"]) if row.get("verified_date") else None
+            ),
+            approved_at=(
+                datetime.fromisoformat(row["approved_at"]) if row.get("approved_at") else None
+            ),
             approved_by=row.get("approved_by"),
-            rejected_at=datetime.fromisoformat(row["rejected_at"])
-            if row.get("rejected_at")
-            else None,
+            rejected_at=(
+                datetime.fromisoformat(row["rejected_at"]) if row.get("rejected_at") else None
+            ),
             rejected_reason=row.get("rejected_reason"),
             created_at=datetime.fromisoformat(row["created_at"]) if row.get("created_at") else None,
             updated_at=datetime.fromisoformat(row["updated_at"]) if row.get("updated_at") else None,
         )
 
-    def get_all_sponsors(self, status: str = None) -> List[Sponsor]:
+    def get_all_sponsors(self, status: str = None) -> list[Sponsor]:
         """Get all sponsors, optionally filtered by status."""
         db = self._get_db()
         if status:
@@ -339,7 +341,7 @@ class SponsorService:
 
         return [self._row_to_sponsor(row) for row in rows]
 
-    def get_ranked_sponsors(self, category: str = None, limit: int = 10) -> List[Sponsor]:
+    def get_ranked_sponsors(self, category: str = None, limit: int = 10) -> list[Sponsor]:
         """
         Get sponsors ranked by community score + CTR.
 
@@ -443,7 +445,7 @@ class SponsorService:
             logger.error(f"Failed to create creative: {e}")
             return None
 
-    def get_creatives(self, sponsor_id: str, status: str = None) -> List[SponsorCreative]:
+    def get_creatives(self, sponsor_id: str, status: str = None) -> list[SponsorCreative]:
         """Get all creatives for a sponsor."""
         db = self._get_db()
 
@@ -572,7 +574,7 @@ class SponsorService:
 
     def record_click(
         self, sponsor_id: str, creative_id: Optional[str], user_id: Optional[str], request
-    ) -> Tuple[bool, str, ClickRecord]:
+    ) -> tuple[bool, str, ClickRecord]:
         """
         Record click with fraud protection.
 
@@ -707,7 +709,7 @@ class SponsorService:
 
     # ==================== Community Voting ====================
 
-    def vote(self, sponsor_id: str, user_id: str, score: int) -> Dict[str, Any]:
+    def vote(self, sponsor_id: str, user_id: str, score: int) -> dict[str, Any]:
         """
         Vote on a sponsor (1-5 stars).
 
@@ -814,11 +816,11 @@ class SponsorService:
         db.commit()
         return db.total_changes > 0
 
-    def get_pending_applications(self) -> List[Sponsor]:
+    def get_pending_applications(self) -> list[Sponsor]:
         """Get all pending sponsor applications."""
         return self.get_all_sponsors(status="pending")
 
-    def get_billing_summary(self, sponsor_id: str) -> Dict[str, Any]:
+    def get_billing_summary(self, sponsor_id: str) -> dict[str, Any]:
         """Get billing summary for a sponsor."""
         sponsor = self.get_sponsor(sponsor_id)
         if not sponsor:
@@ -883,15 +885,15 @@ def get_sponsor(sponsor_id: str) -> Optional[Sponsor]:
     return get_sponsor_service().get_sponsor(sponsor_id)
 
 
-def get_ranked_sponsors(category: str = None, limit: int = 10) -> List[Sponsor]:
+def get_ranked_sponsors(category: str = None, limit: int = 10) -> list[Sponsor]:
     return get_sponsor_service().get_ranked_sponsors(category, limit)
 
 
 def record_click(
     sponsor_id: str, creative_id: str, user_id: Optional[str], request
-) -> Tuple[bool, str, ClickRecord]:
+) -> tuple[bool, str, ClickRecord]:
     return get_sponsor_service().record_click(sponsor_id, creative_id, user_id, request)
 
 
-def vote(sponsor_id: str, user_id: str, score: int) -> Dict[str, Any]:
+def vote(sponsor_id: str, user_id: str, score: int) -> dict[str, Any]:
     return get_sponsor_service().vote(sponsor_id, user_id, score)

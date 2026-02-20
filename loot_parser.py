@@ -4,13 +4,15 @@ Downloads and parses LOOT masterlist data for mod conflict detection.
 Supports multiple games with caching (cache filenames are version-agnostic).
 """
 
+from __future__ import annotations
+
 import difflib
 import json
 import logging
 import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 import requests
 import yaml
@@ -41,14 +43,14 @@ class ModInfo:
 
     name: str
     clean_name: str  # normalized for matching
-    requirements: List[str]
-    incompatibilities: List[str]
-    load_after: List[str]
-    load_before: List[str]
-    patches: List[Dict[str, str]]  # {mod: patch_name}
+    requirements: list[str]
+    incompatibilities: list[str]
+    load_after: list[str]
+    load_before: list[str]
+    patches: list[dict[str, str]]  # {mod: patch_name}
     dirty_edits: bool
-    messages: List[str]
-    tags: List[str]
+    messages: list[str]
+    tags: list[str]
     nexus_mod_id: Optional[int] = None  # Nexus Mods ID for direct linking
     picture_url: Optional[str] = None  # URL to mod's primary image
 
@@ -109,11 +111,11 @@ class LOOTParser:
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-        self.masterlist_data: Dict[str, Any] = {}
-        self.mod_database: Dict[str, ModInfo] = {}
+        self.masterlist_data: dict[str, Any] = {}
+        self.mod_database: dict[str, ModInfo] = {}
 
         # Cache for normalized names
-        self._normalize_cache: Dict[str, str] = {}
+        self._normalize_cache: dict[str, str] = {}
 
         # Setup requests session with retries
         self.session = requests.Session()
@@ -445,7 +447,7 @@ class LOOTParser:
             return self.mod_database[matches[0]].name
         return None
 
-    def search_mod_names(self, query: str, limit: int = 25) -> List[str]:
+    def search_mod_names(self, query: str, limit: int = 25) -> list[str]:
         """Return mod display names: prefix matches first, then contains, then fuzzy for typos."""
         q = query.lower().strip()
         if not q:
@@ -539,7 +541,7 @@ class LOOTParser:
             return (0,)
 
     @classmethod
-    def fetch_masterlist_versions(cls, game: str, timeout: int = 10) -> List[str]:
+    def fetch_masterlist_versions(cls, game: str, timeout: int = 10) -> list[str]:
         """
         Fetch available masterlist versions (GitHub branches like v0.26) for a game.
         Returns version strings sorted newest first (e.g. ['0.26', '0.21', '0.20', ...]).

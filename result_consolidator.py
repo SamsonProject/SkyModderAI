@@ -4,10 +4,12 @@ Consolidates and groups analysis results for better readability.
 Transforms overwhelming lists into hierarchical, scannable structures.
 """
 
+from __future__ import annotations
+
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -19,15 +21,15 @@ class ConsolidatedGroup:
     key: str
     title: str
     severity: str  # critical, warning, info
-    items: List[Dict[str, Any]] = field(default_factory=list)
+    items: list[dict[str, Any]] = field(default_factory=list)
     count: int = 0
 
-    def add(self, item: Dict[str, Any]):
+    def add(self, item: dict[str, Any]):
         """Add item to group."""
         self.items.append(item)
         self.count = len(self.items)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API response."""
         return {
             "key": self.key,
@@ -51,12 +53,12 @@ class ConsolidatedResult:
     info_count: int = 0
 
     # Grouped results
-    groups: List[ConsolidatedGroup] = field(default_factory=list)
+    groups: list[ConsolidatedGroup] = field(default_factory=list)
 
     # Quick view (top-level summary)
-    quick_view: Dict[str, Any] = field(default_factory=dict)
+    quick_view: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API response."""
         return {
             "summary": {
@@ -96,7 +98,7 @@ class ResultConsolidator:
         "version_mismatch": "Version Mismatches",
     }
 
-    def consolidate_conflicts(self, conflicts: List[Dict[str, Any]]) -> ConsolidatedResult:
+    def consolidate_conflicts(self, conflicts: list[dict[str, Any]]) -> ConsolidatedResult:
         """
         Consolidate conflict list into grouped, readable structure.
 
@@ -112,7 +114,7 @@ class ResultConsolidator:
         result = ConsolidatedResult(total_items=len(conflicts))
 
         # Group by affected mod and conflict type
-        groups: Dict[str, ConsolidatedGroup] = {}
+        groups: dict[str, ConsolidatedGroup] = {}
 
         for conflict in conflicts:
             # Determine severity
@@ -158,7 +160,7 @@ class ResultConsolidator:
 
         return result
 
-    def _create_quick_view(self, result: ConsolidatedResult) -> Dict[str, Any]:
+    def _create_quick_view(self, result: ConsolidatedResult) -> dict[str, Any]:
         """Create quick view summary."""
         return {
             "message": self._generate_summary_message(result),
@@ -200,8 +202,8 @@ class ResultConsolidator:
         return None
 
     def consolidate_search_results(
-        self, results: List[Dict[str, Any]], max_display: int = 20
-    ) -> Dict[str, Any]:
+        self, results: list[dict[str, Any]], max_display: int = 20
+    ) -> dict[str, Any]:
         """
         Consolidate search results for display.
 
@@ -219,7 +221,7 @@ class ResultConsolidator:
         sorted_results = sorted(results, key=lambda r: r.get("score", 0), reverse=True)
 
         # Group by category
-        categories: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        categories: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
         for result in sorted_results:
             category = result.get("category", "other")
@@ -233,7 +235,7 @@ class ResultConsolidator:
             "has_more": len(results) > max_display,
         }
 
-    def consolidate_recommendations(self, recommendations: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def consolidate_recommendations(self, recommendations: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Consolidate recommendations by priority and category.
 
@@ -247,8 +249,8 @@ class ResultConsolidator:
             return {"recommendations": [], "by_priority": {}, "by_category": {}}
 
         # Group by priority
-        by_priority: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
-        by_category: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        by_priority: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        by_category: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
         for rec in recommendations:
             priority = rec.get("priority", "normal")
@@ -285,9 +287,7 @@ class ResultConsolidator:
             icon = (
                 "🔴"
                 if group.severity == "critical"
-                else "⚠️"
-                if group.severity == "warning"
-                else "ℹ️"
+                else "⚠️" if group.severity == "warning" else "ℹ️"
             )
             lines.append(f"{icon} {group.title} ({group.count})")
 
@@ -317,18 +317,18 @@ def get_consolidator() -> ResultConsolidator:
 
 
 # Convenience functions
-def consolidate_conflicts(conflicts: List[Dict[str, Any]]) -> ConsolidatedResult:
+def consolidate_conflicts(conflicts: list[dict[str, Any]]) -> ConsolidatedResult:
     """Consolidate conflicts."""
     return get_consolidator().consolidate_conflicts(conflicts)
 
 
 def consolidate_search_results(
-    results: List[Dict[str, Any]], max_display: int = 20
-) -> Dict[str, Any]:
+    results: list[dict[str, Any]], max_display: int = 20
+) -> dict[str, Any]:
     """Consolidate search results."""
     return get_consolidator().consolidate_search_results(results, max_display)
 
 
-def consolidate_recommendations(recommendations: List[Dict[str, Any]]) -> Dict[str, Any]:
+def consolidate_recommendations(recommendations: list[dict[str, Any]]) -> dict[str, Any]:
     """Consolidate recommendations."""
     return get_consolidator().consolidate_recommendations(recommendations)

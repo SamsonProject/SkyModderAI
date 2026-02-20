@@ -3,11 +3,13 @@ User Saved Lists — Server-side storage for Pro users.
 Syncs mod lists across devices with full analysis snapshots.
 """
 
+from __future__ import annotations
+
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
-from flask import g
+from db import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,7 @@ def get_saved_lists(
     search: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Get user's saved lists with optional filtering.
 
@@ -103,11 +105,11 @@ def save_list(
     game: str,
     game_version: Optional[str] = None,
     masterlist_version: Optional[str] = None,
-    tags: Optional[List[str]] = None,
+    tags: Optional[list[str]] = None,
     notes: Optional[str] = None,
-    analysis_snapshot: Optional[Dict] = None,
+    analysis_snapshot: Optional[dict] = None,
     source: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Save or update a mod list.
 
@@ -217,7 +219,7 @@ def save_list(
         }
 
 
-def delete_list(user_email: str, list_id: int) -> Dict[str, Any]:
+def delete_list(user_email: str, list_id: int) -> dict[str, Any]:
     """Delete a saved list."""
     db = get_db()
 
@@ -237,7 +239,7 @@ def delete_list(user_email: str, list_id: int) -> Dict[str, Any]:
         return {"success": False, "deleted": False, "error": "List not found"}
 
 
-def get_list_by_id(user_email: str, list_id: int) -> Optional[Dict[str, Any]]:
+def get_list_by_id(user_email: str, list_id: int) -> Optional[dict[str, Any]]:
     """Get a specific saved list by ID."""
     db = get_db()
 
@@ -280,9 +282,9 @@ def update_list_metadata(
     user_email: str,
     list_id: int,
     name: Optional[str] = None,
-    tags: Optional[List[str]] = None,
+    tags: Optional[list[str]] = None,
     notes: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Update list metadata (name, tags, notes) without changing the list."""
     db = get_db()
 
@@ -329,7 +331,7 @@ def update_list_metadata(
         return {"success": False, "error": str(e)}
 
 
-def get_list_stats(user_email: str) -> Dict[str, Any]:
+def get_list_stats(user_email: str) -> dict[str, Any]:
     """Get statistics about user's saved lists."""
     db = get_db()
 
@@ -378,14 +380,3 @@ def get_list_stats(user_email: str) -> Dict[str, Any]:
         "by_game": game_counts,
         "recent": recent_lists,
     }
-
-
-def get_db():
-    """Get database connection from Flask g."""
-    if "db" not in g:
-        import sqlite3
-
-        g.db = sqlite3.connect("users.db")
-        g.db.row_factory = sqlite3.Row
-
-    return g.db

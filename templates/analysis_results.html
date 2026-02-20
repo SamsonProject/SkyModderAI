@@ -12,7 +12,7 @@
 
 {% block content %}
 <div class="analysis-results">
-    
+
     <!-- ==========================================================================
          Header
          ========================================================================== -->
@@ -20,17 +20,17 @@
         <div>
             <h1>Analysis Results</h1>
             <p style="color: var(--color-text-secondary); margin: var(--space-xs) 0 0 0;">
-                Game: <strong>{{ game }}</strong> &bull; 
-                Mods: <strong>{{ mod_count }}</strong> &bull; 
+                Game: <strong>{{ game }}</strong> &bull;
+                Mods: <strong>{{ mod_count }}</strong> &bull;
                 Analyzed: <strong>{{ now() }}</strong>
             </p>
         </div>
-        
+
         <div class="results-meta">
             <span><strong>{{ analysis.conflicts|length }}</strong> issues found</span>
         </div>
     </header>
-    
+
     <!-- ==========================================================================
          Summary Stats
          ========================================================================== -->
@@ -39,28 +39,28 @@
         {% set high = analysis.conflicts|selectattr('severity', 'equalto', 'high')|list %}
         {% set medium = analysis.conflicts|selectattr('severity', 'equalto', 'medium')|list %}
         {% set low = analysis.conflicts|selectattr('severity', 'equalto', 'low')|list %}
-        
+
         <div class="stat-card critical" role="status">
             <div class="stat-number">{{ critical|length }}</div>
             <div class="stat-label">Critical</div>
         </div>
-        
+
         <div class="stat-card high" role="status">
             <div class="stat-number">{{ high|length }}</div>
             <div class="stat-label">High</div>
         </div>
-        
+
         <div class="stat-card medium" role="status">
             <div class="stat-number">{{ medium|length }}</div>
             <div class="stat-label">Medium</div>
         </div>
-        
+
         <div class="stat-card low" role="status">
             <div class="stat-number">{{ low|length }}</div>
             <div class="stat-label">Low</div>
         </div>
     </section>
-    
+
     <!-- ==========================================================================
          Action Bar
          ========================================================================== -->
@@ -71,23 +71,23 @@
             </svg>
             Fix All Critical
         </button>
-        
+
         <button class="btn btn-secondary" onclick="exportReport()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
             </svg>
             Export Report
         </button>
-        
+
         <button class="btn btn-secondary" onclick="window.print()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
             </svg>
             Print
         </button>
-        
+
         <div style="flex-grow: 1;"></div>
-        
+
         <button class="btn btn-secondary" onclick="toggleAllSections()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 6h16M4 12h16M4 18h16"/>
@@ -95,7 +95,7 @@
             Collapse All
         </button>
     </div>
-    
+
     <!-- ==========================================================================
          Critical Conflicts Section
          ========================================================================== -->
@@ -110,7 +110,7 @@
             </h2>
             <span class="conflict-count">{{ critical|length }}</span>
         </div>
-        
+
         <div class="conflict-section-content">
             {% for conflict in critical %}
             <article class="conflict-item critical">
@@ -121,11 +121,11 @@
                     </div>
                     <span class="conflict-item-severity critical">Critical</span>
                 </div>
-                
+
                 <p class="conflict-item-description">
                     {{ conflict.message or 'This issue will cause crashes or prevent the game from launching.' }}
                 </p>
-                
+
                 {% if conflict.suggested_action or conflict.resolution %}
                 <div class="solution-box">
                     <div class="solution-box-title">Recommended Fix</div>
@@ -141,7 +141,7 @@
                         </li>
                         {% endif %}
                     </ol>
-                    
+
                     <div class="solution-links">
                         {% if conflict.nexus_url %}
                         <a href="{{ conflict.nexus_url }}" target="_blank" class="solution-link">
@@ -162,7 +162,7 @@
                     </div>
                 </div>
                 {% endif %}
-                
+
                 <!-- AI Insight (SkyModderAI Differentiator) -->
                 {% if conflict.ai_insight %}
                 <div class="ai-insight-box">
@@ -189,7 +189,7 @@
         </div>
     </section>
     {% endif %}
-    
+
     <!-- ==========================================================================
          High Priority Conflicts Section
          ========================================================================== -->
@@ -204,7 +204,7 @@
             </h2>
             <span class="conflict-count">{{ high|length }}</span>
         </div>
-        
+
         <div class="conflict-section-content">
             {% for conflict in high %}
             <article class="conflict-item high">
@@ -215,11 +215,11 @@
                     </div>
                     <span class="conflict-item-severity high">High</span>
                 </div>
-                
+
                 <p class="conflict-item-description">
                     {{ conflict.message or 'These mods may conflict and cause issues in-game.' }}
                 </p>
-                
+
                 {% if conflict.suggested_action %}
                 <div class="solution-box">
                     <div class="solution-box-title">Recommended Fix</div>
@@ -236,7 +236,7 @@
         </div>
     </section>
     {% endif %}
-    
+
     <!-- ==========================================================================
          Medium Priority Conflicts Section
          ========================================================================== -->
@@ -251,7 +251,7 @@
             </h2>
             <span class="conflict-count">{{ medium|length }}</span>
         </div>
-        
+
         <div class="conflict-section-content">
             {% for conflict in medium %}
             <article class="conflict-item medium">
@@ -262,7 +262,7 @@
                     </div>
                     <span class="conflict-item-severity medium">Medium</span>
                 </div>
-                
+
                 <p class="conflict-item-description">
                     {{ conflict.message or 'This mod should be loaded at a different position.' }}
                 </p>
@@ -271,7 +271,7 @@
         </div>
     </section>
     {% endif %}
-    
+
     <!-- ==========================================================================
          Low Priority Conflicts Section
          ========================================================================== -->
@@ -286,7 +286,7 @@
             </h2>
             <span class="conflict-count">{{ low|length }}</span>
         </div>
-        
+
         <div class="conflict-section-content">
             {% for conflict in low %}
             <article class="conflict-item low">
@@ -297,7 +297,7 @@
                     </div>
                     <span class="conflict-item-severity low">Low</span>
                 </div>
-                
+
                 <p class="conflict-item-description">
                     {{ conflict.message or 'Minor issue that may not affect gameplay.' }}
                 </p>
@@ -306,7 +306,7 @@
         </div>
     </section>
     {% endif %}
-    
+
     <!-- ==========================================================================
          No Conflicts State
          ========================================================================== -->
@@ -317,7 +317,7 @@
         </svg>
         <h2 style="font-size: 1.5rem; margin-bottom: var(--space-sm);">No Conflicts Detected!</h2>
         <p style="color: var(--color-text-secondary); max-width: 600px; margin: 0 auto;">
-            Your load order looks clean. This doesn't guarantee a crash-free experience, 
+            Your load order looks clean. This doesn't guarantee a crash-free experience,
             but all known conflicts have been addressed.
         </p>
         <div class="action-bar" style="justify-content: center; margin-top: var(--space-xl);">
@@ -330,7 +330,7 @@
         </div>
     </section>
     {% endif %}
-    
+
 </div>
 
 <script>
@@ -343,7 +343,7 @@ function toggleSection(header) {
 function toggleAllSections() {
     const sections = document.querySelectorAll('.conflict-section');
     const allCollapsed = Array.from(sections).every(s => s.classList.contains('collapsed'));
-    
+
     sections.forEach(section => {
         if (allCollapsed) {
             section.classList.remove('collapsed');
@@ -365,7 +365,7 @@ function exportReport() {
         mod_count: {{ mod_count }},
         conflicts: {{ analysis.conflicts|tojson }}
     };
-    
+
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

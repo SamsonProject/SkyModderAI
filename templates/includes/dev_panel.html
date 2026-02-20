@@ -316,7 +316,7 @@
             <div style="background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-xl);">
                 <h3 style="margin-bottom: var(--space-md);">💬 Mod Author Community</h3>
                 <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">Connect with fellow mod creators, share resources, and collaborate.</p>
-                
+
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-md);">
                     <div style="padding: var(--space-md); background: var(--bg-input); border-radius: var(--radius-sm);">
                         <h4 style="margin-bottom: var(--space-sm);">📚 Resources</h4>
@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.compat-tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const tabName = this.dataset.tab;
-            
+
             // Update button styles
             document.querySelectorAll('.compat-tab-btn').forEach(b => {
                 b.style.background = 'var(--bg-input)';
@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             this.style.background = 'var(--accent-primary)';
             this.style.color = 'white';
-            
+
             // Show/hide content
             document.querySelectorAll('.compat-tab-content').forEach(c => c.style.display = 'none');
             document.getElementById(`compat-tab-${tabName}`).style.display = 'block';
@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('compat-add-paste-btn')?.addEventListener('click', function() {
         const pasteInput = document.getElementById('compat-paste-input');
         const text = pasteInput.value.trim();
-        
+
         if (!text) {
             alert('Please paste a mod list first');
             return;
@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('compat-add-file-btn')?.addEventListener('click', function() {
         const fileInput = document.getElementById('compat-file-input');
         const file = fileInput.files[0];
-        
+
         if (!file) {
             alert('Please select a file first');
             return;
@@ -522,20 +522,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Community Builds - Load builds for selected game
     const communityBuildGameSelect = document.getElementById('community-build-game');
     const communityBuildsListEl = document.getElementById('community-builds-list');
-    
+
     communityBuildGameSelect?.addEventListener('change', async function() {
         const game = this.value;
         if (!game) {
             communityBuildsListEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: var(--space-md);">Select a game to browse community-submitted builds.</p>';
             return;
         }
-        
+
         communityBuildsListEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: var(--space-xl);">Loading community builds...</p>';
-        
+
         try {
             const response = await fetch(`/api/community-builds?game=${game}&limit=20`);
             const data = await response.json();
-            
+
             if (data.builds && data.builds.length > 0) {
                 communityBuildsListEl.innerHTML = data.builds.map(build => `
                     <div style="padding: var(--space-md); background: var(--bg-dark); border-radius: var(--radius-sm); margin-bottom: var(--space-md); border: 1px solid var(--border);">
@@ -550,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div style="display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-sm);">
                             <span style="font-size: 0.75rem; padding: var(--space-xs) var(--space-sm); background: var(--accent-primary); color: white; border-radius: 9999px;">${build.mod_count || '?'} mods</span>
                             <span style="font-size: 0.75rem; padding: var(--space-xs) var(--space-sm); background: var(--bg-input); color: var(--text-secondary); border-radius: 9999px;">${build.performance_tier || 'mid'}</span>
-                            ${(build.playstyle_tags || []).slice(0, 3).map(tag => 
+                            ${(build.playstyle_tags || []).slice(0, 3).map(tag =>
                                 `<span style="font-size: 0.75rem; padding: var(--space-xs) var(--space-sm); background: var(--bg-card); color: var(--text-secondary); border-radius: 9999px;">${tag.replace(/_/g, ' ')}</span>`
                             ).join('')}
                             ${build.is_seed ? '<span style="font-size: 0.75rem; padding: var(--space-xs) var(--space-sm); background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-radius: 9999px;" title="Seeded from popular free modlist">🌱 Seed</span>' : ''}
@@ -563,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${build.seed_note ? `<p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--space-xs);">${build.seed_note}</p>` : ''}
                     </div>
                 `).join('');
-                
+
                 // Add event listeners to Load buttons
                 document.querySelectorAll('.load-community-build').forEach(btn => {
                     btn.addEventListener('click', function() {
@@ -881,21 +881,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // Generate YAML
         let yaml = `- name: ${modName}\n`;
         if (author) yaml += `  author: ${author}\n`;
-        
+
         if (reqs) {
             yaml += `  requirements:\n`;
             reqs.split(',').forEach(req => {
                 yaml += `    - ${req.trim()}\n`;
             });
         }
-        
+
         if (loadAfter) {
             yaml += `  loadAfter:\n`;
             loadAfter.split(',').forEach(mod => {
                 yaml += `    - ${mod.trim()}\n`;
             });
         }
-        
+
         if (tags) {
             yaml += `  tags:\n`;
             tags.split(',').forEach(tag => {
@@ -911,7 +911,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const outputEl = document.getElementById('meta-output');
         outputEl.select();
         document.execCommand('copy');
-        
+
         const originalText = this.textContent;
         this.textContent = '✅ Copied!';
         setTimeout(() => {

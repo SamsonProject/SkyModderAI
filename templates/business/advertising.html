@@ -1,101 +1,76 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Advertising - SkyModderAI</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <div class="container" style="max-width: 900px; margin: 3rem auto; padding: 0 2rem;">
-        <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: #f59e0b;">📢 Business Advertising</h1>
-        <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 2rem;">Pay only for clicks. Fraud-protected. Performance-tracked.</p>
-        
-        <!-- Pricing Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
-            <!-- Standard Plan -->
-            <div style="background: var(--bg-secondary); padding: 2rem; border-radius: 12px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 0.5rem;">Standard</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Perfect for testing</p>
-                <div style="margin-bottom: 1.5rem;">
-                    <span style="font-size: 2.5rem; font-weight: 700; color: #f59e0b;">$5</span>
-                    <span style="color: var(--text-secondary);">/ 1,000 clicks</span>
-                </div>
-                <ul style="margin-bottom: 1.5rem; line-height: 1.8;">
-                    <li>💰 $0.005 per click</li>
-                    <li>📊 Performance dashboard</li>
-                    <li>🛡️ Fraud protection</li>
-                    <li>📈 Click tracking</li>
-                </ul>
-                <a href="/sponsors/apply" class="primary-button" style="display: block; text-align: center;">Get Started →</a>
+{% extends "base.html" %}
+
+{% block title %}Business Advertising - SkyModderAI{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 3rem auto; padding: 0 2rem;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: #f59e0b;">📢 Business Advertising</h1>
+    <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 2rem;">Pay only for clicks. Fraud-protected. Performance-tracked.</p>
+
+    <!-- Pricing Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+        <!-- Pricing -->
+        <div style="background: var(--bg-secondary); padding: 2rem; border-radius: 12px; border: 2px solid #f59e0b; grid-column: 1 / -1;">
+            <h3 style="margin-bottom: 0.5rem; text-align: center;">Simple Meter Pricing</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem; text-align: center;">Pay as you go. No packages. No commitments.</p>
+            <div style="margin-bottom: 1.5rem; text-align: center;">
+                <span style="font-size: 3rem; font-weight: 700; color: #f59e0b;">$5</span>
+                <span style="color: var(--text-secondary); font-size: 1.2rem;"> per 1,000 clicks</span>
             </div>
-            
-            <!-- Bulk Plan -->
-            <div style="background: var(--bg-secondary); padding: 2rem; border-radius: 12px; border: 2px solid #f59e0b; position: relative;">
-                <div style="position: absolute; top: -12px; right: 20px; background: #f59e0b; color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">BEST VALUE</div>
-                <h3 style="margin-bottom: 0.5rem;">Bulk</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 1rem;">For serious campaigns</p>
-                <div style="margin-bottom: 1.5rem;">
-                    <span style="font-size: 2.5rem; font-weight: 700; color: #f59e0b;">$50</span>
-                    <span style="color: var(--text-secondary);">/ 10,000 clicks</span>
-                </div>
-                <ul style="margin-bottom: 1.5rem; line-height: 1.8;">
-                    <li>💰 $0.005 per click (same rate)</li>
-                    <li>📊 Performance dashboard</li>
-                    <li>🛡️ Fraud protection (24h dedup)</li>
-                    <li>📈 Advanced analytics</li>
-                    <li>🎯 Category targeting</li>
-                </ul>
-                <a href="/sponsors/apply" class="primary-button" style="display: block; text-align: center; background: #f59e0b;">Get Started →</a>
-            </div>
-        </div>
-        
-        <!-- How It Works -->
-        <div style="background: var(--bg-primary); padding: 2rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid var(--border);">
-            <h2 style="margin-bottom: 1.5rem;">How It Works</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                <div>
-                    <h4 style="margin-bottom: 0.5rem;">1️⃣ Apply</h4>
-                    <p style="color: var(--text-secondary);">Submit your business for review. We approve within 7 days.</p>
-                </div>
-                <div>
-                    <h4 style="margin-bottom: 0.5rem;">2️⃣ Prepay</h4>
-                    <p style="color: var(--text-secondary);">Prepay for clicks ($5 or $50). No monthly commitments.</p>
-                </div>
-                <div>
-                    <h4 style="margin-bottom: 0.5rem;">3️⃣ Launch</h4>
-                    <p style="color: var(--text-secondary);">Your ad goes live in our sponsor showcase.</p>
-                </div>
-                <div>
-                    <h4 style="margin-bottom: 0.5rem;">4️⃣ Track</h4>
-                    <p style="color: var(--text-secondary);">Watch performance in real-time dashboard.</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Fraud Protection -->
-        <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(5, 150, 105, 0.1)); padding: 2rem; border-radius: 12px; border: 1px solid var(--success); margin-bottom: 2rem;">
-            <h3 style="margin-bottom: 1rem; color: var(--success);">🛡️ Fraud Protection</h3>
-            <ul style="line-height: 1.8;">
-                <li>✅ 24-hour IP+UA deduplication (same user can only click once per day)</li>
-                <li>✅ Server-side tracking (not client-side, can't be spoofed)</li>
-                <li>✅ Pattern detection (bot-like behavior filtered)</li>
-                <li>✅ Manual review (suspicious activity audited)</li>
-                <li>✅ You only pay for legitimate clicks</li>
+            <ul style="margin-bottom: 1.5rem; line-height: 1.8;">
+                <li>💰 $0.005 per click</li>
+                <li>📊 Performance dashboard</li>
+                <li>🛡️ Fraud protection (24h dedup)</li>
+                <li>📈 Real-time click tracking</li>
+                <li>🎯 Category targeting</li>
+                <li>✅ No monthly commitments</li>
+                <li>✅ No package tiers</li>
             </ul>
+            <a href="/sponsors/apply" class="primary-button" style="display: block; text-align: center; background: #f59e0b;">Apply to Advertise →</a>
         </div>
-        
-        <!-- CTA -->
-        <div style="text-align: center; padding: 2rem; background: var(--bg-secondary); border-radius: 12px;">
-            <h3 style="margin-bottom: 1rem;">Ready to reach modders?</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Join businesses reaching engaged modding community.</p>
-            <a href="/sponsors/apply" class="primary-button" style="display: inline-block; background: #f59e0b;">Apply to Advertise →</a>
-            <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">Questions? <a href="mailto:sponsors@skymoddereai.com" style="color: #f59e0b;">sponsors@skymoddereai.com</a></p>
-        </div>
-        
-        <footer style="text-align: center; padding: 2rem; color: var(--text-secondary); margin-top: 3rem; border-top: 1px solid var(--border);">
-            <p>SkyModderAI © 2026 | <a href="/terms">Terms</a> | <a href="/privacy">Privacy</a> | <a href="/business">Business</a></p>
-        </footer>
     </div>
-</body>
-</html>
+
+    <!-- How It Works -->
+    <div style="background: var(--bg-primary); padding: 2rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid var(--border);">
+        <h2 style="margin-bottom: 1.5rem;">How It Works</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div>
+                <h4 style="margin-bottom: 0.5rem;">1️⃣ Apply</h4>
+                <p style="color: var(--text-secondary);">Submit your business for review. We approve within 7 days.</p>
+            </div>
+            <div>
+                <h4 style="margin-bottom: 0.5rem;">2️⃣ Add Credits</h4>
+                <p style="color: var(--text-secondary);">Add credits to your account. Simple meter pricing.</p>
+            </div>
+            <div>
+                <h4 style="margin-bottom: 0.5rem;">3️⃣ Launch</h4>
+                <p style="color: var(--text-secondary);">Your ad goes live in our sponsor showcase.</p>
+            </div>
+            <div>
+                <h4 style="margin-bottom: 0.5rem;">4️⃣ Track</h4>
+                <p style="color: var(--text-secondary);">Watch performance in real-time dashboard.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fraud Protection -->
+    <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(5, 150, 105, 0.1)); padding: 2rem; border-radius: 12px; border: 1px solid var(--success); margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem; color: var(--success);">🛡️ Fraud Protection</h3>
+        <ul style="line-height: 1.8;">
+            <li>✅ 24-hour IP+UA deduplication (same user can only click once per day)</li>
+            <li>✅ Server-side tracking (not client-side, can't be spoofed)</li>
+            <li>✅ Pattern detection (bot-like behavior filtered)</li>
+            <li>✅ Manual review (suspicious activity audited)</li>
+            <li>✅ You only pay for legitimate clicks</li>
+        </ul>
+    </div>
+
+    <!-- CTA -->
+    <div style="text-align: center; padding: 2rem; background: var(--bg-secondary); border-radius: 12px;">
+        <h3 style="margin-bottom: 1rem;">Ready to reach modders?</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Join businesses reaching engaged modding community.</p>
+        <a href="/sponsors/apply" class="primary-button" style="display: inline-block; background: #f59e0b;">Apply to Advertise →</a>
+        <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">Questions? <a href="mailto:sponsors@skymoddereai.com" style="color: #f59e0b;">sponsors@skymoddereai.com</a></p>
+    </div>
+</div>
+{% endblock %}

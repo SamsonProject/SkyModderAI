@@ -163,14 +163,14 @@
             }
         });
     }
-    
+
     // Initialize tab switching
     function initTabs() {
         const loginTab = document.getElementById('login-tab');
         const signupTab = document.getElementById('signup-tab');
         const loginPanel = document.getElementById('login-panel');
         const signupPanel = document.getElementById('signup-panel');
-        
+
         if (loginTab && loginPanel) {
             loginTab.addEventListener('click', () => {
                 // Update tab styles
@@ -182,17 +182,17 @@
                 loginTab.style.background = 'var(--primary-color)';
                 loginTab.style.color = 'white';
                 loginTab.setAttribute('aria-selected', 'true');
-                
+
                 // Update panel visibility
                 loginPanel.style.display = 'block';
                 if (signupPanel) signupPanel.style.display = 'none';
-                
+
                 // Focus email field
                 const emailField = document.getElementById('login-email');
                 if (emailField) setTimeout(() => emailField.focus(), 100);
             });
         }
-        
+
         if (signupTab && signupPanel) {
             signupTab.addEventListener('click', () => {
                 // Update tab styles
@@ -204,11 +204,11 @@
                 signupTab.style.background = 'var(--primary-color)';
                 signupTab.style.color = 'white';
                 signupTab.setAttribute('aria-selected', 'true');
-                
+
                 // Update panel visibility
                 signupPanel.style.display = 'block';
                 if (loginPanel) loginPanel.style.display = 'none';
-                
+
                 // Focus email field
                 const emailField = document.getElementById('signup-email');
                 if (emailField) setTimeout(() => emailField.focus(), 100);

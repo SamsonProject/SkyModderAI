@@ -10,7 +10,9 @@ NOTE: No hardcoded mod recommendations. All mod suggestions come from:
 Tool links (Nexus, LOOT, xEdit) are universal utilities, not mod recommendations.
 """
 
-from typing import Any, Dict
+from __future__ import annotations
+
+from typing import Any
 
 # Global tool links (not game-specific) - These are universal utilities
 TOOLS = {
@@ -94,7 +96,7 @@ NOOB_JOURNEY = [
 # Per-game quickstart data: Links to game pages on Nexus, AppData path
 # NOTE: No hardcoded mod recommendations (USSEP, SKSE, etc.)
 # Users should browse community builds or use the search engine
-GAME_QUICKSTART: Dict[str, Dict[str, Any]] = {
+GAME_QUICKSTART: dict[str, dict[str, Any]] = {
     "skyrimse": {
         "name": "Skyrim SE",
         "nexus_slug": "skyrimspecialedition",
@@ -153,7 +155,7 @@ GAME_QUICKSTART: Dict[str, Dict[str, Any]] = {
     },
 }
 
-_OS_PLUGIN_PATHS: Dict[str, Dict[str, str]] = {
+_OS_PLUGIN_PATHS: dict[str, dict[str, str]] = {
     "skyrimse": {
         "windows": r"%LOCALAPPDATA%\Skyrim Special Edition\plugins.txt",
         "linux": "~/.local/share/Steam/steamapps/compatdata/<app_id>/pfx/drive_c/users/steamuser/AppData/Local/Skyrim Special Edition/plugins.txt",
@@ -197,7 +199,7 @@ _OS_PLUGIN_PATHS: Dict[str, Dict[str, str]] = {
 }
 
 
-def get_quickstart_for_game(game_id: str) -> Dict[str, Any]:
+def get_quickstart_for_game(game_id: str) -> dict[str, Any]:
     """Get quickstart data for a game. Falls back to skyrimse if unknown."""
     gid = game_id.lower()
     out = GAME_QUICKSTART.get(gid, GAME_QUICKSTART["skyrimse"]).copy()
@@ -205,7 +207,7 @@ def get_quickstart_for_game(game_id: str) -> Dict[str, Any]:
     return out
 
 
-def get_all_quickstart() -> Dict[str, Any]:
+def get_all_quickstart() -> dict[str, Any]:
     """Return full quickstart config for API."""
     return {
         "tools": TOOLS,

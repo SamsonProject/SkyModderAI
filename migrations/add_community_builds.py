@@ -5,9 +5,8 @@ This replaces hardcoded mod recommendations with community-driven builds.
 All builds are transparently sourced from popular free community modlists.
 """
 
-import sqlite3
 import json
-from datetime import datetime, timezone
+import sqlite3
 
 DB_FILE = "users.db"
 
@@ -25,7 +24,9 @@ SEED_BUILDS = [
         "source_url": "https://www.wabbajack.org/",
         "wiki_url": "https://gatetosovngarde.wiki.gg/",
         "mod_count": 1700,
-        "playstyle_tags": json.dumps(["vanilla_plus", "quest_rich", "visual_enhancement", "combat_overhaul"]),
+        "playstyle_tags": json.dumps(
+            ["vanilla_plus", "quest_rich", "visual_enhancement", "combat_overhaul"]
+        ),
         "performance_tier": "mid_high",
         "upvotes": 0,
         "downvotes": 0,
@@ -41,7 +42,9 @@ SEED_BUILDS = [
         "source_url": "https://www.wabbajack.org/",
         "wiki_url": "",
         "mod_count": 700,
-        "playstyle_tags": json.dumps(["vanilla_plus", "stable", "visual_enhancement", "beginner_friendly"]),
+        "playstyle_tags": json.dumps(
+            ["vanilla_plus", "stable", "visual_enhancement", "beginner_friendly"]
+        ),
         "performance_tier": "mid",
         "upvotes": 0,
         "downvotes": 0,
@@ -89,14 +92,15 @@ SEED_BUILDS = [
         "source_url": "https://www.wabbajack.org/",
         "wiki_url": "",
         "mod_count": 1000,
-        "playstyle_tags": json.dumps(["comprehensive", "quest_rich", "visual_enhancement", "community_celebration"]),
+        "playstyle_tags": json.dumps(
+            ["comprehensive", "quest_rich", "visual_enhancement", "community_celebration"]
+        ),
         "performance_tier": "high",
         "upvotes": 0,
         "downvotes": 0,
         "is_seed": 1,
         "seed_note": "Seeded from popular Wabbajack modlist - will be replaced by community submissions",
     },
-    
     # SKYRIM SE - Hardcore/Survival Builds
     {
         "game": "skyrimse",
@@ -146,7 +150,6 @@ SEED_BUILDS = [
         "is_seed": 1,
         "seed_note": "Seeded from popular Wabbajack modlist - will be replaced by community submissions",
     },
-    
     # SKYRIM SE - Power Fantasy Builds
     {
         "game": "skyrimse",
@@ -173,7 +176,9 @@ SEED_BUILDS = [
         "source_url": "https://www.wabbajack.org/",
         "wiki_url": "",
         "mod_count": 375,
-        "playstyle_tags": json.dumps(["power_fantasy", "combat_overhaul", "custom_content", "action"]),
+        "playstyle_tags": json.dumps(
+            ["power_fantasy", "combat_overhaul", "custom_content", "action"]
+        ),
         "performance_tier": "high",
         "upvotes": 0,
         "downvotes": 0,
@@ -196,7 +201,6 @@ SEED_BUILDS = [
         "is_seed": 1,
         "seed_note": "Seeded from popular Wabbajack modlist - will be replaced by community submissions",
     },
-    
     # FALLOUT 4 Builds
     {
         "game": "fallout4",
@@ -239,7 +243,9 @@ SEED_BUILDS = [
         "source_url": "https://www.wabbajack.org/",
         "wiki_url": "",
         "mod_count": 730,
-        "playstyle_tags": json.dumps(["overhaul", "combat_overhaul", "quest_rich", "comprehensive"]),
+        "playstyle_tags": json.dumps(
+            ["overhaul", "combat_overhaul", "quest_rich", "comprehensive"]
+        ),
         "performance_tier": "high",
         "upvotes": 0,
         "downvotes": 0,
@@ -262,7 +268,6 @@ SEED_BUILDS = [
         "is_seed": 1,
         "seed_note": "Seeded from popular Wabbajack modlist - will be replaced by community submissions",
     },
-    
     # FALLOUT NEW VEGAS
     {
         "game": "falloutnv",
@@ -273,7 +278,9 @@ SEED_BUILDS = [
         "source_url": "https://www.vivanewvegas.io/",
         "wiki_url": "",
         "mod_count": 150,
-        "playstyle_tags": json.dumps(["vanilla_plus", "stable", "performance", "beginner_friendly"]),
+        "playstyle_tags": json.dumps(
+            ["vanilla_plus", "stable", "performance", "beginner_friendly"]
+        ),
         "performance_tier": "low",
         "upvotes": 0,
         "downvotes": 0,
@@ -296,7 +303,6 @@ SEED_BUILDS = [
         "is_seed": 1,
         "seed_note": "Seeded from popular Wabbajack modlist - will be replaced by community submissions",
     },
-    
     # OBLIVION
     {
         "game": "oblivion",
@@ -307,14 +313,15 @@ SEED_BUILDS = [
         "source_url": "https://www.nexusmods.com/oblivion",
         "wiki_url": "",
         "mod_count": 200,
-        "playstyle_tags": json.dumps(["vanilla_plus", "bug_fixes", "visual_enhancement", "classic"]),
+        "playstyle_tags": json.dumps(
+            ["vanilla_plus", "bug_fixes", "visual_enhancement", "classic"]
+        ),
         "performance_tier": "low",
         "upvotes": 0,
         "downvotes": 0,
         "is_seed": 1,
         "seed_note": "Seeded from popular Nexus collections - will be replaced by community submissions",
     },
-    
     # STARFIELD
     {
         "game": "starfield",
@@ -332,7 +339,6 @@ SEED_BUILDS = [
         "is_seed": 1,
         "seed_note": "Seeded from popular Wabbajack modlist - will be replaced by community submissions",
     },
-    
     # SKYRIM VR
     {
         "game": "skyrimvr",
@@ -357,9 +363,10 @@ def migrate():
     """Run the migration."""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    
+
     # Create community_builds table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS community_builds (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             game TEXT NOT NULL,
@@ -379,22 +386,28 @@ def migrate():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """)
-    
+    """
+    )
+
     # Create index for game-based queries
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_community_builds_game 
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_community_builds_game
         ON community_builds(game)
-    """)
-    
+    """
+    )
+
     # Create index for playstyle tag queries
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_community_builds_tags 
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_community_builds_tags
         ON community_builds(playstyle_tags)
-    """)
-    
+    """
+    )
+
     # Create votes table for tracking user votes
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS community_build_votes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             build_id INTEGER NOT NULL,
@@ -404,36 +417,40 @@ def migrate():
             FOREIGN KEY (build_id) REFERENCES community_builds(id),
             UNIQUE (build_id, user_email)
         )
-    """)
-    
+    """
+    )
+
     # Insert seed data
     for build in SEED_BUILDS:
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO community_builds (
                 game, name, description, author, source, source_url, wiki_url,
                 mod_count, playstyle_tags, performance_tier, upvotes, downvotes,
                 is_seed, seed_note
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            build["game"],
-            build["name"],
-            build["description"],
-            build["author"],
-            build["source"],
-            build.get("source_url"),
-            build.get("wiki_url"),
-            build.get("mod_count"),
-            build["playstyle_tags"],
-            build["performance_tier"],
-            build["upvotes"],
-            build["downvotes"],
-            build["is_seed"],
-            build.get("seed_note"),
-        ))
-    
+        """,
+            (
+                build["game"],
+                build["name"],
+                build["description"],
+                build["author"],
+                build["source"],
+                build.get("source_url"),
+                build.get("wiki_url"),
+                build.get("mod_count"),
+                build["playstyle_tags"],
+                build["performance_tier"],
+                build["upvotes"],
+                build["downvotes"],
+                build["is_seed"],
+                build.get("seed_note"),
+            ),
+        )
+
     conn.commit()
     conn.close()
-    
+
     print(f"✓ Created community_builds table with {len(SEED_BUILDS)} seed builds")
     print("  Note: All seed builds are marked with is_seed=1 and will be replaced")
     print("  as community members submit their own builds.")

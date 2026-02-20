@@ -10,9 +10,11 @@ Sources:
 All sources are scored for reliability and added to knowledge base.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from db import get_db_session
 from models import KnowledgeSource, SourceCredibility, UserActivity
@@ -20,7 +22,7 @@ from models import KnowledgeSource, SourceCredibility, UserActivity
 logger = logging.getLogger(__name__)
 
 
-def run_research_cycle() -> Dict[str, Any]:
+def run_research_cycle() -> dict[str, Any]:
     """
     Run full research cycle.
 
@@ -56,7 +58,7 @@ def run_research_cycle() -> Dict[str, Any]:
     return results
 
 
-def scrape_nexus_mods() -> Dict[str, Any]:
+def scrape_nexus_mods() -> dict[str, Any]:
     """
     Scrape Nexus Mods API for new and updated mods.
 
@@ -160,8 +162,8 @@ def scrape_nexus_mods() -> Dict[str, Any]:
 
 
 def process_nexus_mod(
-    mod: Dict[str, Any], game_id: str, nexus_game: str, headers: Dict[str, str], base_url: str
-) -> Optional[Dict[str, Any]]:
+    mod: dict[str, Any], game_id: str, nexus_game: str, headers: dict[str, str], base_url: str
+) -> Optional[dict[str, Any]]:
     """Process a single Nexus mod into knowledge source format."""
     try:
         mod_id = mod.get("id")
@@ -189,12 +191,16 @@ def process_nexus_mod(
             "tags": extract_nexus_tags(details),
             "author": details.get("author", ""),
             "endorsements": details.get("endorsement_count", 0),
-            "created_at": datetime.fromtimestamp(details.get("created_time", 0)).isoformat()
-            if details.get("created_time")
-            else None,
-            "updated_at": datetime.fromtimestamp(details.get("updated_time", 0)).isoformat()
-            if details.get("updated_time")
-            else None,
+            "created_at": (
+                datetime.fromtimestamp(details.get("created_time", 0)).isoformat()
+                if details.get("created_time")
+                else None
+            ),
+            "updated_at": (
+                datetime.fromtimestamp(details.get("updated_time", 0)).isoformat()
+                if details.get("updated_time")
+                else None
+            ),
             "content_hash": None,  # Will be computed
             "requires": extract_requirements(details),
             "conflicts_with": None,
@@ -209,7 +215,7 @@ def process_nexus_mod(
         return None
 
 
-def categorize_nexus_mod(details: Dict[str, Any]) -> str:
+def categorize_nexus_mod(details: dict[str, Any]) -> str:
     """Categorize Nexus mod based on its properties."""
     categories = details.get("categories", [])
     category_ids = [c.get("category_id") for c in categories] if categories else []
@@ -245,7 +251,7 @@ def categorize_nexus_mod(details: Dict[str, Any]) -> str:
     return "uncategorized"
 
 
-def extract_nexus_tags(details: Dict[str, Any]) -> List[str]:
+def extract_nexus_tags(details: dict[str, Any]) -> list[str]:
     """Extract tags from Nexus mod."""
     tags = []
 
@@ -269,7 +275,7 @@ def extract_nexus_tags(details: Dict[str, Any]) -> List[str]:
     return tags[:20]  # Limit tags
 
 
-def extract_requirements(details: Dict[str, Any]) -> List[str]:
+def extract_requirements(details: dict[str, Any]) -> list[str]:
     """Extract mod requirements from Nexus data."""
     requirements = []
 
@@ -301,7 +307,7 @@ def extract_requirements(details: Dict[str, Any]) -> List[str]:
     return requirements
 
 
-def scrape_reddit() -> Dict[str, Any]:
+def scrape_reddit() -> dict[str, Any]:
     """
     Scrape Reddit for modding discussions.
 
@@ -361,11 +367,13 @@ def scrape_reddit() -> Dict[str, Any]:
                                 "type": "reddit_general",
                                 "upvotes": post_data.get("ups", 0),
                                 "comments": post_data.get("num_comments", 0),
-                                "published_date": datetime.fromtimestamp(
-                                    post_data.get("created_utc", 0)
-                                ).isoformat()
-                                if post_data.get("created_utc")
-                                else None,
+                                "published_date": (
+                                    datetime.fromtimestamp(
+                                        post_data.get("created_utc", 0)
+                                    ).isoformat()
+                                    if post_data.get("created_utc")
+                                    else None
+                                ),
                                 "author": post_data.get("author", ""),
                                 "content": post_data.get("selftext", "")[:2000],
                                 "game_version": game_id,
@@ -384,11 +392,13 @@ def scrape_reddit() -> Dict[str, Any]:
                                 "author": post_data.get("author", ""),
                                 "upvotes": post_data.get("ups", 0),
                                 "comments": post_data.get("num_comments", 0),
-                                "created_at": datetime.fromtimestamp(
-                                    post_data.get("created_utc", 0)
-                                ).isoformat()
-                                if post_data.get("created_utc")
-                                else None,
+                                "created_at": (
+                                    datetime.fromtimestamp(
+                                        post_data.get("created_utc", 0)
+                                    ).isoformat()
+                                    if post_data.get("created_utc")
+                                    else None
+                                ),
                                 "status": "active",
                             }
 
@@ -414,7 +424,7 @@ def scrape_reddit() -> Dict[str, Any]:
         return {"posts_found": 0, "added": 0, "errors": 1, "error": str(e)}
 
 
-def scrape_forums() -> Dict[str, Any]:
+def scrape_forums() -> dict[str, Any]:
     """
     Scrape forums for modding discussions.
 
@@ -440,7 +450,7 @@ def scrape_forums() -> Dict[str, Any]:
     }
 
 
-def scrape_github() -> Dict[str, Any]:
+def scrape_github() -> dict[str, Any]:
     """
     Scrape GitHub for modding tools and resources.
 
@@ -549,7 +559,7 @@ def scrape_github() -> Dict[str, Any]:
         return {"repos_found": 0, "added": 0, "errors": 1, "error": str(e)}
 
 
-def add_knowledge_source(session, knowledge: Dict[str, Any], score) -> bool:
+def add_knowledge_source(session, knowledge: dict[str, Any], score) -> bool:
     """Add knowledge source to database with credibility score."""
     try:
         # Check if already exists
@@ -566,13 +576,15 @@ def add_knowledge_source(session, knowledge: Dict[str, Any], score) -> bool:
         # Create credibility record
         credibility = SourceCredibility(
             source_url=knowledge["source_url"],
-            source_type="nexus_mods"
-            if "nexusmods" in knowledge["source_url"]
-            else "reddit"
-            if "reddit" in knowledge["source_url"]
-            else "github"
-            if "github" in knowledge["source_url"]
-            else "unknown",
+            source_type=(
+                "nexus_mods"
+                if "nexusmods" in knowledge["source_url"]
+                else (
+                    "reddit"
+                    if "reddit" in knowledge["source_url"]
+                    else "github" if "github" in knowledge["source_url"] else "unknown"
+                )
+            ),
             overall_score=score.overall_score,
             source_credibility=score.source_credibility,
             content_freshness=score.content_freshness,
@@ -605,9 +617,9 @@ def add_knowledge_source(session, knowledge: Dict[str, Any], score) -> bool:
             summary=knowledge.get("summary"),
             key_points=None,
             conflicts_with=None,
-            requires=json.dumps(knowledge.get("requires", []))
-            if knowledge.get("requires")
-            else None,
+            requires=(
+                json.dumps(knowledge.get("requires", [])) if knowledge.get("requires") else None
+            ),
             compatible_with=None,
             deviation_flags=None,
             is_standard_approach=knowledge.get("is_standard_approach", True),
@@ -624,7 +636,7 @@ def add_knowledge_source(session, knowledge: Dict[str, Any], score) -> bool:
         return False
 
 
-def track_research_run(results: Dict[str, Any]):
+def track_research_run(results: dict[str, Any]):
     """Track research run in database."""
     try:
         activity = UserActivity(

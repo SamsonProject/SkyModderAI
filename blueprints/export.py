@@ -8,11 +8,13 @@ Export endpoints:
 - GET /api/export/templates - Get available templates
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import tempfile
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from flask import Blueprint, jsonify, request, send_file
 
@@ -66,12 +68,15 @@ def export_pdf():
 
         if not success:
             # Fallback: return HTML instead
-            return jsonify(
-                {
-                    "error": "PDF generation not available (WeasyPrint not installed)",
-                    "fallback": "html",
-                }
-            ), 503
+            return (
+                jsonify(
+                    {
+                        "error": "PDF generation not available (WeasyPrint not installed)",
+                        "fallback": "html",
+                    }
+                ),
+                503,
+            )
 
         # Send file
         filename = f"{data.get('title', 'guide').replace(' ', '_').lower()}_{datetime.now().strftime('%Y%m%d')}.pdf"
@@ -266,7 +271,7 @@ def get_templates():
     return jsonify({"templates": templates})
 
 
-def _format_as_markdown(content: Dict[str, Any]) -> str:
+def _format_as_markdown(content: dict[str, Any]) -> str:
     """Format content as Markdown."""
     md = []
 

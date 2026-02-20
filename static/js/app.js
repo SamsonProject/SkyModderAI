@@ -2226,7 +2226,7 @@ async function analyzeModList() {
                 // Update badge color based on confidence
                 const badgeEl = document.getElementById('confidence-badge');
                 if (badgeEl) {
-                    badgeEl.className = 'confidence-badge confidence-' + 
+                    badgeEl.className = 'confidence-badge confidence-' +
                         (confidenceValue >= 80 ? 'high' : confidenceValue >= 60 ? 'medium' : 'low');
                 }
             }
@@ -4772,10 +4772,10 @@ const THEMES = {
 function applyTheme(key) {
     const t = THEMES[key] || THEMES['slate'];
     const root = document.documentElement;
-    
+
     // Set data-theme attribute for CSS hooks
     root.setAttribute('data-theme', key);
-    
+
     // Apply CSS variables from theme
     for (const [k, v] of Object.entries(t.colors)) {
         root.style.setProperty(k, v);

@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}Sponsor Ethical Charter - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .charter-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .charter-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .charter-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #e2e8f0;
+    }
+
+    .charter-header p {
+        color: #94a3b8;
+        font-size: 1.125rem;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .charter-section {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .charter-section h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #e2e8f0;
+    }
+
+    .charter-section h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 1.5rem 0 1rem 0;
+        color: #e2e8f0;
+    }
+
+    .charter-section p {
+        color: #94a3b8;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+    }
+
+    .charter-section ul {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0;
+    }
+
+    .charter-section li {
+        padding: 0.75rem 0;
+        color: #94a3b8;
+        border-bottom: 1px solid #334155;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .charter-section li:last-child {
+        border-bottom: none;
+    }
+
+    .charter-section li::before {
+        content: "✓";
+        color: #22c55e;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    .charter-section li.rejected::before {
+        content: "✗";
+        color: #ef4444;
+    }
+
+    .pricing-box {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid #22c55e;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .pricing-box .price {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #22c55e;
+        margin: 0.5rem 0;
+    }
+
+    .pricing-box .price span {
+        font-size: 1rem;
+        color: #94a3b8;
+    }
+
+    .vetting-flowchart {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+
+    .vetting-step {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid #3b82f6;
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .vetting-step .step-number {
+        background: #3b82f6;
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .vetting-step .step-content {
+        flex: 1;
+    }
+
+    .vetting-step .step-title {
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 0.25rem;
+    }
+
+    .vetting-step .step-desc {
+        font-size: 0.875rem;
+        color: #94a3b8;
+    }
+
+    .formula-box {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 1.5rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        color: #e2e8f0;
+        margin: 1rem 0;
+        text-align: center;
+    }
+
+    .highlight {
+        color: #f59e0b;
+        font-weight: 600;
+    }
+
+    .contact-box {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid #3b82f6;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .contact-box a {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .contact-box a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="charter-page">
+    <div class="charter-header">
+        <h1>📜 Sponsor Ethical Charter</h1>
+        <p>We'd rather have 10 ethical sponsors than 100 shady ones. This is a community, not a cash grab.</p>
+    </div>
+
+    <!-- Our Promise -->
+    <div class="charter-section">
+        <h2>Our Promise</h2>
+        <p>
+            SkyModderAI sponsors are <strong>community-curated, ethically-vetted partners</strong>. 
+            We believe advertising can be honest, transparent, and actually useful. No dark patterns. 
+            No data harvesting. No bullshit.
+        </p>
+        <p>
+            Every sponsor you see in our Shopping section has been through rigorous vetting. 
+            They represent a reliable source of income that keeps this tool running—because server costs 
+            don't care about your "special discount," and I'd rather sell out to carefully vetted 
+            sponsors than put ads in the core tool or lock features behind paywalls.
+        </p>
+        <p style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.1)); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+            <strong style="color: #8b5cf6;">🤝 Our Promise to Sponsors:</strong><br>
+            We're not parasites. We succeed when you succeed.
+            If your ad passes our ethical guidelines, it can be shown.
+            If it does great (users click it), you're welcome.
+            And your charge will also be great (hopefully much less than your profit).
+            We give a shit about our sponsors because they bring our user base free material.
+            Without sponsors, this tool wouldn't exist.
+            Without good sponsors, this tool wouldn't be trustworthy.
+            So we vet carefully. We reject more than we accept.
+            And we celebrate when our sponsors win.
+            This isn't a business. It's a resource.
+        </p>
+    </div>
+
+    <!-- Pricing -->
+    <div class="charter-section">
+        <h2>Simple, Honest Pricing</h2>
+        <div class="pricing-box">
+            <div class="price">$5.00 <span>/ 1,000 clicks</span></div>
+            <p style="color: #94a3b8; margin-bottom: 0;">That's $0.005 per click. No hidden fees. No packages. No bullshit.</p>
+        </div>
+        <p>
+            <strong>First month is FREE</strong> for new businesses. We want to prove the value before asking for payment.
+            If our community doesn't click your ads, you don't pay. Simple as that.
+        </p>
+    </div>
+
+    <!-- What We Accept -->
+    <div class="charter-section">
+        <h2>✅ What We Accept</h2>
+        <p>We accept sponsors in these categories:</p>
+        <ul>
+            <li>Modding tools & utilities (xEdit, MO2, etc.)</li>
+            <li>Gaming hardware (peripherals, components, not crypto miners)</li>
+            <li>Indie game studios (Bethesda-style RPGs, not mobile cash grabs)</li>
+            <li>Creative software (3D modeling, texture tools, not AI slop generators)</li>
+            <li>Education platforms (programming, modding tutorials, not "get rich quick" courses)</li>
+            <li>Environmental/ethical tech companies (actually trying to help, not greenwashing)</li>
+        </ul>
+        <p><strong>Requirements:</strong> Must be relevant to modding/gaming/creative tools. No predatory monetization. Clear refund policies. Respect user privacy.</p>
+    </div>
+
+    <!-- What We Reject -->
+    <div class="charter-section">
+        <h2>❌ What We Reject</h2>
+        <p>Hard nos (regardless of money):</p>
+        <ul class="rejected">
+            <li>Crypto/NFT projects (we're not funding your Lambo)</li>
+            <li>Gambling or adjacent (loot boxes, casinos, sports betting)</li>
+            <li>Anything that auto-installs without consent (malware, adware, PUPs)</li>
+            <li>Subscription traps (hidden recurring charges, dark pattern cancellations)</li>
+            <li>Surveillance tech (spyware, keyloggers, "parental control" stalkerware)</li>
+            <li>Known fraud operations (BBB F-rated, FTC actions, class action lawsuits)</li>
+            <li>Misleading claims ("#1 modding tool" with no basis, fake reviews)</li>
+        </ul>
+    </div>
+
+    <!-- Vetting Process -->
+    <div class="charter-section">
+        <h2>🔍 Vetting Process</h2>
+        <p>Here's exactly how we vet every sponsor:</p>
+        
+        <div class="vetting-flowchart">
+            <div class="vetting-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">Application</div>
+                    <div class="step-desc">Sponsor submits application with company info, website, and product details.</div>
+                </div>
+            </div>
+            
+            <div class="vetting-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">Automated Screening</div>
+                    <div class="step-desc">Domain reputation check, BBB rating lookup, community blacklist scan, SSL/security audit.</div>
+                </div>
+            </div>
+            
+            <div class="vetting-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">Manual Review</div>
+                    <div class="step-desc">Human review against ethical charter. Category check. Ethical practices review. Founder approval.</div>
+                </div>
+            </div>
+            
+            <div class="vetting-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div class="step-title">Community Notice (7 days)</div>
+                    <div class="step-desc">Public listing. Flag period (anyone can object). Vote if contested (10+ flags).</div>
+                </div>
+            </div>
+            
+            <div class="vetting-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <div class="step-title">Final Decision</div>
+                    <div class="step-desc">✅ APPROVED or ❌ REJECTED. Rejection reasons are private but the fact of rejection isn't weaponized.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Ranking -->
+    <div class="charter-section">
+        <h2>🏆 Community Ranking</h2>
+        <p>Sponsors are ranked democratically, not by how much they pay:</p>
+        
+        <div class="formula-box">
+            ranking_score = (community_score × 0.6) + (normalized_ctr × 0.4)
+        </div>
+        
+        <ul>
+            <li><strong>60% Community Score</strong> — Is this sponsor trusted by the community?</li>
+            <li><strong>40% CTR</strong> — Is this ad relevant to users? (5% CTR = 1.0 normalized)</li>
+        </ul>
+        
+        <p><strong>What this means:</strong></p>
+        <ul>
+            <li>High CTR but low trust (clickbait) → Lower ranking</li>
+            <li>High trust but low CTR (boring but honest) → Decent ranking</li>
+            <li>High trust + high CTR → Top placement</li>
+        </ul>
+        
+        <p>Community can flag sponsors at any time. 10+ flags triggers immediate review.</p>
+    </div>
+
+    <!-- Fraud Protection -->
+    <div class="charter-section">
+        <h2>🛡️ Click Fraud Protection</h2>
+        <p>We protect sponsors from fraud with:</p>
+        <ul>
+            <li><strong>24-hour deduplication</strong> — Same IP+User Agent can only click once per day</li>
+            <li><strong>Server-side tracking</strong> — Not client-side (can't be spoofed)</li>
+            <li><strong>Pattern detection</strong> — Bot-like behavior filtered automatically</li>
+            <li><strong>Manual review</strong> — Suspicious activity audited by humans</li>
+        </ul>
+        <p>If we detect fraud: click is NOT billed to sponsor, user account may be suspended, sponsor is notified of filtered clicks.</p>
+    </div>
+
+    <!-- Privacy Promise -->
+    <div class="charter-section">
+        <h2>🔒 Privacy Promise</h2>
+        <h3>User Data:</h3>
+        <ul>
+            <li>Never sold to third parties</li>
+            <li>Only used for relevant sponsor matching</li>
+            <li>Aggregated for analytics (not individual tracking)</li>
+            <li>Deleted on request</li>
+        </ul>
+        
+        <h3>Sponsor Data:</h3>
+        <ul>
+            <li>Performance metrics private to sponsor</li>
+            <li>Community scores public (transparency)</li>
+            <li>Billing private</li>
+        </ul>
+    </div>
+
+    <!-- Appeal Process -->
+    <div class="charter-section">
+        <h2>⚖️ Appeal Process</h2>
+        <p><strong>Rejected?</strong> You can appeal:</p>
+        <ol style="color: #94a3b8; line-height: 1.8; margin: 1rem 0;">
+            <li>Email <a href="mailto:appeals@skymoddereai.com" style="color: #3b82f6;">appeals@skymoddereai.com</a></li>
+            <li>Explain why you believe the decision was wrong</li>
+            <li>We review within 7 days</li>
+            <li>Decision is final (but we're reasonable humans)</li>
+        </ol>
+        
+        <p><strong>Suspended?</strong> Same process, plus:</p>
+        <ul>
+            <li>Provide evidence of compliance</li>
+            <li>Fix any violations</li>
+            <li>Re-apply after 30 days</li>
+        </ul>
+    </div>
+
+    <!-- Contact -->
+    <div class="contact-box">
+        <h3 style="margin-bottom: 1rem;">📬 Contact</h3>
+        <p style="margin-bottom: 0.5rem;"><strong>Apply to sponsor:</strong> <a href="mailto:sponsors@skymoddereai.com">sponsors@skymoddereai.com</a></p>
+        <p style="margin-bottom: 0.5rem;"><strong>Report concern:</strong> <a href="mailto:report@skymoddereai.com">report@skymoddereai.com</a></p>
+        <p style="margin-bottom: 0;"><strong>Appeal decision:</strong> <a href="mailto:appeals@skymoddereai.com">appeals@skymoddereai.com</a></p>
+    </div>
+
+    <!-- Legal -->
+    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #334155; color: #64748b; font-size: 0.875rem; text-align: center;">
+        <p>This charter is part of our <a href="/terms" style="color: #3b82f6;">Terms of Service</a> and <a href="/privacy" style="color: #3b82f6;">Privacy Policy</a>.</p>
+        <p style="margin-top: 0.5rem;">Last updated: February 19, 2026</p>
+    </div>
+</div>
+{% endblock %}

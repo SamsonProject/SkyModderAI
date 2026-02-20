@@ -13,25 +13,25 @@
         margin: 0 auto;
         padding: 2rem;
     }
-    
+
     .community-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 2rem;
     }
-    
+
     .community-header h1 {
         font-size: 2rem;
         font-weight: 700;
     }
-    
+
     .posts-list {
         display: flex;
         flex-direction: column;
         gap: 1rem;
     }
-    
+
     .post-card {
         background: #1e293b;
         border: 1px solid #334155;
@@ -39,11 +39,11 @@
         padding: 1.5rem;
         transition: border-color 0.15s;
     }
-    
+
     .post-card:hover {
         border-color: #3b82f6;
     }
-    
+
     .post-meta {
         display: flex;
         gap: 1rem;
@@ -51,7 +51,7 @@
         color: #64748b;
         margin-bottom: 0.5rem;
     }
-    
+
     .post-tag {
         background: #334155;
         padding: 0.25rem 0.5rem;
@@ -60,27 +60,27 @@
         font-size: 0.625rem;
         letter-spacing: 0.05em;
     }
-    
+
     .post-title {
         font-size: 1.125rem;
         font-weight: 600;
         margin-bottom: 0.5rem;
     }
-    
+
     .post-preview {
         color: #94a3b8;
         font-size: 0.875rem;
         line-height: 1.6;
         margin-bottom: 1rem;
     }
-    
+
     .post-actions {
         display: flex;
         gap: 1rem;
         font-size: 0.75rem;
         color: #64748b;
     }
-    
+
     .post-action {
         display: flex;
         align-items: center;
@@ -88,29 +88,29 @@
         cursor: pointer;
         transition: color 0.15s;
     }
-    
+
     .post-action:hover {
         color: #3b82f6;
     }
-    
+
     .post-action svg {
         width: 16px;
         height: 16px;
     }
-    
+
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
         color: #64748b;
     }
-    
+
     .empty-state svg {
         width: 64px;
         height: 64px;
         margin-bottom: 1rem;
         opacity: 0.5;
     }
-    
+
     .new-post-form {
         background: #1e293b;
         border: 1px solid #334155;
@@ -118,7 +118,7 @@
         padding: 1.5rem;
         margin-bottom: 2rem;
     }
-    
+
     .new-post-form textarea {
         width: 100%;
         min-height: 100px;
@@ -131,7 +131,7 @@
         resize: vertical;
         margin-bottom: 1rem;
     }
-    
+
     .new-post-form textarea:focus {
         outline: none;
         border-color: #3b82f6;
@@ -141,7 +141,7 @@
 
 {% block content %}
 <div class="community-page">
-    
+
     <header class="community-header">
         <div>
             <h1>Community</h1>
@@ -155,7 +155,7 @@
         <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Sign In to Post</a>
         {% endif %}
     </header>
-    
+
     {% if current_user %}
     <div class="new-post-form" id="new-post-form" style="display: none;">
         <form method="POST" action="{{ url_for('community.create_post') }}">
@@ -172,7 +172,7 @@
         </form>
     </div>
     {% endif %}
-    
+
     {% if posts %}
     <div class="posts-list">
         {% for post in posts %}
@@ -210,6 +210,6 @@
         <p>Be the first to start a discussion!</p>
     </div>
     {% endif %}
-    
+
 </div>
 {% endblock %}

@@ -414,18 +414,18 @@
 
 <script>
 async function toggleCreative(creativeId, action) {
-    const endpoint = action === 'pause' 
+    const endpoint = action === 'pause'
         ? `/shopping/creative/${creativeId}/pause`
         : `/shopping/creative/${creativeId}/activate`;
-    
+
     try {
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             location.reload();
         } else {

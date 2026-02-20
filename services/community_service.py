@@ -7,7 +7,7 @@ Handles community posts, replies, voting, and reports.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from db import (
     create_community_post,
@@ -176,7 +176,7 @@ class CommunityService:
         self,
         limit: int = 50,
         tag: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get community posts.
 
@@ -189,7 +189,7 @@ class CommunityService:
         """
         return get_community_posts(limit=limit, tag=tag)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """
         Get community statistics.
 

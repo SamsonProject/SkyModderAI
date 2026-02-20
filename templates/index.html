@@ -153,13 +153,13 @@
                 flex-wrap: wrap;
             }
         }
-        
+
         /* Promo Section - Business & Donation */
         .promo-section {
             margin: 3rem 0;
             padding: 2rem;
         }
-        
+
         .promo-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -167,7 +167,7 @@
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         .promo-card {
             background: var(--bg-card, rgba(15, 23, 42, 0.6));
             border: 1px solid var(--border, rgba(51, 65, 85, 0.5));
@@ -178,40 +178,40 @@
             align-items: flex-start;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        
+
         .promo-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
-        
+
         .promo-icon {
             font-size: 3rem;
             flex-shrink: 0;
         }
-        
+
         .promo-content {
             flex: 1;
         }
-        
+
         .promo-content h3 {
             margin: 0 0 0.75rem 0;
             font-size: 1.5rem;
             color: var(--text-primary, #f8fafc);
         }
-        
+
         .promo-content p {
             color: var(--text-secondary, #94a3b8);
             margin: 0 0 1rem 0;
             line-height: 1.6;
         }
-        
+
         .promo-features {
             display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
             margin-bottom: 1.5rem;
         }
-        
+
         .promo-features span {
             background: rgba(16, 185, 129, 0.1);
             color: var(--success, #10b981);
@@ -220,7 +220,7 @@
             font-size: 0.875rem;
             font-weight: 500;
         }
-        
+
         /* Donation Progress */
         .donation-progress {
             background: rgba(59, 130, 246, 0.1);
@@ -229,26 +229,26 @@
             padding: 1.5rem;
             margin-bottom: 1.5rem;
         }
-        
+
         .progress-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.75rem;
         }
-        
+
         .progress-label {
             font-size: 0.875rem;
             color: var(--text-secondary, #94a3b8);
             font-weight: 500;
         }
-        
+
         .progress-amount {
             font-size: 1.125rem;
             font-weight: 700;
             color: var(--accent-primary, #06b6d4);
         }
-        
+
         .progress-bar {
             height: 12px;
             background: rgba(51, 65, 85, 0.5);
@@ -256,31 +256,31 @@
             overflow: hidden;
             margin-bottom: 0.5rem;
         }
-        
+
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--accent-primary, #06b6d4), var(--accent-secondary, #a855f7));
             border-radius: 9999px;
             transition: width 0.5s ease;
         }
-        
+
         .progress-sub {
             font-size: 0.875rem;
             color: var(--text-muted, #64748b);
             margin: 0;
         }
-        
+
         /* Mobile responsive */
         @media (max-width: 768px) {
             .promo-container {
                 grid-template-columns: 1fr;
             }
-            
+
             .promo-card {
                 flex-direction: column;
                 text-align: center;
             }
-            
+
             .promo-features {
                 justify-content: center;
             }
@@ -366,6 +366,19 @@
             <h2 class="hero-title">Your modding powerhouse</h2>
             <p class="hero-subtitle">AI-powered conflict detection, intelligent load order optimization, and community-driven insights for Skyrim, Fallout, and Starfield. Built on LOOT data, enhanced with machine learning.</p>
         </section>
+
+        <!-- Actually Free Banner -->
+        <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.1)); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; max-width: 900px; margin-left: auto; margin-right: auto;">
+            <h3 style="color: #22c55e; margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 600;">🎯 Actually Free. No Catch.</h3>
+            <p style="color: #94a3b8; line-height: 1.6; margin-bottom: 0.5rem;">
+                This tool is free. Forever. No paywalls. No premium tiers. No "upgrade to unlock."
+                We make money from optional advertising in the Shopping tab. That's it.
+            </p>
+            <p style="color: #94a3b8; line-height: 1.6; margin-bottom: 0;">
+                If you like what we built, support our sponsors. If not, use the tool anyway.
+                No guilt. No nagging. No bullshit.
+            </p>
+        </div>
 
         <!-- Main Tool -->
         <main id="main-content">
@@ -1029,14 +1042,14 @@ Supports:
             {% include "includes/dev_panel.html" %}
 
         </main>
-        
+
         <!-- Business Community Teaser & Donation -->
         <section class="promo-section" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
             <div class="page-header" style="margin-bottom: 2rem;">
                 <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">Community & Support</h2>
                 <p style="color: #94a3b8; font-size: 1.125rem;">Join the modding community and support free tools</p>
             </div>
-            
+
             <div class="pricing-section" style="margin-bottom: 0;">
                 <!-- Business Teaser -->
                 <div class="pricing-card">
@@ -1095,7 +1108,7 @@ Supports:
     </div>
     <button type="button" id="feedback-fab" class="secondary-button"
         style="position:fixed;right:18px;bottom:18px;z-index:40;">Feedback</button>
-    
+
     <script>
         // Handle Community link in header
         document.querySelectorAll('a[href="#panel-community"]').forEach(link => {
@@ -1205,14 +1218,14 @@ Supports:
     <script src="/static/js/modern-ui.js"></script>
     <script src="/static/js/link-architecture.js"></script>
     <script src="/static/js/app.js"></script>
-    
+
     <!-- Transparency Panel & Confidence Badge Logic -->
     <script>
         // Toggle transparency panel visibility
         function toggleTransparencyPanel() {
             const panel = document.getElementById('transparency-panel');
             const btn = document.getElementById('transparency-toggle-btn');
-            
+
             if (panel.classList.contains('hidden')) {
                 panel.classList.remove('hidden');
                 btn.textContent = '🔍 Hide Analysis Details';
@@ -1226,10 +1239,10 @@ Supports:
         function updateConfidenceBadge(confidence) {
             const badge = document.getElementById('confidence-badge');
             const value = document.getElementById('confidence-value');
-            
+
             if (confidence !== undefined && confidence !== null) {
                 value.textContent = Math.round(confidence);
-                
+
                 // Color-code based on confidence level
                 if (confidence >= 80) {
                     badge.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
@@ -1247,15 +1260,15 @@ Supports:
         // Render transparency panel content
         function renderTransparencyPanel(metadata) {
             const panel = document.getElementById('transparency-panel');
-            
+
             if (!metadata) {
                 panel.innerHTML = '<p class="hint">No analysis metadata available.</p>';
                 return;
             }
-            
+
             let html = '<h4>🔍 Analysis Methodology</h4>';
             html += '<div class="transparency-grid">';
-            
+
             // Data sources
             if (metadata.data_sources && metadata.data_sources.length > 0) {
                 html += '<div class="transparency-item">';
@@ -1266,7 +1279,7 @@ Supports:
                 });
                 html += '</div></div>';
             }
-            
+
             // AI involvement
             if (metadata.ai_model) {
                 html += '<div class="transparency-item">';
@@ -1274,7 +1287,7 @@ Supports:
                 html += `<div class="transparency-item-value">${metadata.ai_model}</div>`;
                 html += '</div>';
             }
-            
+
             // Analysis duration
             if (metadata.duration_ms) {
                 html += '<div class="transparency-item">';
@@ -1282,7 +1295,7 @@ Supports:
                 html += `<div class="transparency-item-value">${(metadata.duration_ms / 1000).toFixed(2)}s</div>`;
                 html += '</div>';
             }
-            
+
             // Items analyzed
             if (metadata.items_analyzed) {
                 html += '<div class="transparency-item">';
@@ -1290,9 +1303,9 @@ Supports:
                 html += `<div class="transparency-item-value">${metadata.items_analyzed}</div>`;
                 html += '</div>';
             }
-            
+
             html += '</div>';
-            
+
             panel.innerHTML = html;
         }
 

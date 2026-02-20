@@ -41,58 +41,72 @@ def migrate():
     with engine.connect() as conn:
         # Index for knowledge source lookups by game + version
         conn.execute(
-            text("""
-            CREATE INDEX IF NOT EXISTS idx_knowledge_game_version 
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS idx_knowledge_game_version
             ON knowledge_sources(game, game_version)
-        """)
+        """
+            )
         )
 
         # Index for knowledge source category lookups
         conn.execute(
-            text("""
-            CREATE INDEX IF NOT EXISTS idx_knowledge_category 
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS idx_knowledge_category
             ON knowledge_sources(category, subcategory)
-        """)
+        """
+            )
         )
 
         # Index for trash bin status
         conn.execute(
-            text("""
-            CREATE INDEX IF NOT EXISTS idx_trash_status 
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS idx_trash_status
             ON trash_bin(item_type, reviewed, created_at)
-        """)
+        """
+            )
         )
 
         # Index for source credibility lookups
         conn.execute(
-            text("""
-            CREATE INDEX IF NOT EXISTS idx_source_credibility_score 
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS idx_source_credibility_score
             ON source_credibility(overall_score, confidence)
-        """)
+        """
+            )
         )
 
         # Index for mod database name lookups (frequently searched)
         conn.execute(
-            text("""
-            CREATE INDEX IF NOT EXISTS idx_mods_clean_name 
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS idx_mods_clean_name
             ON mod_database(clean_name)
-        """)
+        """
+            )
         )
 
         # Index for conflicts by type
         conn.execute(
-            text("""
-            CREATE INDEX IF NOT EXISTS idx_conflicts_type 
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS idx_conflicts_type
             ON conflicts(conflict_type)
-        """)
+        """
+            )
         )
 
         # Index for user sessions by email
         conn.execute(
-            text("""
-            CREATE INDEX IF NOT EXISTS idx_sessions_email 
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS idx_sessions_email
             ON user_sessions(user_email)
-        """)
+        """
+            )
         )
 
         conn.commit()

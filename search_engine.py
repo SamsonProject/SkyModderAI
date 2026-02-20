@@ -11,12 +11,14 @@ Implements:
 No external search libs—pure Python, zero API keys.
 """
 
+from __future__ import annotations
+
 import logging
 import math
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +107,7 @@ _TYPO_MAP = {
 }
 
 
-def _tokenize(text: str) -> List[str]:
+def _tokenize(text: str) -> list[str]:
     """Tokenize: lowercase, split on non-alphanumeric, filter short tokens."""
     if not text:
         return []
@@ -114,7 +116,7 @@ def _tokenize(text: str) -> List[str]:
     return [t for t in tokens if len(t) >= 2]
 
 
-def _expand_query(tokens: List[str]) -> List[str]:
+def _expand_query(tokens: list[str]) -> list[str]:
     """Expand query tokens with abbreviations and synonyms. Returns expanded token set."""
     expanded = set(tokens)
     for t in tokens:
@@ -132,10 +134,10 @@ class SearchResult:
     mod_name: str
     clean_name: str
     score: float
-    score_breakdown: Dict[str, float] = field(default_factory=dict)
-    matched_fields: List[str] = field(default_factory=list)
+    score_breakdown: dict[str, float] = field(default_factory=dict)
+    matched_fields: list[str] = field(default_factory=list)
     snippet: Optional[str] = None
-    mod_info: Optional[Dict] = None  # requirements, tags, etc. for AI context
+    mod_info: Optional[dict] = None  # requirements, tags, etc. for AI context
     nexus_mod_id: Optional[int] = None  # Nexus Mods ID for direct linking
     picture_url: Optional[str] = None  # URL to mod's primary image
 
@@ -154,18 +156,18 @@ class ModSearchEngine:
         """
         self.k1 = k1
         self.b = b
-        self._documents: List[Dict] = []
-        self._doc_id_to_mod: Dict[int, str] = {}
-        self._inverted_index: Dict[str, List[Tuple[int, int]]] = defaultdict(
+        self._documents: list[dict] = []
+        self._doc_id_to_mod: dict[int, str] = {}
+        self._inverted_index: dict[str, list[tuple[int, int]]] = defaultdict(
             list
         )  # term -> [(doc_id, tf)]
-        self._doc_lengths: List[int] = []
+        self._doc_lengths: list[int] = []
         self._avg_doc_length: float = 0.0
         self._n_docs: int = 0
-        self._df: Dict[str, int] = {}  # document frequency per term
-        self._authority: Dict[
-            str, int
-        ] = {}  # mod -> how many other mods reference it (load_after, req, etc.)
+        self._df: dict[str, int] = {}  # document frequency per term
+        self._authority: dict[str, int] = (
+            {}
+        )  # mod -> how many other mods reference it (load_after, req, etc.)
 
     def index_parser(self, parser) -> None:
         """
@@ -246,8 +248,8 @@ class ModSearchEngine:
         return math.log((self._n_docs - n + 0.5) / (n + 0.5) + 1.0)
 
     def _bm25_score(
-        self, doc_id: int, query_tokens: List[str]
-    ) -> Tuple[float, Dict[str, float], List[str]]:
+        self, doc_id: int, query_tokens: list[str]
+    ) -> tuple[float, dict[str, float], list[str]]:
         """
         Compute BM25 score for doc_id given query tokens.
         Returns (total_score, breakdown, matched_fields).
@@ -288,7 +290,7 @@ class ModSearchEngine:
         expand_query: bool = True,
         min_score: float = 0.01,
         include_breakdown: bool = False,
-    ) -> List[SearchResult]:
+    ) -> list[SearchResult]:
         """
         Search mods with BM25 + authority boost.
         Returns sorted SearchResult list.
@@ -392,7 +394,7 @@ class ModSearchEngine:
         query: str,
         limit: int = 15,
         include_mod_info: bool = True,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search results formatted for AI assistant consumption.
         Returns list of dicts with mod_name, score, snippet, mod_info (requirements, etc.).
@@ -416,7 +418,7 @@ class ModSearchEngine:
 # -------------------------------------------------------------------
 # Global engine instance (lazy-built from parser)
 # -------------------------------------------------------------------
-_engines: Dict[str, ModSearchEngine] = {}
+_engines: dict[str, ModSearchEngine] = {}
 
 
 def get_search_engine(parser) -> ModSearchEngine:

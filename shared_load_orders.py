@@ -3,11 +3,13 @@ Shared Load Orders functionality for SkyModderAI.
 Allows users to create and share links to their mod lists and analysis results.
 """
 
+from __future__ import annotations
+
 import json
 import secrets
 import string
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from flask import current_app as app
 
@@ -22,8 +24,8 @@ def generate_share_id() -> str:
 
 def create_shared_load_order(
     game: str,
-    mod_list: List[Dict[str, Any]],
-    analysis_results: Dict[str, Any],
+    mod_list: list[dict[str, Any]],
+    analysis_results: dict[str, Any],
     user_email: Optional[str] = None,
     title: Optional[str] = None,
     notes: Optional[str] = None,
@@ -77,7 +79,7 @@ def create_shared_load_order(
         return None
 
 
-def get_shared_load_order(share_id: str, increment_view: bool = True) -> Optional[Dict[str, Any]]:
+def get_shared_load_order(share_id: str, increment_view: bool = True) -> Optional[dict[str, Any]]:
     """
     Retrieve a shared load order by its ID.
 
@@ -127,7 +129,7 @@ def get_shared_load_order(share_id: str, increment_view: bool = True) -> Optiona
         return None
 
 
-def get_user_shared_load_orders(user_email: str) -> List[Dict[str, Any]]:
+def get_user_shared_load_orders(user_email: str) -> list[dict[str, Any]]:
     """
     Get all shared load orders for a specific user.
 

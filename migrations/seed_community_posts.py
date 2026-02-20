@@ -12,21 +12,22 @@ from datetime import datetime, timezone
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from db import get_db
 from flask import Flask
+
+from db import get_db
 
 # Create minimal Flask app for db context
 app = Flask(__name__)
-app.config.from_object('config.Config')
+app.config.from_object("config.Config")
 
 
 def seed_community_posts():
     """Seed sample community posts."""
     print("Starting community posts seeding...")
-    
+
     with app.app_context():
         db = get_db()
-        
+
         # Sample posts - mix of questions, tips, and showcases
         sample_posts = [
             {
@@ -61,12 +62,12 @@ def seed_community_posts():
             },
             {
                 "email": "builder.bob@example.com",
-                "content": "Released my first mod! 🎊\n\n\"Immersive Campfires Enhanced\" adds 50+ new campfire locations with unique setups across Skyrim. Each location has:\n- Custom placed logs and stones\n- Cooking pot variants\n- Optional lanterns\n- No navmesh edits\n\nLink in my profile. Let me know what you think! Special thanks to SkyModderAI for the conflict checking tools.",
+                "content": 'Released my first mod! 🎊\n\n"Immersive Campfires Enhanced" adds 50+ new campfire locations with unique setups across Skyrim. Each location has:\n- Custom placed logs and stones\n- Cooking pot variants\n- Optional lanterns\n- No navmesh edits\n\nLink in my profile. Let me know what you think! Special thanks to SkyModderAI for the conflict checking tools.',
                 "tag": "showcase",
             },
             {
                 "email": "help.helen@example.com",
-                "content": "Getting a weird error with Nemesis Unlimited Behavior Engine. Keep getting \"Error: File not found - animations\\0behavior.hkx\"\n\nTried:\n✓ Running as admin\n✓ Verifying game files\n✓ Reinstalling Nemesis\n\nUsing MO2 if that matters. Any ideas? This is driving me crazy! 😫",
+                "content": 'Getting a weird error with Nemesis Unlimited Behavior Engine. Keep getting "Error: File not found - animations\\0behavior.hkx"\n\nTried:\n✓ Running as admin\n✓ Verifying game files\n✓ Reinstalling Nemesis\n\nUsing MO2 if that matters. Any ideas? This is driving me crazy! 😫',
                 "tag": "help",
             },
             {
@@ -80,10 +81,10 @@ def seed_community_posts():
                 "tag": "showcase",
             },
         ]
-        
+
         # Check if we have users
         test_users = db.execute("SELECT email FROM users LIMIT 5").fetchall()
-        
+
         if not test_users:
             print("⚠️  No users found. Creating test user accounts first...")
             # Create test users
@@ -99,7 +100,7 @@ def seed_community_posts():
                 "deals.dave@example.com",
                 "artist.anna@example.com",
             ]
-            
+
             for email in test_emails:
                 try:
                     db.execute(
@@ -111,10 +112,10 @@ def seed_community_posts():
                     )
                 except Exception as e:
                     print(f"⚠️  Error creating user {email}: {e}")
-            
+
             db.commit()
             print(f"✅ Created {len(test_emails)} test users")
-        
+
         # Insert posts
         inserted = 0
         for post in sample_posts:
@@ -134,15 +135,15 @@ def seed_community_posts():
                 inserted += 1
             except Exception as e:
                 print(f"⚠️  Error inserting post: {e}")
-        
+
         db.commit()
-        
+
         print(f"\n✅ Seeded {inserted} community posts successfully!")
         print("\nPosts added:")
         for i, p in enumerate(sample_posts[:inserted], 1):
             preview = p["content"][:60].replace("\n", " ")
             print(f"  {i}. [{p['tag']}] {preview}...")
-        
+
         print("\n💡 Tip: Posts are unmoderated. Review in admin panel before publishing.")
 
 

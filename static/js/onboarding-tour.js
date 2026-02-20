@@ -3,7 +3,7 @@
  * Interactive guide for first-time users
  */
 
-(function() {
+(function () {
     'use strict';
 
     // Tour steps configuration
@@ -59,6 +59,7 @@
         {
             id: 'samson',
             target: '#samson-chat-toggle',
+            target: '#agent-toggle',
             title: 'Meet Samson AI 🤖',
             content: 'Your AI assistant is always here to help! Click to ask questions about modding, compatibility, or anything else.',
             position: 'right',
@@ -153,7 +154,7 @@
         document.getElementById('tour-close').addEventListener('click', endTour);
         document.getElementById('tour-skip').addEventListener('click', endTour);
         document.getElementById('tour-next').addEventListener('click', nextStep);
-        
+
         const prevBtn = document.getElementById('tour-prev');
         if (prevBtn) {
             prevBtn.addEventListener('click', prevStep);
@@ -163,7 +164,7 @@
     // Position tour box
     function positionTourBox() {
         const step = tourSteps[currentStep];
-        
+
         if (step.position === 'center') {
             tourBox.style.top = '50%';
             tourBox.style.left = '50%';
@@ -235,7 +236,7 @@
         completeTour();
         if (tourOverlay) tourOverlay.remove();
         if (tourBox) tourBox.remove();
-        
+
         // Show thank you message
         showThankYou();
     }
@@ -265,7 +266,7 @@
             </div>
         `;
         document.body.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.style.opacity = '0';
             toast.style.transition = 'opacity 0.3s ease';
@@ -319,7 +320,7 @@
     function init() {
         // Always show tour trigger for easy access
         showTourTrigger();
-        
+
         // Auto-start for first-time users after a short delay
         if (!hasCompletedTour()) {
             setTimeout(() => {

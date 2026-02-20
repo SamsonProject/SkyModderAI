@@ -24,7 +24,7 @@
     // -----------------------------------------------------------------------
     // Link Preview Popover
     // -----------------------------------------------------------------------
-    
+
     function initLinkPreviews() {
         // Create preview popover element
         const popover = document.createElement('div');
@@ -116,12 +116,12 @@
 
             // Render preview
             renderPreview(popover, previewData, link);
-            
+
             // Position and show
             positionPopover(popover, link);
             popover.classList.remove('hidden');
             popover.setAttribute('aria-hidden', 'false');
-            
+
             currentPreview = popover;
         } catch (error) {
             console.warn('Link preview failed:', error);
@@ -215,7 +215,7 @@
         };
 
         const section = sectionMap[page.toLowerCase()] || { title: page, description: '' };
-        
+
         return {
             type: 'internal',
             page: page,
@@ -333,8 +333,8 @@
             const videoId = link.dataset.videoId;
             embedHtml = `
                 <div class="embedded-content embedded-youtube">
-                    <iframe src="https://www.youtube.com/embed/${videoId}" 
-                            frameborder="0" 
+                    <iframe src="https://www.youtube.com/embed/${videoId}"
+                            frameborder="0"
                             allowfullscreen
                             loading="lazy">
                     </iframe>
@@ -368,10 +368,10 @@
             const section = document.getElementById(sectionId);
             if (section) {
                 section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                
+
                 // Update URL without page jump
                 history.pushState(null, '', url);
-                
+
                 // Trigger tab switch if needed
                 const tabPanel = url.replace('/#panel-', '');
                 const tab = document.querySelector(`.main-tab[data-tab="${tabPanel}"]`);
@@ -479,7 +479,7 @@
         }
 
         initLinkPreviews();
-        
+
         // Process existing content
         document.querySelectorAll('.chat-messages, .community-content, .fix-guide-content').forEach(container => {
             processTextWithLinks(container);

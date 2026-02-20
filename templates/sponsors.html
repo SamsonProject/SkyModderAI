@@ -424,7 +424,7 @@
                 <h3>💰 Simple Pricing</h3>
                 <ul>
                     <li><strong>$5 per 1,000 clicks</strong> (CPM)</li>
-                    <li><strong>$50 = 10,000 clicks</strong> prepaid</li>
+                    <li>Simple meter charge (no packages)</li>
                     <li>No monthly caps, no hidden fees</li>
                     <li>Server-side fraud protection</li>
                 </ul>
@@ -617,7 +617,7 @@
     <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:2rem;max-width:400px;width:90%;">
         <h3 style="margin-bottom:1rem;">Rate This Sponsor</h3>
         <p style="color:#94a3b8;margin-bottom:1.5rem;">How much do you trust this sponsor? (1-5 stars)</p>
-        
+
         <div class="vote-stars" id="voteStars" style="font-size:2rem;margin-bottom:1.5rem;">
             <span class="vote-star empty" data-value="1">☆</span>
             <span class="vote-star empty" data-value="2">☆</span>
@@ -625,7 +625,7 @@
             <span class="vote-star empty" data-value="4">☆</span>
             <span class="vote-star empty" data-value="5">☆</span>
         </div>
-        
+
         <div style="display:flex;gap:1rem;">
             <button class="btn btn-primary" onclick="submitVote()">Submit Vote</button>
             <button class="btn btn-secondary" onclick="closeVoteModal()">Cancel</button>
@@ -640,7 +640,7 @@ let selectedVote = 0;
 function openVoteModal(sponsorId) {
     currentSponsorId = sponsorId;
     document.getElementById('voteModal').style.display = 'flex';
-    
+
     // Setup star hover effects
     const stars = document.querySelectorAll('#voteStars .vote-star');
     stars.forEach(star => {
@@ -681,16 +681,16 @@ async function submitVote() {
         alert('Please select a rating');
         return;
     }
-    
+
     try {
         const response = await fetch(`/sponsors/${currentSponsorId}/vote`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ score: selectedVote })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             alert(`Thanks for voting! New score: ${result.score}/5 (${result.votes} votes)`);
             closeVoteModal();

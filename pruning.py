@@ -1,29 +1,33 @@
 """
 Pruning — Neurological-style context reduction for AI agents.
 
-Philosophy:
+# CONTEXT: Philosophy
   Pruning is the deliberate removal of non-essential information to strengthen
   the signal. Like synaptic pruning in the brain, we remove redundancy and
   noise so what remains is more actionable. We prune context, not truth:
   user-specific conflicts, mod names, and actionable fixes are never cut.
 
-  Input pruning: Before sending context to an AI agent, we reduce volume while
+# CONTEXT: Input pruning
+  Before sending context to an AI agent, we reduce volume while
   preserving signal. Errors > warnings > info. User-relevant content wins.
 
-  Output pruning: Optional distillation of AI responses into key points.
+# CONTEXT: Output pruning
+  Optional distillation of AI responses into key points.
   Used for Fix Guide steps, not for chat replies (user sees full reply).
 
-  Context Threading: Integrated with context_threading.py for intentional
-  compression. When AI explores tangents, it leaves bookmarks that track:
+# CONTEXT: Context Threading
+  Integrated with context_threading.py for intentional compression.
+  When AI explores tangents, it leaves bookmarks that track:
   - WHY we diverged (intention)
   - WHAT we're exploring (branch)
   - WHEN to return (return condition)
 
-  Message Pruning: When maintaining conversation history, NEVER prune system
+# CONTEXT: Message Pruning
+  When maintaining conversation history, NEVER prune system
   messages or the first message. Only remove middle-of-conversation user/
   assistant turns to stay within token limits.
 
-Invariants (we never cut):
+# INVARIANT: We never cut:
   - Error-level conflicts and their suggested actions
   - Warning-level conflicts and their suggested actions
   - Mod names that appear in conflicts
@@ -32,16 +36,18 @@ Invariants (we never cut):
   - System messages (role="system") - defines AI identity
   - The first message in any conversation
 
-Config:
+# CONFIG:
   PRUNING_ENABLED=1 (default) — set 0 to bypass
   PRUNING_MAX_CONTEXT_CHARS=12000 — soft cap; we prefer smart pruning over hard truncation
   CONTEXT_THREADING_ENABLED=1 (default) — enable context threading with bookmarks
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -53,17 +59,17 @@ def _estimate_tokens(text: str) -> int:
     return len(text) // 4 if text else 0
 
 
-def _message_tokens(message: Dict[str, str]) -> int:
+def _message_tokens(message: dict[str, str]) -> int:
     """Estimate tokens in a single message."""
     content = message.get("content", "")
     return _estimate_tokens(content)
 
 
 def prune_context(
-    messages: List[Dict[str, str]],
+    messages: list[dict[str, str]],
     max_tokens: int = 4000,
     min_exchanges: int = 2,
-) -> List[Dict[str, str]]:
+) -> list[dict[str, str]]:
     """
     Prune AI conversation messages while protecting system prompt and first message.
 
@@ -139,7 +145,7 @@ def prune_with_intention(
     context: str,
     intention: str,
     max_chars: Optional[int] = None,
-) -> Tuple[str, Dict]:
+) -> tuple[str, dict]:
     """
     Prune context with intention tracking using context threading.
 
@@ -199,7 +205,7 @@ def prune_input_context(
     context: str,
     user_message: Optional[str] = None,
     max_chars: Optional[int] = None,
-) -> Tuple[str, dict]:
+) -> tuple[str, dict]:
     """
     Prune AI input context. Preserves errors, warnings, and user-relevant content.
 
@@ -300,7 +306,7 @@ def prune_game_folder_context(
     plugins: list,
     max_tree_chars: int = 4000,
     max_file_chars: int = 3000,
-) -> Tuple[str, dict, dict]:
+) -> tuple[str, dict, dict]:
     """
     Prune game folder scan context. Keep: plugin list, folder structure (truncate depth),
     key file contents (truncate per file).

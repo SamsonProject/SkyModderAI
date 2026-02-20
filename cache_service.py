@@ -24,12 +24,14 @@ Usage:
         return expensive_search(query, game)
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import logging
 import os
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +49,8 @@ class MemoryCache:
     """In-memory cache fallback when Redis is unavailable."""
 
     def __init__(self):
-        self._cache: Dict[str, Any] = {}
-        self._expiry: Dict[str, float] = {}
+        self._cache: dict[str, Any] = {}
+        self._expiry: dict[str, float] = {}
         self._stats = {"hits": 0, "misses": 0}
 
     def get(self, key: str) -> Optional[Any]:
@@ -211,7 +213,8 @@ class CacheService:
                 self._cache = RedisCache(host=redis_host, port=redis_port, password=redis_password)
                 logger.info("Using Redis cache backend")
                 return
-            except Exception:
+            except Exception as e:
+                logger.debug(f"Redis connection failed, falling back to memory cache: {e}")
                 pass
 
         # Fallback to memory cache
@@ -240,13 +243,13 @@ class CacheService:
 
     # Convenience methods for common cache operations
 
-    def cache_search(self, game: str, query: str) -> Optional[Dict[str, Any]]:
+    def cache_search(self, game: str, query: str) -> Optional[dict[str, Any]]:
         """Get cached search result."""
         key = f"search:{game}:{self._hash_query(query)}"
         return self.get(key)
 
     def set_search(
-        self, game: str, query: str, results: List[Dict[str, Any]], ttl: int = 3600
+        self, game: str, query: str, results: list[dict[str, Any]], ttl: int = 3600
     ) -> bool:
         """Cache search result."""
         key = f"search:{game}:{self._hash_query(query)}"
@@ -288,7 +291,7 @@ class CacheService:
         if current == 1:
             self._cache.expire(window_key, window)
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> dict[str, int]:
         """Get cache hit/miss statistics."""
         return self._cache._stats.copy()
 
@@ -376,13 +379,13 @@ def cached(key_pattern: str, ttl: int = 3600):
 
 # Convenience functions for direct import
 def cache_search_results(
-    game: str, query: str, results: List[Dict[str, Any]], ttl: int = 3600
+    game: str, query: str, results: list[dict[str, Any]], ttl: int = 3600
 ) -> bool:
     """Cache search results."""
     return get_cache().set_search(game, query, results, ttl)
 
 
-def get_cached_search_results(game: str, query: str) -> Optional[List[Dict[str, Any]]]:
+def get_cached_search_results(game: str, query: str) -> Optional[list[dict[str, Any]]]:
     """Get cached search results."""
     return get_cache().cache_search(game, query)
 

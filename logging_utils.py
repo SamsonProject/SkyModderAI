@@ -210,7 +210,7 @@ def get_request_context() -> dict[str, Any]:
 class RequestLoggingMiddleware:
     """
     Middleware to log all requests with structured context.
-    
+
     This middleware wraps a WSGI app and registers Flask hooks for request logging.
     """
 

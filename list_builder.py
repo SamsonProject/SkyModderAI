@@ -10,8 +10,10 @@ All mod suggestions come from:
 No hardcoded mod recommendations.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from search_engine import get_search_engine
 
@@ -98,7 +100,7 @@ LIST_PREFERENCE_OPTIONS = [
 ]
 
 # Game-specific preference keys (UI relevance by game)
-_GAME_PREFERENCE_KEYS: Dict[str, List[str]] = {
+_GAME_PREFERENCE_KEYS: dict[str, list[str]] = {
     "skyrimse": ["environment", "hair", "body", "combat", "graphics", "content", "stability"],
     "skyrim": ["environment", "hair", "body", "combat", "graphics", "content", "stability"],
     "skyrimvr": ["environment", "hair", "body", "combat", "graphics", "content", "stability"],
@@ -110,7 +112,7 @@ _GAME_PREFERENCE_KEYS: Dict[str, List[str]] = {
 }
 
 # Per-game choice relevance overrides (keeps UI from showing nonsense values)
-_GAME_PREFERENCE_CHOICE_ALLOWLIST: Dict[str, Dict[str, List[str]]] = {
+_GAME_PREFERENCE_CHOICE_ALLOWLIST: dict[str, dict[str, list[str]]] = {
     "fallout3": {
         "environment": ["sci_fi", "survival", "horror", "any"],
         "content": ["quest_heavy", "vanilla_plus", "minimal", "any"],
@@ -134,7 +136,7 @@ _GAME_PREFERENCE_CHOICE_ALLOWLIST: Dict[str, Dict[str, List[str]]] = {
 }
 
 # Essential/base search terms by game (avoid cross-game leakage in generated lists)
-_GAME_BASE_TERMS: Dict[str, List[str]] = {
+_GAME_BASE_TERMS: dict[str, list[str]] = {
     "skyrimse": ["unofficial patch", "skyui", "engine fixes", "skse", "address library"],
     "skyrim": ["unofficial patch", "skyui", "skse"],
     "skyrimvr": ["unofficial patch", "vrik", "skse vr"],
@@ -146,7 +148,7 @@ _GAME_BASE_TERMS: Dict[str, List[str]] = {
 }
 
 # Search terms per preference value (game_id -> pref_key -> pref_value -> [terms])
-_PREFERENCE_SEARCH_TERMS: Dict[str, Dict[str, Dict[str, List[str]]]] = {
+_PREFERENCE_SEARCH_TERMS: dict[str, dict[str, dict[str, list[str]]]] = {
     "skyrimse": {
         "environment": {
             "dark_fantasy": ["dark fantasy", "gothic", "gloomy", "obsidian weathers", "rustic"],
@@ -365,7 +367,7 @@ _PREFERENCE_SEARCH_TERMS: Dict[str, Dict[str, Dict[str, List[str]]]] = {
 }
 
 
-def _get_terms_for_pref(game: str, pref_key: str, pref_value: str) -> List[str]:
+def _get_terms_for_pref(game: str, pref_key: str, pref_value: str) -> list[str]:
     """Get search terms for a preference value."""
     game_prefs = _PREFERENCE_SEARCH_TERMS.get(game, {})
     key_prefs = game_prefs.get(pref_key, {})
@@ -377,10 +379,10 @@ def build_list_from_preferences(
     parser,
     game: str,
     nexus_slug: str,
-    preferences: Dict[str, str],
+    preferences: dict[str, str],
     limit: int = 60,
-    specs: Optional[Dict[str, Any]] = None,
-) -> List[Dict[str, Any]]:
+    specs: Optional[dict[str, Any]] = None,
+) -> list[dict[str, Any]]:
     """
     Build a mod list from user preferences.
     Uses LOOT search + preference-specific terms.
@@ -403,7 +405,7 @@ def build_list_from_preferences(
     engine = get_search_engine(parser)
     nexus_base = f"https://www.nexusmods.com/games/{nexus_slug}/mods?keyword="
     seen = set()
-    out: List[Dict[str, Any]] = []
+    out: list[dict[str, Any]] = []
 
     # 1) Always include game-specific base essentials
     base_terms = _GAME_BASE_TERMS.get(game, _GAME_BASE_TERMS.get("skyrimse", []))
@@ -489,13 +491,13 @@ def build_list_from_preferences(
     return out[:limit]
 
 
-def get_preference_options(game: Optional[str] = None) -> List[Dict[str, Any]]:
+def get_preference_options(game: Optional[str] = None) -> list[dict[str, Any]]:
     """Return preference options for UI, filtered for game relevance."""
     game_id = (game or "").lower()
     allowed_keys = _GAME_PREFERENCE_KEYS.get(game_id) or _GAME_PREFERENCE_KEYS.get("skyrimse", [])
     choice_overrides = _GAME_PREFERENCE_CHOICE_ALLOWLIST.get(game_id, {})
 
-    out: List[Dict[str, Any]] = []
+    out: list[dict[str, Any]] = []
     for key, label, choices in LIST_PREFERENCE_OPTIONS:
         if key not in allowed_keys:
             continue

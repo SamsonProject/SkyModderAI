@@ -1,6 +1,6 @@
 # SkyModderAI - Bespoke & Dynamic Architecture Audit
 
-**Date:** February 18, 2026  
+**Date:** February 18, 2026
 **Goal:** Hardcode less, configure more. Simple like iPhone, transparent like a watch.
 
 ---
@@ -46,12 +46,12 @@ tools:
     alternatives:
       - url: https://bethesda.net/
         label: "Bethesda.net"
-        
+
 loot:
   url: https://loot.github.io/
   label: "LOOT"
   description: "Load order optimization tool"
-  
+
 skse:
   url: https://skse.silverlock.org/
   label: "SKSE"
@@ -64,11 +64,11 @@ skse:
 class ExternalLinks:
     def __init__(self, config_path: str = "config/external_links.yaml"):
         self.links = self._load_config(config_path)
-    
+
     def get_link(self, key: str, fallback: str = None) -> dict:
         """Get link by key, with fallback"""
         return self.links.get(key, {"url": fallback, "label": key})
-    
+
     def get_all_links(self, category: str = None) -> list:
         """Get all links, optionally filtered by category"""
         if category:
@@ -76,8 +76,8 @@ class ExternalLinks:
         return self.links
 ```
 
-**Priority:** 🔴 High  
-**Effort:** 2 hours  
+**Priority:** 🔴 High
+**Effort:** 2 hours
 **Impact:** Links can be updated without code changes
 
 ---
@@ -108,7 +108,7 @@ game:
     - "1.6.640"
     - "1.5.97"
   default_version: "1.6.1170"
-  
+
 tools:
   mod_manager:
     - name: "Mod Organizer 2"
@@ -117,7 +117,7 @@ tools:
     - name: "Vortex"
       url: "https://nexusmods.com/site/mods/1"
       recommended: false
-      
+
 essentials:
   - name: "SKSE64"
     url: "https://skse.silverlock.org/"
@@ -125,7 +125,7 @@ essentials:
   - name: "USSEP"
     url: "https://nexusmods.com/skyrimspecialedition/mods/266"
     required: true
-    
+
 paths:
   appdata: "%LOCALAPPDATA%/Skyrim Special Edition"
   ini: "SkyrimPrefs.ini"
@@ -138,22 +138,22 @@ class GameConfig:
     def __init__(self, config_dir: str = "config/games"):
         self.config_dir = Path(config_dir)
         self._cache = {}
-    
+
     def get_game(self, game_id: str) -> dict:
         """Load game configuration"""
         if game_id not in self._cache:
             config_path = self.config_dir / f"{game_id}.yaml"
             self._cache[game_id] = self._load_yaml(config_path)
         return self._cache[game_id]
-    
+
     def get_essential_mods(self, game_id: str) -> list:
         """Get essential mods for game"""
         config = self.get_game(game_id)
         return config.get("essentials", [])
 ```
 
-**Priority:** 🔴 High  
-**Effort:** 4 hours  
+**Priority:** 🔴 High
+**Effort:** 4 hours
 **Impact:** Add new games without code changes
 
 ---
@@ -198,13 +198,13 @@ class ConfigService:
     def __init__(self):
         self._cache = {}
         self._load_config()
-    
+
     def get(self, key: str, default: any = None) -> any:
         """Get config value with type conversion"""
         value = self._cache.get(key, {}).get("value", default)
         type_ = self._cache.get(key, {}).get("type", "string")
         return self._convert(value, type_)
-    
+
     def set(self, key: str, value: any, updated_by: str = "system"):
         """Update config value"""
         # Validate, save to DB, update cache, log change
@@ -226,8 +226,8 @@ class ConfigService:
    └─ Sponsors: [x] Enabled [Save]
 ```
 
-**Priority:** 🟡 Medium  
-**Effort:** 1 day  
+**Priority:** 🟡 Medium
+**Effort:** 1 day
 **Impact:** Adjust limits without redeploying
 
 ---
@@ -270,15 +270,15 @@ class PromptService:
         """Get active template, render with context"""
         template = self._db.get_active_template(name)
         return self._render(template, context)
-    
+
     def ab_test(self, template_name: str, user_id: str) -> str:
         """Return template variant based on A/B test"""
         variant = self._get_user_variant(user_id)
         return self._db.get_template(template_name, variant)
 ```
 
-**Priority:** 🟡 Medium  
-**Effort:** 4 hours  
+**Priority:** 🟡 Medium
+**Effort:** 4 hours
 **Impact:** Improve AI responses without redeploying
 
 ---
@@ -313,9 +313,9 @@ html = f"""
     <header>
         <img src="{{ logo_url }}" alt="SkyModderAI">
     </header>
-    
+
     <h1>Weekly Report - {{ period }}</h1>
-    
+
     <section class="metrics">
         <h2>What Worked Well</h2>
         <ul>
@@ -324,7 +324,7 @@ html = f"""
             {% endfor %}
         </ul>
     </section>
-    
+
     <footer>
         <p>{{ footer_text }}</p>
         <a href="{{ unsubscribe_url }}">Unsubscribe</a>
@@ -343,8 +343,8 @@ class EmailService:
         self._send(recipient, "Weekly Report", html)
 ```
 
-**Priority:** 🟢 Low  
-**Effort:** 2 hours  
+**Priority:** 🟢 Low
+**Effort:** 2 hours
 **Impact:** Better branding, easier translations
 
 ---
@@ -385,11 +385,11 @@ class ResultConsolidator:
     def consolidate_conflicts(self, conflicts: list) -> dict:
         """Group conflicts by affected mod and severity"""
         grouped = defaultdict(list)
-        
+
         for conflict in conflicts:
             key = self._get_group_key(conflict)
             grouped[key].append(conflict)
-        
+
         return {
             "critical": [g for g in grouped if g.severity == "critical"],
             "warnings": [g for g in grouped if g.severity == "warning"],
@@ -397,14 +397,14 @@ class ResultConsolidator:
             "total_groups": len(grouped),
             "total_conflicts": sum(len(g) for g in grouped.values())
         }
-    
+
     def _get_group_key(self, conflict: dict) -> str:
         """Group by primary affected mod"""
         return conflict["affected_mod"]
 ```
 
-**Priority:** 🟡 High  
-**Effort:** 4 hours  
+**Priority:** 🟡 High
+**Effort:** 4 hours
 **Impact:** Much more readable results
 
 ---
@@ -469,8 +469,8 @@ class TransparencyService:
         }
 ```
 
-**Priority:** 🟡 High  
-**Effort:** 1 day  
+**Priority:** 🟡 High
+**Effort:** 1 day
 **Impact:** Builds trust, educates users
 
 ---
@@ -488,27 +488,27 @@ class TransparencyService:
 @dataclass
 class AnalysisResult:
     """Standard result envelope for all analyses"""
-    
+
     # Metadata
     id: str
     type: str  # "conflict_analysis", "load_order", "recommendations"
     game: str
     version: str
     created_at: datetime
-    
+
     # Results
     summary: dict  # High-level counts
     details: list  # Detailed findings
     consolidated: dict  # Grouped for readability
-    
+
     # Transparency
     metadata: dict  # How it was analyzed
     confidence: float  # 0.0-1.0
-    
+
     # Actions
     actions: list  # Suggested next steps
     export_formats: list  # Available export formats
-    
+
     def to_dict(self) -> dict:
         """Convert to API response"""
         return {
@@ -524,8 +524,8 @@ class AnalysisResult:
         }
 ```
 
-**Priority:** 🟡 Medium  
-**Effort:** 1 day  
+**Priority:** 🟡 Medium
+**Effort:** 1 day
 **Impact:** Consistent UX, easier to maintain
 
 ---
@@ -555,7 +555,7 @@ class UserPreferences:
     def get_analysis_detail_level(self, user_id: str) -> str:
         """Get user's preferred detail level"""
         return self._db.get_preference(user_id, "detail_level", "standard")
-    
+
     def filter_results(self, results: list, level: str) -> list:
         """Filter results based on detail level"""
         if level == "simple":
@@ -565,8 +565,8 @@ class UserPreferences:
         return results  # advanced: show everything
 ```
 
-**Priority:** 🟢 Low  
-**Effort:** 4 hours  
+**Priority:** 🟢 Low
+**Effort:** 4 hours
 **Impact:** Better UX for different user types
 
 ---
@@ -593,8 +593,8 @@ class UserPreferences:
 [Save Layout] [Reset to Default]
 ```
 
-**Priority:** 🟢 Low  
-**Effort:** 2 days  
+**Priority:** 🟢 Low
+**Effort:** 2 days
 **Impact:** Power users love customization
 
 ---
@@ -674,7 +674,7 @@ config/
 5. **Build transparency panel UI**
 6. **Add database config table + admin UI**
 
-**Total Effort:** ~1 week for Phase 1  
+**Total Effort:** ~1 week for Phase 1
 **Impact:** Massive improvement in flexibility and UX
 
 ---

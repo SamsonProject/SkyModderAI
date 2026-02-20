@@ -3,10 +3,12 @@ Mod Conflict Detection Engine
 Analyzes user's mod list and detects conflicts, missing requirements, load order issues
 """
 
+from __future__ import annotations
+
 import re
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set
+from typing import Optional
 
 from loot_parser import LOOTParser, ModConflict, ModInfo
 
@@ -177,8 +179,8 @@ class ConflictDetector:
     def __init__(self, parser: LOOTParser, nexus_slug: Optional[str] = None):
         self.parser = parser
         self.nexus_slug = nexus_slug or "skyrimspecialedition"
-        self.conflicts: List[ModConflict] = []
-        self.mod_info_cache: Dict[str, Optional[ModInfo]] = {}
+        self.conflicts: list[ModConflict] = []
+        self.mod_info_cache: dict[str, Optional[ModInfo]] = {}
 
     def _get_mod_info_cached(self, mod_name: str) -> Optional[ModInfo]:
         """Get mod info with caching to avoid repeated lookups."""
@@ -187,7 +189,7 @@ class ConflictDetector:
             self.mod_info_cache[key] = self.parser.get_mod_info(mod_name)
         return self.mod_info_cache[key]
 
-    def analyze_load_order(self, mod_list: List[ModListEntry]) -> List[ModConflict]:
+    def analyze_load_order(self, mod_list: list[ModListEntry]) -> list[ModConflict]:
         """
         Analyze a mod list and return all detected conflicts
 
@@ -310,8 +312,8 @@ class ConflictDetector:
         self,
         mod_name: str,
         mod_info: ModInfo,
-        enabled_mods: Set[str],
-        mod_names_lower_to_original: Dict[str, str],
+        enabled_mods: set[str],
+        mod_names_lower_to_original: dict[str, str],
     ) -> None:
         """Check if all required mods are present."""
         for req in mod_info.requirements:
@@ -333,8 +335,8 @@ class ConflictDetector:
         self,
         mod_name: str,
         mod_info: ModInfo,
-        enabled_mods: Set[str],
-        mod_names_lower_to_original: Dict[str, str],
+        enabled_mods: set[str],
+        mod_names_lower_to_original: dict[str, str],
     ) -> None:
         """Check for incompatible mods."""
         for inc in mod_info.incompatibilities:
@@ -356,8 +358,8 @@ class ConflictDetector:
         self,
         mod_name: str,
         mod_info: ModInfo,
-        mod_positions: Dict[str, int],
-        mod_names_lower_to_original: Dict[str, str],
+        mod_positions: dict[str, int],
+        mod_names_lower_to_original: dict[str, str],
     ) -> None:
         """Check if load order follows LOOT rules."""
         current_pos = mod_positions.get(mod_name.lower())
@@ -400,7 +402,7 @@ class ConflictDetector:
                         )
                     )
 
-    def get_conflicts_by_severity(self) -> Dict[str, List[ModConflict]]:
+    def get_conflicts_by_severity(self) -> dict[str, list[ModConflict]]:
         """Group conflicts by severity. Always returns all three keys for consistent API response."""
         grouped = defaultdict(list)
         for conflict in self.conflicts:
@@ -411,7 +413,7 @@ class ConflictDetector:
             result.setdefault(key, [])
         return result
 
-    def get_suggested_load_order(self, mod_list: List[ModListEntry]) -> List[str]:
+    def get_suggested_load_order(self, mod_list: list[ModListEntry]) -> list[str]:
         """
         Generate suggested load order using LOOT load_after/load_before rules.
         Uses topological sort; mods with no rules keep relative order.
@@ -422,12 +424,12 @@ class ConflictDetector:
         name_to_mod = {m.name.lower(): m for m in mod_list}
         # Build edges: (a, b) means a must load before b  =>  b loads after a
         # So for "X load after Y" we have edge (Y, X): Y before X.
-        in_degree: Dict[str, int] = {}
+        in_degree: dict[str, int] = {}
         for m in mod_list:
             key = m.name.lower()
             in_degree[key] = in_degree.get(key, 0)
 
-        edges: Dict[str, List[str]] = defaultdict(list)  # from -> [tos]
+        edges: dict[str, list[str]] = defaultdict(list)  # from -> [tos]
 
         for mod in mod_list:
             if not mod.enabled:
@@ -450,7 +452,7 @@ class ConflictDetector:
                     in_degree[before_clean] = in_degree.get(before_clean, 0) + 1
 
         # Topological sort (Kahn)
-        order: List[str] = []
+        order: list[str] = []
         q = deque(k for k, d in in_degree.items() if d == 0)
         while q:
             # Keep stable order by processing in original position order when degree is 0
@@ -552,7 +554,7 @@ class ConflictDetector:
         return "\n".join(lines)
 
 
-def parse_mod_list_text(text: str) -> List[ModListEntry]:
+def parse_mod_list_text(text: str) -> list[ModListEntry]:
     """
     Parse various mod list formats into ModListEntry objects. Intentionally forgiving.
 

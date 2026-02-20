@@ -3,7 +3,7 @@ SkyModderAI - Business Community Blueprint
 
 Free directory + Paid advertising:
 - Free: Business directory listing
-- Paid: Advertising ($5/1000 clicks, $50/10000 clicks)
+- Paid: Advertising ($5/1,000 clicks, simple meter charge)
 
 Free to join, always.
 Trust is behavioral (from verified platform activity).
@@ -12,16 +12,19 @@ Contact is gated by mutual consent.
 Manual approval only.
 """
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
+from __future__ import annotations
+
+from flask import Blueprint, flash, jsonify, render_template, request, session, url_for
 
 from business_service import get_business_service
+from db import get_db
 
 business_bp = Blueprint("business", __name__, url_prefix="/business")
 
 
 @business_bp.route("/")
 def hub_landing():
-    """Business community landing page - Education Hub with directory preview."""
+    """Business community landing page - Overhauled ecosystem."""
     business_service = get_business_service()
 
     # Get featured businesses (top trust scores)
@@ -34,12 +37,13 @@ def hub_landing():
     hub_config = config._load_yaml(config.config_dir / "hub_content.yaml")
     categories = hub_config.get("categories", [])
 
-    return render_template("business/hub.html", categories=categories, featured=featured)
+    # Use overhauled template
+    return render_template("business/hub_overhaul.html", categories=categories, featured=featured)
 
 
 @business_bp.route("/directory")
 def directory():
-    """Searchable business directory."""
+    """Searchable business directory - NO ADS (pure networking)."""
     business_service = get_business_service()
 
     # Get filters from query params
@@ -64,17 +68,14 @@ def directory():
         "approved", []
     )
 
-    # Get featured shopping ads
-    from shopping_service import get_shopping_service
-    shopping_service = get_shopping_service()
-    featured_ads = shopping_service.get_featured_ads(limit=3)
-
+    # NO ADS HERE - Ads are quarantined to /shopping only
+    # This keeps directory fast, clean, and focused on networking
     return render_template(
-        "business/directory.html", 
-        businesses=businesses, 
-        categories=categories, 
+        "business/directory.html",
+        businesses=businesses,
+        categories=categories,
         filters=filters,
-        featured_ads=featured_ads,
+        # No featured_ads - ads belong in Shopping section only
     )
 
 
@@ -200,14 +201,19 @@ def hub_category(category):
     )
 
 
+@business_bp.route("/partner")
+def partner():
+    """Verified Partner program - premium tier (coming soon)."""
+    return render_template("business/partner.html")
+
+
 @business_bp.route("/advertising")
 def advertising():
-    """Business advertising (paid sponsors) - $5/1000 clicks."""
+    """Business advertising (paid sponsors) - $5/1,000 clicks."""
     pricing = {
         "cpm": 5.00,  # $5 per 1,000 clicks
-        "bulk_clicks": 10000,
-        "bulk_price": 50.00,  # $50 for 10,000 clicks
         "cost_per_click": 0.005,  # $0.005 per click
+        "meter_model": True,  # Simple meter charge, no packages
     }
     return render_template("business/advertising.html", pricing=pricing)
 
@@ -337,10 +343,3 @@ def get_approved_categories():
     config = get_config_loader()
     categories_config = config._load_yaml(config.config_dir / "business_categories.yaml")
     return categories_config.get("approved", [])
-
-
-def get_db():
-    """Get database connection."""
-    from db import get_db as get_database
-
-    return get_database()

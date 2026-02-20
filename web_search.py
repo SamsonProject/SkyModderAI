@@ -1,12 +1,12 @@
+from __future__ import annotations
+
 # Web search fallback for mod discovery.
 # Uses DuckDuckGo via duckduckgo-search (no API key required).
 # Filters out sponsored/commercial results before AI sees them.
 # Graceful degradation: retries once on failure, returns partial results.
-
 import logging
 import re
 import time
-from typing import Dict, List
 from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
@@ -15,37 +15,37 @@ WEB_SEARCH_RETRY_DELAY = 1.5  # seconds between retries
 
 # Allowed domains for search results — only trusted modding sources
 ALLOWED_DOMAINS = [
-    'nexusmods.com',
-    'reddit.com',
-    'github.com',
-    'loot.github.io',
-    'skse.silverlock.org',
-    'f4se.silverlock.org',
-    'tes5edit.github.io',
-    'bethesda.net',
-    'creationkit.com',
-    'stepmodifications.org',
-    'wiki.nexusmods.com',
-    'afkmods.com',
-    'loverslab.com',
-    'moddb.com',
-    'tesseractmodding.wordpress.com',
+    "nexusmods.com",
+    "reddit.com",
+    "github.com",
+    "loot.github.io",
+    "skse.silverlock.org",
+    "f4se.silverlock.org",
+    "tes5edit.github.io",
+    "bethesda.net",
+    "creationkit.com",
+    "stepmodifications.org",
+    "wiki.nexusmods.com",
+    "afkmods.com",
+    "loverslab.com",
+    "moddb.com",
+    "tesseractmodding.wordpress.com",
 ]
 
 # Blocked phrases that indicate sponsored/commercial content
 BLOCKED_PHRASES = [
-    'buy now',
-    'on sale',
-    'discount',
-    'best price',
-    'deal',
-    'promo',
-    'coupon',
-    'sponsored',
-    'advertisement',
-    'shop now',
-    'limited time',
-    'special offer',
+    "buy now",
+    "on sale",
+    "discount",
+    "best price",
+    "deal",
+    "promo",
+    "coupon",
+    "sponsored",
+    "advertisement",
+    "shop now",
+    "limited time",
+    "special offer",
 ]
 
 
@@ -56,11 +56,12 @@ def extract_domain(url: str) -> str:
     try:
         parsed = urlparse(url)
         return parsed.netloc.lower()
-    except Exception:
+    except Exception as e:
+        logger.debug(f"Failed to parse URL domain: {e}")
         return ""
 
 
-def filter_search_results(results: List[Dict]) -> List[Dict]:
+def filter_search_results(results: list[dict]) -> list[dict]:
     """
     Filter search results to remove sponsored/commercial content.
     Only allows results from trusted modding domains.
@@ -68,17 +69,17 @@ def filter_search_results(results: List[Dict]) -> List[Dict]:
     """
     clean = []
     for r in results:
-        url = r.get('url', '') or r.get('href', '')
+        url = r.get("url", "") or r.get("href", "")
         domain = extract_domain(url)
-        snippet = (r.get('snippet', '') or r.get('body', '') or '').lower()
-        title = (r.get('title', '') or '').lower()
+        snippet = (r.get("snippet", "") or r.get("body", "") or "").lower()
+        title = (r.get("title", "") or "").lower()
 
         # Check if domain is allowed
         if not any(domain.endswith(d) for d in ALLOWED_DOMAINS):
             continue
 
         # Check for blocked phrases in snippet or title
-        combined_text = snippet + ' ' + title
+        combined_text = snippet + " " + title
         if any(phrase in combined_text for phrase in BLOCKED_PHRASES):
             continue
 
@@ -91,7 +92,7 @@ def filter_search_results(results: List[Dict]) -> List[Dict]:
 PLUGIN_EXT = re.compile(r"\.(esm|esp|esl)\b", re.I)
 
 
-def _extract_plugin_names_from_text(text: str) -> List[str]:
+def _extract_plugin_names_from_text(text: str) -> list[str]:
     """Extract plugin-like names (Something.esp) from text."""
     if not text:
         return []
@@ -109,7 +110,7 @@ def _extract_plugin_names_from_text(text: str) -> List[str]:
     return list(found)
 
 
-def _extract_from_result(result: dict) -> List[str]:
+def _extract_from_result(result: dict) -> list[str]:
     """Extract plugin names from a DDG result (title, href, body)."""
     names = []
     for key in ("title", "href", "body"):
@@ -123,7 +124,7 @@ def search_mods_web(
     game_display_name: str,
     nexus_slug: str,
     max_results: int = 15,
-) -> List[dict]:
+) -> list[dict]:
     """
     Search the web for mod/plugin names when DB has few matches.
     Returns list of {name, url, source} for display.
@@ -140,7 +141,7 @@ def search_mods_web(
         return []
 
     seen = set()
-    out: List[dict] = []
+    out: list[dict] = []
 
     # 1) Nexus-specific: site:nexusmods.com {game} {query}
     nexus_query = f"site:nexusmods.com {game_display_name} {query}"
@@ -201,7 +202,7 @@ def search_solutions_web(
     query: str,
     game_display_name: str,
     max_results: int = 10,
-) -> List[dict]:
+) -> list[dict]:
     """
     Search for scattered solutions (Reddit, forums, Nexus posts).
     Use for: "ctd skyrim", "infinite loading fix", "purple textures".
@@ -217,7 +218,7 @@ def search_solutions_web(
         logger.warning("duckduckgo-search not installed. Solution search disabled.")
         return []
 
-    out: List[dict] = []
+    out: list[dict] = []
     seen_urls = set()
 
     # 1) Reddit: r/skyrimmods, r/fo4, etc.

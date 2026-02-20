@@ -1,6 +1,6 @@
 # SkyModderAI Feature Map
 
-**Last Updated**: February 17, 2026  
+**Last Updated**: February 17, 2026
 **Model**: 100% Free + Donations (No Tiers, No Subscriptions, No Bullshit)
 
 ---

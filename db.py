@@ -13,9 +13,9 @@ import sqlite3
 import time
 from datetime import datetime, timezone
 from functools import wraps
-from typing import Any, Callable, Optional, Tuple, TypeVar, Union
+from typing import Any, Callable, Optional, TypeVar, Union
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 from werkzeug.security import generate_password_hash
 
@@ -34,9 +34,10 @@ def _get_db_type() -> str:
     global _db_type
     if _db_type is not None:
         return _db_type
-    
+
     try:
         from config import config
+
         uri = config.SQLALCHEMY_DATABASE_URI or ""
         if uri.startswith("postgresql://") or uri.startswith("postgres://"):
             _db_type = "postgresql"
@@ -44,26 +45,26 @@ def _get_db_type() -> str:
             _db_type = "sqlite"
     except Exception:
         _db_type = "sqlite"
-    
+
     return _db_type
 
 
 def _get_engine():
     """Get or create SQLAlchemy engine for PostgreSQL."""
     global _engine
-    
+
     if _engine is not None:
         return _engine
-    
+
     try:
         from config import config
-        
+
         uri = config.SQLALCHEMY_DATABASE_URI or ""
         if uri.startswith("postgresql://") or uri.startswith("postgres://"):
             # Convert postgres:// to postgresql:// if needed
             if uri.startswith("postgres://"):
                 uri = uri.replace("postgres://", "postgresql://", 1)
-            
+
             # Create engine with connection pooling
             _engine = create_engine(
                 uri,
@@ -79,18 +80,19 @@ def _get_engine():
     except Exception as e:
         logger.error(f"Failed to create database engine: {e}")
         _engine = None
-    
+
     return _engine
 
 
 def _retry_on_disconnect(max_retries: int = 3, delay: float = 1.0):
     """Decorator to retry database operations on connection loss."""
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
             retries = 0
             last_error = None
-            
+
             while retries <= max_retries:
                 try:
                     return func(*args, **kwargs)
@@ -98,16 +100,20 @@ def _retry_on_disconnect(max_retries: int = 3, delay: float = 1.0):
                     last_error = e
                     retries += 1
                     if retries <= max_retries:
-                        logger.warning(f"Database connection lost, retrying ({retries}/{max_retries})...")
+                        logger.warning(
+                            f"Database connection lost, retrying ({retries}/{max_retries})..."
+                        )
                         time.sleep(delay * retries)  # Exponential backoff
                     else:
                         logger.error(f"Database operation failed after {max_retries} retries: {e}")
                 except Exception as e:
                     logger.error(f"Database operation failed: {e}")
                     raise
-            
+
             raise last_error or RuntimeError("Database operation failed")
+
         return wrapper
+
     return decorator
 
 
@@ -140,9 +146,9 @@ def ensure_user_unverified(email: str, password: Optional[str] = None) -> bool:
         db = get_db()
         email = email.lower()
         pwhash = generate_password_hash(password, method="pbkdf2:sha256") if password else None
-        
+
         db_type = _get_db_type()
-        
+
         if db_type == "postgresql":
             # PostgreSQL uses ON CONFLICT DO NOTHING
             db.execute(
@@ -172,7 +178,7 @@ def ensure_user_unverified(email: str, password: Optional[str] = None) -> bool:
                     "UPDATE users SET password_hash = ?, last_updated = CURRENT_TIMESTAMP WHERE email = ?",
                     (pwhash, email),
                 )
-        
+
         db.commit()
         return True
     except sqlite3.Error as e:
@@ -343,8 +349,8 @@ def get_password_reset_token(token: str) -> Optional[sqlite3.Row]:
 
         now = int(time.time())
         row = db.execute(
-            """SELECT email, token, expires_at, used 
-               FROM password_reset_tokens 
+            """SELECT email, token, expires_at, used
+               FROM password_reset_tokens
                WHERE token = ? AND expires_at > ? AND used = 0""",
             (token, now),
         ).fetchone()
@@ -419,7 +425,7 @@ def session_create(
     user_email: str,
     remember_me: bool = False,
     user_agent: Optional[str] = None,
-) -> Tuple[Optional[str], int]:
+) -> tuple[Optional[str], int]:
     """
     Create a session row and return (token, max_age).
 
@@ -441,7 +447,7 @@ def session_create(
     try:
         db = get_db()
         db_type = _get_db_type()
-        
+
         if db_type == "postgresql":
             # PostgreSQL uses %s placeholders and CURRENT_TIMESTAMP
             db.execute(
@@ -454,7 +460,7 @@ def session_create(
                 "INSERT INTO user_sessions (token, display_id, user_email, user_agent, last_seen, expires_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?)",
                 (token, display_id, user_email.lower(), (user_agent or "")[:512], expires_ts),
             )
-        
+
         db.commit()
         return token, max_age
     except sqlite3.Error as e:
@@ -483,7 +489,7 @@ def session_get(token: str) -> Optional[sqlite3.Row]:
         db = get_db()
         db_type = _get_db_type()
         now_ts = _utc_ts()
-        
+
         if db_type == "postgresql":
             # PostgreSQL uses %s placeholders
             row = db.execute(
@@ -534,7 +540,7 @@ def session_delete(token: str) -> bool:
     try:
         db = get_db()
         db_type = _get_db_type()
-        
+
         if db_type == "postgresql":
             result = db.execute("DELETE FROM user_sessions WHERE token = %s", (token,))
             db.commit()
@@ -568,7 +574,7 @@ def session_cleanup(user_email: str, keep_token: Optional[str] = None) -> bool:
     try:
         db = get_db()
         db_type = _get_db_type()
-        
+
         if db_type == "postgresql":
             if keep_token:
                 result = db.execute(
@@ -577,8 +583,7 @@ def session_cleanup(user_email: str, keep_token: Optional[str] = None) -> bool:
                 )
             else:
                 result = db.execute(
-                    "DELETE FROM user_sessions WHERE user_email = %s",
-                    (user_email.lower(),)
+                    "DELETE FROM user_sessions WHERE user_email = %s", (user_email.lower(),)
                 )
             db.commit()
             return result.rowcount > 0
@@ -602,13 +607,13 @@ def session_cleanup(user_email: str, keep_token: Optional[str] = None) -> bool:
 
 def execute_query(
     query: str,
-    params: Optional[Tuple[Any, ...]] = None,
+    params: Optional[tuple[Any, ...]] = None,
     fetch: bool = False,
     fetch_all: bool = False,
 ) -> Optional[Union[sqlite3.Row, list[sqlite3.Row], Any]]:
     """
     Execute a database query with optional fetching.
-    
+
     Note: For PostgreSQL, use %s placeholders. For SQLite, use ? placeholders.
     The function will automatically convert placeholders based on the database type.
 
@@ -624,11 +629,11 @@ def execute_query(
     try:
         db = get_db()
         db_type = _get_db_type()
-        
+
         # Convert ? placeholders to %s for PostgreSQL
         if db_type == "postgresql" and params:
             query = query.replace("?", "%s")
-        
+
         cursor = db.execute(query, params or ())
 
         if fetch:

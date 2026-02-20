@@ -14,7 +14,6 @@ PostgreSQL compatible.
 
 import os
 import sys
-import uuid
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -35,20 +34,18 @@ def migrate():
     print("\nChecking existing hub_resources table...")
     with engine.connect() as conn:
         is_postgresql = engine.dialect.name == "postgresql"
-        
+
         # Check if hub_resources already exists (from business_service)
-        existing_columns = conn.execute(
-            text("PRAGMA table_info(hub_resources)")
-        ).fetchall()
-        
+        existing_columns = conn.execute(text("PRAGMA table_info(hub_resources)")).fetchall()
+
         # SQLite returns tuples: (cid, name, type, notnull, dflt_value, pk)
         column_names = [col[1] for col in existing_columns]
-        
+
         if "url" in column_names:
             print("Hub resources table already has new columns. Skipping schema update.")
         else:
             print("Adding new columns to hub_resources table...")
-            
+
             # Add new columns for game-analogy enhanced resources
             new_columns = [
                 ("subcategory", "TEXT"),
@@ -59,7 +56,7 @@ def migrate():
                 ("order_index", "INTEGER DEFAULT 0"),
                 ("is_free", "BOOLEAN DEFAULT TRUE"),
             ]
-            
+
             for col_name, col_type in new_columns:
                 if col_name not in column_names:
                     try:
@@ -69,25 +66,31 @@ def migrate():
                         print(f"  Added column: {col_name}")
                     except Exception as e:
                         print(f"  Column {col_name} may already exist: {e}")
-            
+
             conn.commit()
 
         # Create indexes if they don't exist
         print("\nCreating indexes...")
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_hub_resources_category ON hub_resources(category)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_hub_resources_difficulty ON hub_resources(difficulty_level)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_hub_resources_order ON hub_resources(order_index)
-        """)
+        """
+            )
         )
         conn.commit()
 
@@ -143,7 +146,6 @@ def migrate():
                 "order_index": 4,
                 "is_free": 1,
             },
-
             # Building Community Presence (Intermediate: Build Phase)
             {
                 "category": "building_community",
@@ -181,7 +183,6 @@ def migrate():
                 "order_index": 7,
                 "is_free": 1,
             },
-
             # Metrics That Matter (Intermediate-Advanced: Optimization)
             {
                 "category": "metrics",
@@ -207,7 +208,6 @@ def migrate():
                 "order_index": 9,
                 "is_free": 1,
             },
-
             # Advanced Strategy (Advanced: Conquer & Legacy)
             {
                 "category": "advanced_strategy",
@@ -233,7 +233,6 @@ def migrate():
                 "order_index": 11,
                 "is_free": 1,
             },
-
             # External Resources (Bonus: Mod Packs)
             {
                 "category": "external_resources",
@@ -277,17 +276,18 @@ def migrate():
         for res in resources:
             # Check if resource already exists by URL
             existing = conn.execute(
-                text("SELECT id FROM hub_resources WHERE url = :url"),
-                {"url": res["url"]}
+                text("SELECT id FROM hub_resources WHERE url = :url"), {"url": res["url"]}
             ).fetchone()
-            
+
             if not existing:
                 conn.execute(
-                    text("""
-                    INSERT INTO hub_resources 
+                    text(
+                        """
+                    INSERT INTO hub_resources
                     (category, subcategory, title, description, url, analogy, game_reference, resource_type, difficulty_level, order_index, is_free)
                     VALUES (:category, :subcategory, :title, :description, :url, :analogy, :game_reference, 'link', :difficulty_level, :order_index, :is_free)
-                    """),
+                    """
+                    ),
                     res,
                 )
                 seeded_count += 1
@@ -296,7 +296,9 @@ def migrate():
 
     print("\n✅ Migration completed successfully!")
     print("\nTable updated:")
-    print("  - hub_resources (added columns: subcategory, analogy, game_reference, difficulty_level, order_index, is_free)")
+    print(
+        "  - hub_resources (added columns: subcategory, analogy, game_reference, difficulty_level, order_index, is_free)"
+    )
     print("\nIndexes created:")
     print("  - idx_hub_resources_category")
     print("  - idx_hub_resources_difficulty")

@@ -4,11 +4,13 @@ Provides visibility into how analysis was performed.
 Shows data sources, filters, AI involvement, and confidence scores.
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -18,16 +20,16 @@ class AnalysisMetadata:
     """Metadata about how analysis was performed."""
 
     # Data sources
-    data_sources: List[Dict[str, Any]] = field(default_factory=list)
+    data_sources: list[dict[str, Any]] = field(default_factory=list)
 
     # Filters applied
-    filters: List[Dict[str, Any]] = field(default_factory=list)
+    filters: list[dict[str, Any]] = field(default_factory=list)
 
     # AI involvement
-    ai_involvement: Dict[str, Any] = field(default_factory=dict)
+    ai_involvement: dict[str, Any] = field(default_factory=dict)
 
     # Performance metrics
-    performance: Dict[str, Any] = field(default_factory=dict)
+    performance: dict[str, Any] = field(default_factory=dict)
 
     # Confidence score
     confidence: float = 0.0
@@ -36,7 +38,7 @@ class AnalysisMetadata:
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API response."""
         return {
             "data_sources": self.data_sources,
@@ -57,7 +59,7 @@ class TransparencyService:
 
     def __init__(self):
         """Initialize transparency service."""
-        self._start_times: Dict[str, float] = {}
+        self._start_times: dict[str, float] = {}
 
     def start_analysis(self, analysis_id: str) -> AnalysisMetadata:
         """
@@ -79,7 +81,7 @@ class TransparencyService:
         return metadata
 
     def complete_analysis(
-        self, analysis_id: str, metadata: AnalysisMetadata, result: Dict[str, Any]
+        self, analysis_id: str, metadata: AnalysisMetadata, result: dict[str, Any]
     ) -> AnalysisMetadata:
         """
         Complete analysis tracking.
@@ -124,7 +126,7 @@ class TransparencyService:
 
         return metadata
 
-    def _get_data_sources(self) -> List[Dict[str, Any]]:
+    def _get_data_sources(self) -> list[dict[str, Any]]:
         """Get configured data sources."""
         return [
             {
@@ -147,7 +149,7 @@ class TransparencyService:
             },
         ]
 
-    def _get_ai_involvement(self, result: Dict[str, Any]) -> Dict[str, Any]:
+    def _get_ai_involvement(self, result: dict[str, Any]) -> dict[str, Any]:
         """Determine AI involvement in analysis."""
         # Check if AI was used
         ai_used = result.get("ai_used", False)
@@ -160,7 +162,7 @@ class TransparencyService:
             "model": result.get("ai_model", "N/A"),
         }
 
-    def _calculate_confidence(self, result: Dict[str, Any], metadata: AnalysisMetadata) -> float:
+    def _calculate_confidence(self, result: dict[str, Any], metadata: AnalysisMetadata) -> float:
         """
         Calculate confidence score for analysis.
 
@@ -192,7 +194,7 @@ class TransparencyService:
 
         return round(confidence, 2)
 
-    def get_filters_applied(self, context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def get_filters_applied(self, context: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Get list of filters applied during analysis.
 
@@ -237,8 +239,8 @@ class TransparencyService:
         return filters
 
     def create_transparency_panel(
-        self, metadata: AnalysisMetadata, context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, metadata: AnalysisMetadata, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Create complete transparency panel data.
 
@@ -267,7 +269,7 @@ class TransparencyService:
             },
         }
 
-    def _get_confidence_factors(self, metadata: AnalysisMetadata) -> List[str]:
+    def _get_confidence_factors(self, metadata: AnalysisMetadata) -> list[str]:
         """Get factors affecting confidence score."""
         factors = []
 
@@ -304,14 +306,14 @@ def start_analysis(analysis_id: str) -> AnalysisMetadata:
 
 
 def complete_analysis(
-    analysis_id: str, metadata: AnalysisMetadata, result: Dict[str, Any]
+    analysis_id: str, metadata: AnalysisMetadata, result: dict[str, Any]
 ) -> AnalysisMetadata:
     """Complete analysis tracking."""
     return get_transparency_service().complete_analysis(analysis_id, metadata, result)
 
 
 def create_transparency_panel(
-    metadata: AnalysisMetadata, context: Dict[str, Any]
-) -> Dict[str, Any]:
+    metadata: AnalysisMetadata, context: dict[str, Any]
+) -> dict[str, Any]:
     """Create transparency panel data."""
     return get_transparency_service().create_transparency_panel(metadata, context)

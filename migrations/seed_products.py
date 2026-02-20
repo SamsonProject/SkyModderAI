@@ -7,46 +7,48 @@ Run: python migrations/seed_products.py
 
 import os
 import sys
-import uuid
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from db import get_db
 from flask import Flask
+
+from db import get_db
 
 # Create minimal Flask app for db context
 app = Flask(__name__)
-app.config.from_object('config.Config')
+app.config.from_object("config.Config")
 
 
 def seed_products():
     """Seed sample products."""
     print("Starting product seeding...")
-    
+
     with app.app_context():
         db = get_db()
-        
+
         # First, check if we have any businesses
-        businesses = db.execute("SELECT id, name FROM businesses WHERE status = 'active' OR status = 'pending'").fetchall()
-        
+        businesses = db.execute(
+            "SELECT id, name FROM businesses WHERE status = 'active' OR status = 'pending'"
+        ).fetchall()
+
         if not businesses:
             print("⚠️  No businesses found. Please create businesses first.")
             print("   Run: python migrations/add_business_tables.py")
             return
-        
+
         # Create a default business if needed
         default_business = None
         for biz in businesses:
             default_business = biz
             break
-        
+
         if not default_business:
             print("❌ No active businesses available for seeding")
             return
-        
+
         print(f"Using business: {default_business['name']} ({default_business['id']})")
-        
+
         # Sample products
         sample_products = [
             {
@@ -130,7 +132,7 @@ def seed_products():
                 "stock": 15,
             },
         ]
-        
+
         inserted = 0
         for product in sample_products:
             try:
@@ -140,21 +142,21 @@ def seed_products():
                     VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)
                 """,
                     (
-                        default_business['id'],
-                        product['name'],
-                        product['description'],
-                        product['price'],
-                        product['image_url'],
-                        product['category'],
-                        product['stock'],
+                        default_business["id"],
+                        product["name"],
+                        product["description"],
+                        product["price"],
+                        product["image_url"],
+                        product["category"],
+                        product["stock"],
                     ),
                 )
                 inserted += 1
             except Exception as e:
                 print(f"⚠️  Error inserting '{product['name']}': {e}")
-        
+
         db.commit()
-        
+
         print(f"\n✅ Seeded {inserted} products successfully!")
         print("\nProducts added:")
         for p in sample_products[:inserted]:

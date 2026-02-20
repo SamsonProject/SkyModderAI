@@ -181,15 +181,15 @@
     <form method="POST" class="form-card">
         <div class="form-group">
             <label for="creative_name">Creative Name *</label>
-            <input type="text" id="creative_name" name="creative_name" 
+            <input type="text" id="creative_name" name="creative_name"
                    placeholder="e.g., Homepage Banner" required>
             <span class="form-help">Internal name for this creative</span>
         </div>
 
         <div class="form-group">
             <label for="headline">Headline *</label>
-            <input type="text" id="headline" name="headline" 
-                   placeholder="Catchy headline for your ad" 
+            <input type="text" id="headline" name="headline"
+                   placeholder="Catchy headline for your ad"
                    maxlength="60" required
                    oninput="updatePreview()">
             <span class="form-help">Max 60 characters</span>
@@ -197,7 +197,7 @@
 
         <div class="form-group">
             <label for="body_copy">Body Copy</label>
-            <textarea id="body_copy" name="body_copy" 
+            <textarea id="body_copy" name="body_copy"
                       placeholder="Describe your product or service..."
                       maxlength="200"
                       oninput="updatePreview()"></textarea>
@@ -219,14 +219,14 @@
 
         <div class="form-group">
             <label for="landing_url">Landing URL *</label>
-            <input type="url" id="landing_url" name="landing_url" 
+            <input type="url" id="landing_url" name="landing_url"
                    value="{{ business.website }}" required>
             <span class="form-help">Where users go after clicking your ad</span>
         </div>
 
         <div class="form-group">
             <label for="image_url">Image URL (optional)</label>
-            <input type="url" id="image_url" name="image_url" 
+            <input type="url" id="image_url" name="image_url"
                    placeholder="https://example.com/image.png">
             <span class="form-help">Optional ad image. If not provided, text-only ad will be shown.</span>
         </div>

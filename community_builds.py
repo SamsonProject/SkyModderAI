@@ -5,24 +5,15 @@ This service replaces hardcoded mod recommendations with community-driven builds
 All builds are transparently sourced and voted on by the community.
 """
 
+from __future__ import annotations
+
 import json
 import logging
-import sqlite3
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
+
+from db import get_db
 
 logger = logging.getLogger(__name__)
-
-
-def get_db():
-    """Get the database connection (same as app.py)."""
-    from flask import g
-
-    DB_FILE = "users.db"
-    if "db" not in g:
-        g.db = sqlite3.connect(DB_FILE)
-        g.db.row_factory = sqlite3.Row
-    return g.db
 
 
 class CommunityBuildsService:
@@ -35,7 +26,7 @@ class CommunityBuildsService:
         performance_tier: Optional[str] = None,
         limit: int = 50,
         include_seed: bool = True,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get community builds with optional filters.
 
@@ -54,7 +45,7 @@ class CommunityBuildsService:
 
             # Build query
             query = """
-                SELECT 
+                SELECT
                     id, game, name, description, author, source, source_url,
                     wiki_url, mod_count, playstyle_tags, performance_tier,
                     upvotes, downvotes, is_seed, seed_note, created_at, updated_at
@@ -70,7 +61,7 @@ class CommunityBuildsService:
             if playstyle:
                 # Search within JSON tags
                 query += " AND playstyle_tags LIKE ?"
-                params.append(f'%{playstyle}%')
+                params.append(f"%{playstyle}%")
 
             if performance_tier:
                 query += " AND performance_tier = ?"
@@ -111,13 +102,13 @@ class CommunityBuildsService:
             logger.error(f"Failed to get community builds: {e}")
             return []
 
-    def get_build_by_id(self, build_id: int) -> Optional[Dict[str, Any]]:
+    def get_build_by_id(self, build_id: int) -> Optional[dict[str, Any]]:
         """Get a specific build by ID."""
         try:
             db = get_db()
             row = db.execute(
                 """
-                    SELECT 
+                    SELECT
                         id, game, name, description, author, source, source_url,
                         wiki_url, mod_count, playstyle_tags, performance_tier,
                         upvotes, downvotes, is_seed, seed_note, created_at, updated_at
@@ -144,7 +135,7 @@ class CommunityBuildsService:
 
     def submit_build(
         self,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         user_email: str,
     ) -> Optional[int]:
         """
@@ -354,12 +345,8 @@ class CommunityBuildsService:
 
             # Check if user is author (for now, we'll allow any logged-in user)
             # In production, add proper authorization
-            db.execute(
-                "DELETE FROM community_build_votes WHERE build_id = ?", (build_id,)
-            )
-            db.execute(
-                "DELETE FROM community_builds WHERE id = ?", (build_id,)
-            )
+            db.execute("DELETE FROM community_build_votes WHERE build_id = ?", (build_id,))
+            db.execute("DELETE FROM community_builds WHERE id = ?", (build_id,))
 
             db.commit()
             logger.info(f"Build deleted: {build_id} by {user_email}")
@@ -369,7 +356,7 @@ class CommunityBuildsService:
             logger.error(f"Failed to delete build: {e}")
             return False
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get community builds statistics."""
         try:
             db = get_db()

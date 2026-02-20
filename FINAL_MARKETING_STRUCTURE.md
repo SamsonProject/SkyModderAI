@@ -1,6 +1,6 @@
 # ✅ SkyModderAI - Final Marketing-Aligned Structure
 
-**Date:** February 18, 2026  
+**Date:** February 18, 2026
 **Status:** ✅ **COMMUNITY FIRST, BUSINESS MERGED**
 
 ---
@@ -38,7 +38,7 @@ Clear value prop: "Share tips, ask questions, celebrate"
 - Removed `/sponsors` from header nav
 - Business section now has **two paths**:
   - **Free Directory** (list your business)
-  - **Paid Advertising** ($5/1000 clicks, $50/10000 clicks)
+  - **Paid Advertising** ($5/1,000 clicks, simple meter charge)
 
 **Marketing Structure:**
 ```
@@ -50,7 +50,7 @@ Clear value prop: "Share tips, ask questions, celebrate"
 │
 ├── 📢 Paid Advertising
 │   ├── $5 per 1,000 clicks
-│   ├── $50 per 10,000 clicks
+│   ├── Simple meter charge
 │   ├── Fraud-protected
 │   └── Performance dashboard
 │
@@ -111,7 +111,7 @@ font-weight: 700;
 │ (Green border)      │ (Orange border)     │
 │                     │                     │
 │ ✅ Free forever     │ 💰 $5/1000 clicks   │
-│ ✅ Trust-ranked     │ 💰 $50/10000 clicks │
+│ ✅ Trust-ranked     │ 💰 Meter charge     │
 │ ✅ Community-verify │ 💰 Fraud-protected  │
 │ ✅ No paid tiers    │ 💰 Dashboard        │
 └─────────────────────┴─────────────────────┘
@@ -211,7 +211,7 @@ Education categories below ✅
 2. ✅ Community is perfect (active feed, engaging)
 3. ✅ Sponsors merged into Business
 4. ✅ Two paths: Free Directory + Paid Advertising
-5. ✅ $5/1000 clicks, $50/10000 clicks pricing
+5. ✅ $5/1,000 clicks, simple meter charge pricing
 
 **What you got:**
 - ✅ **Community-first landing** (Bethesda modding social platform)

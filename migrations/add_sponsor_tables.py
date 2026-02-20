@@ -45,7 +45,8 @@ def migrate():
 
         # Sponsors table
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS sponsors (
                 id {serial_type} {auto_increment} PRIMARY KEY,
                 sponsor_id TEXT UNIQUE NOT NULL,
@@ -90,12 +91,14 @@ def migrate():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """
+            )
         )
 
         # Sponsor creatives table (multiple ads per sponsor)
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS sponsor_creatives (
                 id {serial_type} {auto_increment} PRIMARY KEY,
                 creative_id TEXT UNIQUE NOT NULL,
@@ -113,20 +116,24 @@ def migrate():
 
                 FOREIGN KEY (sponsor_id) REFERENCES sponsors(sponsor_id)
             )
-        """)
+        """
+            )
         )
 
         # Index for creative rotation (find lowest impressions)
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_sponsor_creatives_rotation
             ON sponsor_creatives(sponsor_id, status, impressions)
-        """)
+        """
+            )
         )
 
         # Sponsor clicks table (billing audit trail)
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS sponsor_clicks (
                 id {serial_type} {auto_increment} PRIMARY KEY,
                 sponsor_id TEXT NOT NULL,
@@ -140,28 +147,34 @@ def migrate():
                 FOREIGN KEY (sponsor_id) REFERENCES sponsors(sponsor_id),
                 FOREIGN KEY (creative_id) REFERENCES sponsor_creatives(creative_id)
             )
-        """)
+        """
+            )
         )
 
         # Index for fraud detection
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_sponsor_clicks_fingerprint
             ON sponsor_clicks(fingerprint_hash, sponsor_id, timestamp)
-        """)
+        """
+            )
         )
 
         # Index for billing queries
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_sponsor_clicks_billable
             ON sponsor_clicks(billable, sponsor_id, timestamp)
-        """)
+        """
+            )
         )
 
         # Sponsor votes table (community ranking)
         conn.execute(
-            text(f"""
+            text(
+                """
             CREATE TABLE IF NOT EXISTS sponsor_votes (
                 user_id TEXT NOT NULL,
                 sponsor_id TEXT NOT NULL,
@@ -171,15 +184,18 @@ def migrate():
                 FOREIGN KEY (sponsor_id) REFERENCES sponsors(sponsor_id),
                 PRIMARY KEY (user_id, sponsor_id)
             )
-        """)
+        """
+            )
         )
 
         # Index for community score calculation
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_sponsor_votes_sponsor
             ON sponsor_votes(sponsor_id, score)
-        """)
+        """
+            )
         )
 
         conn.commit()

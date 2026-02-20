@@ -1,7 +1,7 @@
 # Update Session Running Tally
 
-**Session Date:** February 18, 2026  
-**Started:** Bespoke & Dynamic Architecture  
+**Session Date:** February 18, 2026
+**Started:** Bespoke & Dynamic Architecture
 **Current:** Sponsor Service + Community Tab
 
 ---
@@ -21,7 +21,7 @@
 - [x] Sponsor service (`sponsor_service.py`) - 350 lines
 - [x] Sponsor charter (`config/sponsor_charter.yaml`) - 300 lines
 - [x] Database migration (`migrations/add_sponsor_tables.py`) - 120 lines
-- [x] Pricing model: $5 CPM, $50 for 10k clicks
+- [x] Pricing model: $5 CPM, simple meter charge
 - [x] Fraud protection (IP+UA dedup, 24h window)
 - [x] Server-side click tracking
 - [x] Separate community score + CTR
@@ -37,14 +37,15 @@
 ### **Sponsor Pricing**
 - **Model:** Pay-per-click
 - **Rate:** $5 per 1,000 clicks ($0.005/click)
-- **Plan:** $50 prepaid = 10,000 clicks
+- **Meter:** Simple charge, no packages
 - **Cap:** None (scales with success)
 
 **Reasoning:**
-- Accessible ($20 reaches 10k people)
+- Accessible ($5 reaches 1,000 people)
 - Signals audience has value
 - Easy to raise rates later
 - Serious sponsors won't question traffic quality
+- Same rate whether you get 100 clicks or 1 million
 
 ### **Fraud Protection**
 - **Window:** 24 hours (same IP+UA can only click once per day)

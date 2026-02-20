@@ -19,7 +19,6 @@ PostgreSQL compatible.
 
 import os
 import sys
-import uuid
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -42,7 +41,7 @@ def migrate():
     with engine.connect() as conn:
         # Check if PostgreSQL
         is_postgresql = engine.dialect.name == "postgresql"
-        
+
         if is_postgresql:
             # PostgreSQL uses SERIAL for auto-increment
             id_type = "SERIAL PRIMARY KEY"
@@ -58,7 +57,8 @@ def migrate():
 
         # Ad campaigns table
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS ad_campaigns (
                 id {id_type},
                 business_id TEXT NOT NULL,
@@ -78,12 +78,14 @@ def migrate():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (business_id) REFERENCES businesses(id)
             )
-        """)
+        """
+            )
         )
 
         # Ad creatives table
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS ad_creatives (
                 id {id_type},
                 campaign_id INTEGER NOT NULL,
@@ -100,12 +102,14 @@ def migrate():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (campaign_id) REFERENCES ad_campaigns(id)
             )
-        """)
+        """
+            )
         )
 
         # Ad impressions table
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS ad_impressions (
                 id {id_type},
                 creative_id INTEGER NOT NULL,
@@ -119,12 +123,14 @@ def migrate():
                 FOREIGN KEY (campaign_id) REFERENCES ad_campaigns(id),
                 FOREIGN KEY (business_id) REFERENCES businesses(id)
             )
-        """)
+        """
+            )
         )
 
         # Ad clicks table
         conn.execute(
-            text(f"""
+            text(
+                f"""
             CREATE TABLE IF NOT EXISTS ad_clicks (
                 id {id_type},
                 creative_id INTEGER NOT NULL,
@@ -140,49 +146,64 @@ def migrate():
                 FOREIGN KEY (campaign_id) REFERENCES ad_campaigns(id),
                 FOREIGN KEY (business_id) REFERENCES businesses(id)
             )
-        """)
+        """
+            )
         )
 
         # Create indexes for performance
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_ad_campaigns_business ON ad_campaigns(business_id)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_ad_campaigns_status ON ad_campaigns(status)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_ad_creatives_campaign ON ad_creatives(campaign_id)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_ad_creatives_status ON ad_creatives(status)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_ad_impressions_timestamp ON ad_impressions(timestamp)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_ad_clicks_fingerprint ON ad_clicks(fingerprint_hash, timestamp)
-        """)
+        """
+            )
         )
         conn.execute(
-            text("""
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_ad_clicks_billable ON ad_clicks(billable, timestamp)
-        """)
+        """
+            )
         )
 
         # Seed sample ad campaigns for existing businesses
         print("\nSeeding sample ad campaigns...")
-        
+
         # Get existing businesses
         businesses = conn.execute(
             text("SELECT id, name FROM businesses WHERE status = 'active'")
@@ -190,7 +211,7 @@ def migrate():
 
         for biz in businesses:
             biz_id, biz_name = biz[0], biz[1]
-            
+
             # Create a sample campaign for each business
             conn.execute(
                 text(

@@ -11,12 +11,14 @@ Benchmarks:
 Run with: python scripts/benchmark_performance.py
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys
 import time
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -27,9 +29,9 @@ class Benchmark:
 
     def __init__(self, name: str):
         self.name = name
-        self.results: List[Dict[str, Any]] = []
+        self.results: list[dict[str, Any]] = []
 
-    def run(self, func, *args, iterations: int = 10, **kwargs) -> Dict[str, Any]:
+    def run(self, func, *args, iterations: int = 10, **kwargs) -> dict[str, Any]:
         """Run a function multiple times and collect metrics."""
         durations = []
 

@@ -10,6 +10,8 @@ Seeds the database with:
 Run with: python scripts/seed_database.py
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys

@@ -1,6 +1,6 @@
 # SkyModderAI - Ethical Sponsor Charter
 
-**Last Updated:** February 18, 2026
+**Last Updated:** February 19, 2026
 
 ---
 
@@ -10,20 +10,19 @@
 system:
   pricing:
     cpm_rate: 5.00  # $5 per 1,000 clicks
-    minimum_purchase: 50.00  # $50 minimum (10,000 clicks)
     currency: "USD"
-    prepaid_model: true
-  
+    meter_model: true  # Simple meter charge, no packages
+
   storage:
     max_creatives_per_sponsor: 100  # Configurable limit
     max_creative_size_mb: 2
     allowed_formats: ["jpg", "png", "webp", "gif"]
-  
+
   fraud_protection:
     dedup_window_hours: 24
     fingerprint_fields: ["ip", "user_agent"]
     hash_algorithm: "sha256"
-  
+
   ranking:
     community_weight: 0.6
     ctr_weight: 0.4
@@ -38,14 +37,19 @@ SkyModderAI sponsors are **community-curated, ethically-vetted partners**. We be
 
 ---
 
-## Pricing: Pay-Per-Click
+## Pricing: Simple Meter Charge
 
-**Simple, honest pricing:**
+**One simple rate:**
 
-| Plan | Clicks | Price | Cost Per Click |
-|------|--------|-------|----------------|
-| Standard | 1,000 | $5 | $0.005 |
-| Bulk | 10,000 | $50 | $0.005 |
+| Rate | Cost Per Click |
+|------|----------------|
+| $5 per 1,000 clicks | $0.005 |
+
+**How it works:**
+- Add credits to your account
+- Pay only for actual clicks (fraud-protected)
+- No packages, no tiers, no commitments
+- Same rate whether you get 100 clicks or 1 million
 
 **What you get:**
 - Server-side click tracking (fraud-protected)
@@ -208,8 +212,8 @@ ranking_score = (community_score × 0.6) + (normalized_ctr × 0.4)
 
 ## Contact
 
-**Apply to sponsor:** sponsors@skymoddereai.com  
-**Report concern:** report@skymoddereai.com  
+**Apply to sponsor:** sponsors@skymoddereai.com
+**Report concern:** report@skymoddereai.com
 **Appeal decision:** appeals@skymoddereai.com
 
 ---

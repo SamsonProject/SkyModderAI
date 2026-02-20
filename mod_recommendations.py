@@ -4,8 +4,10 @@ No affiliate recommendations, no "popular" mods, no marketing suggestions.
 No hardcoded curation — all suggestions come from actual LOOT data and community builds.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -21,36 +23,36 @@ logger = logging.getLogger(__name__)
 
 def get_loot_based_suggestions(
     parser,
-    mod_names: List[str],
+    mod_names: list[str],
     limit: int = 8,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Get LOOT-sourced suggestions based on user's current mod list.
-    
+
     Only returns:
     - Missing mods that LOOT data says are REQUIRED by mods already installed
     - Common companion mods that LOOT explicitly marks as recommended (load_after)
-    
+
     No affiliate recommendations, no "popular" mods, no marketing suggestions.
-    
+
     Returns list of {name, reason, nexus_url, image_url}.
     """
     if not mod_names:
         return []
-    
+
     mod_names_clean = {_norm(n) for n in mod_names if n}
     if not mod_names_clean:
         return []
-    
+
     seen = set(mod_names_clean)
-    out: List[tuple] = []  # (name, reason, score) for sorting
-    
+    out: list[tuple] = []  # (name, reason, score) for sorting
+
     # First pass: collect requirements (highest priority - these are MISSING)
     for clean in mod_names_clean:
         info = parser.mod_database.get(clean)
         if not info:
             continue
-        
+
         # Requirements: mods that are REQUIRED by user's installed mods
         for req in info.requirements or []:
             req_clean = _norm(req)
@@ -59,13 +61,13 @@ def get_loot_based_suggestions(
                 name = req_info.name if req_info else req
                 out.append((name, "Required by your mods", 10, req_info))
                 seen.add(req_clean)
-    
+
     # Second pass: collect load_after recommendations (companion mods)
     for clean in mod_names_clean:
         info = parser.mod_database.get(clean)
         if not info:
             continue
-        
+
         # Load after: mods that LOOT explicitly recommends loading together
         for after in info.load_after or []:
             after_clean = _norm(after)
@@ -74,17 +76,17 @@ def get_loot_based_suggestions(
                 name = after_info.name if after_info else after
                 out.append((name, "Recommended companion mod", 5, after_info))
                 seen.add(after_clean)
-    
+
     # Dedupe by name, keep highest score
-    by_name: Dict[str, tuple] = {}
+    by_name: dict[str, tuple] = {}
     for name, reason, score, info in out:
         key = _norm(name)
         if key not in by_name or by_name[key][2] < score:
             by_name[key] = (name, reason, score, info)
-    
+
     # Sort: requirements first (higher score), then alphabetically
     sorted_out = sorted(by_name.values(), key=lambda x: (-x[2], x[0].lower()))[:limit]
-    
+
     # Build result
     result = []
     for name, reason, _, info in sorted_out:
@@ -100,7 +102,7 @@ def get_loot_based_suggestions(
             "image_url": picture_url or "/static/icons/mod-placeholder.svg",
         }
         result.append(entry)
-    
+
     return result
 
 
@@ -126,6 +128,7 @@ def _is_plugin(name: str) -> bool:
 def _url_enc(s: str) -> str:
     """URL encode a string for Nexus Mods search."""
     from urllib.parse import quote
+
     return quote(s)
 
 

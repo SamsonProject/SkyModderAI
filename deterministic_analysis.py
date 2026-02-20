@@ -3,10 +3,12 @@ Deterministic Analysis Service
 Replaces AI calls with deterministic logic for load order analysis, game folder scans, etc.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from conflict_detector import ConflictDetector
 from knowledge_index import get_resolution_for_conflict
@@ -15,7 +17,7 @@ from loot_parser import LOOTParser
 logger = logging.getLogger(__name__)
 
 
-def analyze_load_order_deterministic(mod_list: List[str], game: str) -> Dict[str, Any]:
+def analyze_load_order_deterministic(mod_list: list[str], game: str) -> dict[str, Any]:
     """
     Deterministic load order analysis.
     Replaces AI-based analysis with ConflictDetector + LOOT rules.
@@ -62,9 +64,9 @@ def scan_game_folder_deterministic(
     game_path: str,
     game: str,
     tree: str = "",
-    key_files: Dict[str, str] = None,
-    plugins: List[str] = None,
-) -> Dict[str, Any]:
+    key_files: dict[str, str] = None,
+    plugins: list[str] = None,
+) -> dict[str, Any]:
     """
     Deterministic game folder scan.
     Replaces AI-based scan with file system checks + pattern matching.
@@ -153,8 +155,8 @@ def scan_game_folder_deterministic(
 
 
 def generate_bespoke_setups_deterministic(
-    game: str, preferences: Dict[str, str], specs: Optional[Dict[str, Any]] = None, limit: int = 3
-) -> List[Dict[str, Any]]:
+    game: str, preferences: dict[str, str], specs: Optional[dict[str, Any]] = None, limit: int = 3
+) -> list[dict[str, Any]]:
     """
     Deterministic mod list setup generation.
     Replaces AI-based setup generation with preference mapping.
@@ -258,7 +260,7 @@ def generate_bespoke_setups_deterministic(
     return setups[:limit]
 
 
-def _get_expected_files(game: str) -> List[str]:
+def _get_expected_files(game: str) -> list[str]:
     """Get list of expected files for a game."""
     expected = {
         "skyrimse": ["SkyrimSE.exe", "SkyrimPrefs.ini", "Skyrim.ini"],

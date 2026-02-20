@@ -10,10 +10,12 @@ Analyzes knowledge sources and flags approaches that:
 This helps users understand risk levels and make informed decisions.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from db import get_db_session
 from models import KnowledgeSource
@@ -21,7 +23,7 @@ from models import KnowledgeSource
 logger = logging.getLogger(__name__)
 
 
-def analyze_deviations() -> Dict[str, Any]:
+def analyze_deviations() -> dict[str, Any]:
     """
     Analyze all knowledge sources for deviation flags.
 
@@ -92,7 +94,7 @@ def analyze_deviations() -> Dict[str, Any]:
         }
 
 
-def analyze_source_deviations(source: KnowledgeSource) -> Tuple[List[str], str]:
+def analyze_source_deviations(source: KnowledgeSource) -> tuple[list[str], str]:
     """
     Analyze a single knowledge source for deviations.
 
@@ -331,7 +333,7 @@ def has_version_issues(source: KnowledgeSource) -> bool:
     return False
 
 
-def get_deviation_warning(deviation_flags: List[str]) -> Optional[Dict[str, Any]]:
+def get_deviation_warning(deviation_flags: list[str]) -> Optional[dict[str, Any]]:
     """
     Generate user-facing warning for deviation flags.
 
@@ -395,7 +397,7 @@ def get_deviation_warning(deviation_flags: List[str]) -> Optional[Dict[str, Any]
     }
 
 
-def format_deviation_for_ui(deviation_flags: List[str]) -> Optional[str]:
+def format_deviation_for_ui(deviation_flags: list[str]) -> Optional[str]:
     """
     Format deviation flags for UI display.
 
@@ -420,7 +422,7 @@ def format_deviation_for_ui(deviation_flags: List[str]) -> Optional[str]:
     return md
 
 
-def batch_label_deviations(source_ids: List[int]) -> Dict[str, Any]:
+def batch_label_deviations(source_ids: list[int]) -> dict[str, Any]:
     """
     Batch label multiple sources for deviations.
 

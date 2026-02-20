@@ -11,12 +11,14 @@ Usage:
   write_fuel(fuel)  # writes to data/fuel/
 """
 
+from __future__ import annotations
+
 import json
 import logging
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +33,7 @@ def _norm(s: str) -> str:
     return s.lower().replace(".esp", "").replace(".esm", "").replace(".esl", "").strip()
 
 
-def _compute_dependency_depth(mod_database: Dict[str, Any], max_depth: int = 10) -> float:
+def _compute_dependency_depth(mod_database: dict[str, Any], max_depth: int = 10) -> float:
     """
     Average depth of requirement chain. A requires B requires C → depth 2 for A.
     BFS from each mod with requirements. Returns mean depth.
@@ -72,7 +74,7 @@ def extract_fuel(
     parser: Any,
     game: Optional[str] = None,
     include_top_pairs: int = 20,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Extract structural fuel from a LOOTParser. No user data.
 
@@ -93,7 +95,7 @@ def extract_fuel(
     patch_count = 0
     load_after_count = 0
     load_before_count = 0
-    incompatible_pairs: List[tuple] = []
+    incompatible_pairs: list[tuple] = []
 
     for name, info in db.items():
         reqs = getattr(info, "requirements", None) or []
@@ -162,7 +164,7 @@ def extract_fuel(
     return fuel
 
 
-def write_fuel(fuel: Dict[str, Any], subdir: Optional[str] = None) -> Path:
+def write_fuel(fuel: dict[str, Any], subdir: Optional[str] = None) -> Path:
     """
     Write fuel to data/fuel/. Creates dir if needed.
     Returns path written. Caller responsible for not committing PII.

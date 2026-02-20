@@ -143,14 +143,14 @@
     {% if first_month_free %}
     <div class="free-month-notice">
         <h3>🎁 First Month FREE!</h3>
-        <p>Your first campaign gets up to 10,000 clicks at no cost. No credit card required.</p>
+        <p>Your first campaign gets free advertising for 30 days. No credit card required.</p>
     </div>
     {% endif %}
 
     <form method="POST" class="form-card">
         <div class="form-group">
             <label for="campaign_name">Campaign Name *</label>
-            <input type="text" id="campaign_name" name="campaign_name" 
+            <input type="text" id="campaign_name" name="campaign_name"
                    value="{{ business.name }} Campaign" required>
             <span class="form-help">Internal name for your campaign</span>
         </div>
@@ -166,9 +166,9 @@
         {% if not first_month_free %}
         <div class="form-group">
             <label for="budget_amount">Initial Budget</label>
-            <input type="number" id="budget_amount" name="budget_amount" 
-                   value="50" min="10" step="10">
-            <span class="form-help">$50 = 10,000 clicks. Minimum $10.</span>
+            <input type="number" id="budget_amount" name="budget_amount"
+                   value="5" min="5" step="5">
+            <span class="form-help">$5 = 1,000 clicks. Minimum $5.</span>
         </div>
         {% endif %}
 

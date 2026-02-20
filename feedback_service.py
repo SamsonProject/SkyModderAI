@@ -10,10 +10,12 @@ Provides:
 All feedback feeds into the weekly report to chris@skymoddereai.com.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 from uuid import uuid4
 
 from db import get_db_session
@@ -29,11 +31,11 @@ class SessionTracker:
         self.user_email = user_email
         self.session_id = session_id or str(uuid4())
         self.start_time = datetime.now()
-        self.events: List[Dict[str, Any]] = []
-        self.queries: List[Dict[str, Any]] = []
-        self.resolutions: List[Dict[str, Any]] = []
+        self.events: list[dict[str, Any]] = []
+        self.queries: list[dict[str, Any]] = []
+        self.resolutions: list[dict[str, Any]] = []
 
-    def track_query(self, query_type: str, query_data: Dict[str, Any]):
+    def track_query(self, query_type: str, query_data: dict[str, Any]):
         """Track a user query."""
         self.queries.append(
             {"type": query_type, "data": query_data, "timestamp": datetime.now().isoformat()}
@@ -44,7 +46,7 @@ class SessionTracker:
         )
 
     def track_resolution(
-        self, resolution_type: str, resolution_data: Dict[str, Any], helpful: bool = True
+        self, resolution_type: str, resolution_data: dict[str, Any], helpful: bool = True
     ):
         """Track a resolution provided to user."""
         self.resolutions.append(
@@ -56,7 +58,7 @@ class SessionTracker:
             }
         )
 
-    def track_action(self, action: str, details: Optional[Dict[str, Any]] = None):
+    def track_action(self, action: str, details: Optional[dict[str, Any]] = None):
         """Track a user action."""
         self.events.append(
             {
@@ -67,7 +69,7 @@ class SessionTracker:
             }
         )
 
-    def get_session_summary(self) -> Dict[str, Any]:
+    def get_session_summary(self) -> dict[str, Any]:
         """Get session summary for curation."""
         duration = (datetime.now() - self.start_time).total_seconds()
 
@@ -116,9 +118,9 @@ def track_analysis(user_email: Optional[str], game: str, mod_count: int, conflic
             event_data=json.dumps(
                 {"game": game, "mod_count": mod_count, "conflict_count": conflict_count}
             ),
-            session_id=session.get("session_id", "anonymous")
-            if hasattr(session, "get")
-            else "anonymous",
+            session_id=(
+                session.get("session_id", "anonymous") if hasattr(session, "get") else "anonymous"
+            ),
         )
         session.add(activity)
         session.commit()
@@ -165,7 +167,7 @@ def submit_feedback(
     feedback_type: str,
     category: str,
     content: str,
-    context: Optional[Dict[str, Any]] = None,
+    context: Optional[dict[str, Any]] = None,
     rating: Optional[int] = None,
 ) -> bool:
     """
@@ -227,7 +229,7 @@ def submit_feedback(
         return False
 
 
-def submit_rating(user_email: Optional[str], rating: int, context: Dict[str, Any]):
+def submit_rating(user_email: Optional[str], rating: int, context: dict[str, Any]):
     """Submit a simple 1-5 rating with context."""
     return submit_feedback(
         user_email=user_email,
@@ -239,7 +241,7 @@ def submit_rating(user_email: Optional[str], rating: int, context: Dict[str, Any
     )
 
 
-def submit_bug_report(user_email: Optional[str], description: str, context: Dict[str, Any]):
+def submit_bug_report(user_email: Optional[str], description: str, context: dict[str, Any]):
     """Submit a bug report."""
     return submit_feedback(
         user_email=user_email,
@@ -250,7 +252,7 @@ def submit_bug_report(user_email: Optional[str], description: str, context: Dict
     )
 
 
-def submit_suggestion(user_email: Optional[str], suggestion: str, context: Dict[str, Any]):
+def submit_suggestion(user_email: Optional[str], suggestion: str, context: dict[str, Any]):
     """Submit a feature suggestion."""
     return submit_feedback(
         user_email=user_email,
@@ -267,11 +269,11 @@ def submit_suggestion(user_email: Optional[str], suggestion: str, context: Dict[
 
 # In-memory log that accumulates during the week
 # Flushed to database and included in weekly report
-_self_improvement_log: List[Dict[str, Any]] = []
+_self_improvement_log: list[dict[str, Any]] = []
 
 
 def log_self_improvement(
-    event_type: str, category: str, description: str, metadata: Optional[Dict[str, Any]] = None
+    event_type: str, category: str, description: str, metadata: Optional[dict[str, Any]] = None
 ):
     """
     Log an event to the self-improvement log.
@@ -337,7 +339,7 @@ def log_suggestion(category: str, description: str, effort: str = "unknown"):
     )
 
 
-def log_observation(category: str, description: str, data: Optional[Dict[str, Any]] = None):
+def log_observation(category: str, description: str, data: Optional[dict[str, Any]] = None):
     """Log an observation."""
     log_self_improvement(
         event_type="observation", category=category, description=description, metadata=data or {}
@@ -356,7 +358,7 @@ def log_metric(name: str, value: float, unit: str = "", context: Optional[str] =
 
 def get_self_improvement_log(
     start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Get self-improvement log entries.
 
@@ -454,7 +456,7 @@ def clear_self_improvement_log(before_date: Optional[datetime] = None):
 # =============================================================================
 
 
-def curate_after_session(session_summary: Dict[str, Any]):
+def curate_after_session(session_summary: dict[str, Any]):
     """
     Curate learnings from a user session.
 
@@ -547,7 +549,7 @@ def schedule_post_session_curation(session_tracker: SessionTracker):
 # =============================================================================
 
 
-def get_feedback_summary(days: int = 7) -> Dict[str, Any]:
+def get_feedback_summary(days: int = 7) -> dict[str, Any]:
     """
     Get feedback summary for the last N days.
 
@@ -569,8 +571,8 @@ def get_feedback_summary(days: int = 7) -> Dict[str, Any]:
         feedback = session.query(UserFeedback).filter(UserFeedback.created_at >= start_date).all()
 
         # Count by type
-        by_type: Dict[str, int] = {}
-        by_category: Dict[str, int] = {}
+        by_type: dict[str, int] = {}
+        by_category: dict[str, int] = {}
         top_issues = []
         top_suggestions = []
 

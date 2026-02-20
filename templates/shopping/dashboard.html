@@ -335,18 +335,18 @@
 
 <script>
 async function toggleCampaign(campaignId, action) {
-    const endpoint = action === 'pause' 
+    const endpoint = action === 'pause'
         ? `/shopping/campaign/${campaignId}/pause`
         : `/shopping/campaign/${campaignId}/activate`;
-    
+
     try {
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             location.reload();
         } else {
@@ -358,24 +358,24 @@ async function toggleCampaign(campaignId, action) {
 }
 
 async function addCredits(campaignId) {
-    const amount = prompt('Enter amount to add ($50 = 10,000 clicks):', '50');
+    const amount = prompt('Enter amount to add ($5 = 1,000 clicks):', '5');
     if (!amount) return;
-    
+
     const parsed = parseFloat(amount);
     if (isNaN(parsed) || parsed <= 0) {
         alert('Please enter a valid amount');
         return;
     }
-    
+
     try {
         const response = await fetch(`/shopping/campaign/${campaignId}/add_credits`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ amount: parsed })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             alert(result.message);
             location.reload();

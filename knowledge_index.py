@@ -10,8 +10,10 @@ Maps:
 Designed for AI to query: "Given conflict X, what are known resolutions?"
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -295,12 +297,12 @@ GAME_RESOURCES = {
 }
 
 
-def get_resolution_for_conflict(conflict_type: str) -> Dict[str, Any]:
+def get_resolution_for_conflict(conflict_type: str) -> dict[str, Any]:
     """Get resolution pattern for a conflict type. For AI context."""
     return CONFLICT_RESOLUTIONS.get(conflict_type, CONFLICT_RESOLUTIONS.get("info", {}))
 
 
-def get_esoteric_solutions(query: str) -> List[Dict[str, Any]]:
+def get_esoteric_solutions(query: str) -> list[dict[str, Any]]:
     """
     Find esoteric solutions matching user query (CTD, ILS, etc.).
     Returns list of {issue, causes, solutions, keywords}.
@@ -320,7 +322,7 @@ def get_esoteric_solutions(query: str) -> List[Dict[str, Any]]:
     return results[:5]
 
 
-def get_game_resources(game_id: str) -> Dict[str, Any]:
+def get_game_resources(game_id: str) -> dict[str, Any]:
     """Get game-specific resource links for AI context."""
     return GAME_RESOURCES.get(game_id.lower(), GAME_RESOURCES.get("skyrimse", {}))
 
@@ -334,7 +336,7 @@ def _conflict_type(c: Any) -> str:
     return "info"
 
 
-def format_knowledge_for_ai(ctx: Dict[str, Any]) -> str:
+def format_knowledge_for_ai(ctx: dict[str, Any]) -> str:
     """Format knowledge context as compact text for AI token budget."""
     if not ctx:
         return ""
@@ -360,11 +362,11 @@ def format_knowledge_for_ai(ctx: Dict[str, Any]) -> str:
 
 def build_ai_context(
     game_id: str,
-    conflicts: List[Any],
-    mod_list: List[str],
-    specs: Optional[Dict] = None,
+    conflicts: list[Any],
+    mod_list: list[str],
+    specs: Optional[dict] = None,
     user_query: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Build structured context for AI assistant.
     Includes: game resources, conflict resolutions, esoteric solutions, mod count.

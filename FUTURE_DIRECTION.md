@@ -1,6 +1,6 @@
 # SkyModderAI - Future Direction & Roadmap
 
-**Last Updated:** February 18, 2026  
+**Last Updated:** February 18, 2026
 **Status:** Phase 1-8 Complete, Launch-Ready
 
 ---
@@ -390,6 +390,6 @@ The modding community is the perfect proving ground. If this works here, the Sam
 
 **Questions? Feedback? Ideas?**
 
-Email: chris@skymoddereai.com  
-GitHub: https://github.com/SamsonProject/SkyModderAI  
+Email: chris@skymoddereai.com
+GitHub: https://github.com/SamsonProject/SkyModderAI
 Discord: [Coming Soon]

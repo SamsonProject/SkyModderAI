@@ -27,7 +27,7 @@ repositories:
       falloutnv: "newvegas"
       fallout4: "fallout4"
       starfield: "starfield"
-  
+
   bethesda_net:
     url: "https://bethesda.net/"
     label: "Bethesda.net"
@@ -46,7 +46,7 @@ tools:
     description: "Load Order Optimisation Tool"
     download_url: "https://github.com/loot/loot/releases"
     docs_url: "https://loot.github.io/docs/"
-  
+
   xedit:
     url: "https://tes5edit.github.io/"
     label: "xEdit"
@@ -60,13 +60,13 @@ tools:
       fallout3: "FO3Edit"
       falloutnv: "FNVEdit"
       fallout4: "FO4Edit"
-  
+
   wabbajack:
     url: "https://www.wabbajack.org/"
     label: "Wabbajack"
     description: "Automated modlist installer"
     download_url: "https://www.wabbajack.org/#/download"
-  
+
   mod_organizer_2:
     url: "https://www.nexusmods.com/site/mods/1"
     label: "Mod Organizer 2"
@@ -85,25 +85,25 @@ script_extenders:
     label: "SKSE64"
     description: "Skyrim Script Extender for SE/VR"
     game: "skyrimse"
-  
+
   skse:
     url: "https://skse.silverlock.org/"
     label: "SKSE"
     description: "Skyrim Script Extender (Legendary Edition)"
     game: "skyrim"
-  
+
   f4se:
     url: "https://f4se.silverlock.org/"
     label: "F4SE"
     description: "Fallout 4 Script Extender"
     game: "fallout4"
-  
+
   nvse:
     url: "https://nvse.silverlock.org/"
     label: "NVSE"
     description: "New Vegas Script Extender"
     game: "falloutnv"
-  
+
   obse:
     url: "http://obse.silverlock.org/"
     label: "OBSE"
@@ -135,19 +135,19 @@ essential_mods:
       name: "UOP"
       url: "https://www.nexusmods.com/oblivion/mods/52923"
       description: "Unofficial Oblivion Patch"
-  
+
   address_library:
     skyrimse:
       name: "Address Library for SKSE"
       url: "https://www.nexusmods.com/skyrimspecialedition/mods/32444"
       description: "Required for many SKSE plugins"
-  
+
   engine_fixes:
     skyrimse:
       name: "Engine Fixes"
       url: "https://www.nexusmods.com/skyrimspecialedition/mods/17230"
       description: "Engine bug fixes not covered by USSEP"
-  
+
   skyui:
     skyrimse:
       name: "SkyUI"
@@ -171,7 +171,7 @@ community:
       url: "https://www.reddit.com/r/modding/"
       label: "r/modding"
       description: "General modding community"
-  
+
   discord:
     skyrim:
       url: "https://discord.gg/skyrim"
@@ -193,7 +193,7 @@ learning:
       url: "https://www.youtube.com/@GamerPoets"
       label: "GamerPoets"
       description: "In-depth modding analysis"
-  
+
   wikis:
     uesp:
       url: "https://en.uesp.net/"
@@ -203,7 +203,7 @@ learning:
       url: "https://fallout.wiki/"
       label: "Fallout Wiki"
       description: "Fallout community wiki"
-  
+
   guides:
     modding_guides:
       url: "https://tes5edit.github.io/docs/"
@@ -218,7 +218,7 @@ support:
     url: "https://github.com/SamsonProject/SkyModderAI"
     label: "GitHub"
     description: "Source code and issue tracker"
-  
+
   email:
     url: "mailto:chris@skymoddereai.com"
     label: "Email Support"
@@ -242,15 +242,15 @@ legal:
   terms:
     url: "/terms"
     label: "Terms of Service"
-  
+
   privacy:
     url: "/privacy"
     label: "Privacy Policy"
-  
+
   safety:
     url: "/safety"
     label: "Safety Guidelines"
-  
+
   license:
     url: "https://opensource.org/licenses/MIT"
     label: "MIT License"

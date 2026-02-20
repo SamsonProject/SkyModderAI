@@ -4,9 +4,11 @@ Loads and caches configuration from YAML files.
 Provides centralized access to all configuration settings.
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import yaml
 
@@ -27,11 +29,11 @@ class ConfigLoader:
             config_dir = Path(__file__).parent / "config"
 
         self.config_dir = Path(config_dir)
-        self._cache: Dict[str, Any] = {}
+        self._cache: dict[str, Any] = {}
 
         logger.info(f"Configuration loader initialized: {self.config_dir}")
 
-    def _load_yaml(self, file_path: Path) -> Dict[str, Any]:
+    def _load_yaml(self, file_path: Path) -> dict[str, Any]:
         """
         Load YAML file.
 
@@ -61,7 +63,7 @@ class ConfigLoader:
         """Get path to configuration file."""
         return self.config_dir / name
 
-    def get_external_links(self) -> Dict[str, Any]:
+    def get_external_links(self) -> dict[str, Any]:
         """
         Get all external links configuration.
 
@@ -74,7 +76,7 @@ class ConfigLoader:
             )
         return self._cache["external_links"]
 
-    def get_link(self, category: str, key: str, fallback: str = None) -> Optional[Dict[str, Any]]:
+    def get_link(self, category: str, key: str, fallback: str = None) -> Optional[dict[str, Any]]:
         """
         Get a specific link by category and key.
 
@@ -116,7 +118,7 @@ class ConfigLoader:
 
         return {"url": fallback, "label": key} if fallback else None
 
-    def get_game_config(self, game_id: str) -> Dict[str, Any]:
+    def get_game_config(self, game_id: str) -> dict[str, Any]:
         """
         Get game-specific configuration.
 
@@ -134,7 +136,7 @@ class ConfigLoader:
 
         return self._cache[cache_key]
 
-    def get_all_games(self) -> List[str]:
+    def get_all_games(self) -> list[str]:
         """
         Get list of all configured games.
 
@@ -226,17 +228,17 @@ def get_config_loader() -> ConfigLoader:
 
 
 # Convenience functions for direct import
-def get_link(category: str, key: str, fallback: str = None) -> Optional[Dict[str, Any]]:
+def get_link(category: str, key: str, fallback: str = None) -> Optional[dict[str, Any]]:
     """Get a link by category and key."""
     return get_config_loader().get_link(category, key, fallback)
 
 
-def get_game_config(game_id: str) -> Dict[str, Any]:
+def get_game_config(game_id: str) -> dict[str, Any]:
     """Get game configuration."""
     return get_config_loader().get_game_config(game_id)
 
 
-def get_all_games() -> List[str]:
+def get_all_games() -> list[str]:
     """Get all configured games."""
     return get_config_loader().get_all_games()
 

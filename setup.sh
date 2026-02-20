@@ -38,10 +38,10 @@ pip install -r requirements.txt
 if [ ! -f ".env" ]; then
     echo "🔒 Creating .env file from template..."
     cp .env.example .env
-    
+
     # Generate a secure secret key
     SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))")
-    
+
     # Update the .env file with the generated secret key
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS
@@ -50,7 +50,7 @@ if [ ! -f ".env" ]; then
         # Linux/Unix
         sed -i "s|your-secret-key-here|$SECRET_KEY|" .env
     fi
-    
+
     echo "✅ .env file created with a secure secret key"
 else
     echo "ℹ️ .env file already exists"

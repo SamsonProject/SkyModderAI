@@ -24,7 +24,7 @@ COMMENT ON COLUMN oauth_state_tokens.redirect_url IS 'Optional redirect URL to r
 CREATE OR REPLACE FUNCTION cleanup_expired_oauth_tokens()
 RETURNS void AS $$
 BEGIN
-    DELETE FROM oauth_state_tokens 
+    DELETE FROM oauth_state_tokens
     WHERE created_at < (NOW() - INTERVAL '10 minutes');
 END;
 $$ LANGUAGE plpgsql;

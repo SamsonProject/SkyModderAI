@@ -12,10 +12,12 @@ Dimensions:
 Each dimension scores 0.0-1.0, combined into weighted reliability score.
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +42,9 @@ class ReliabilityScore:
     # Computed
     overall_score: float = field(default=0.0, init=False)
     confidence: float = field(default=0.0, init=False)
-    flags: List[str] = field(default_factory=list)
+    flags: list[str] = field(default_factory=list)
 
-    def compute(self) -> "ReliabilityScore":
+    def compute(self) -> ReliabilityScore:
         """Compute overall score and confidence."""
         # Weighted average (credibility + accuracy weighted higher)
         weights = {
@@ -85,7 +87,7 @@ class ReliabilityScore:
 
         return self
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for storage/display."""
         return {
             "overall_score": round(self.overall_score, 3),
@@ -139,7 +141,7 @@ class ReliabilityWeighter:
         "news_announcement": 30,  # 1 month
     }
 
-    def score_source(self, source_data: Dict[str, Any]) -> ReliabilityScore:
+    def score_source(self, source_data: dict[str, Any]) -> ReliabilityScore:
         """
         Compute reliability score for a source.
 
@@ -193,7 +195,7 @@ class ReliabilityWeighter:
 
         return score.compute()
 
-    def _score_source_credibility(self, data: Dict[str, Any]) -> float:
+    def _score_source_credibility(self, data: dict[str, Any]) -> float:
         """Score based on source type and domain."""
         source_type = data.get("type", "unknown").lower()
 
@@ -215,7 +217,7 @@ class ReliabilityWeighter:
 
         return min(1.0, base_score)
 
-    def _score_freshness(self, data: Dict[str, Any]) -> float:
+    def _score_freshness(self, data: dict[str, Any]) -> float:
         """Score based on content age and update frequency."""
         published = data.get("published_date")
         updated = data.get("updated_date")
@@ -245,7 +247,7 @@ class ReliabilityWeighter:
 
         return min(1.0, max(0.0, freshness))
 
-    def _score_community_validation(self, data: Dict[str, Any]) -> float:
+    def _score_community_validation(self, data: dict[str, Any]) -> float:
         """Score based on community engagement and reception."""
         endorsements = data.get("endorsements", 0)
         upvotes = data.get("upvotes", 0)
@@ -279,7 +281,7 @@ class ReliabilityWeighter:
 
         return min(1.0, max(0.0, score))
 
-    def _score_technical_accuracy(self, data: Dict[str, Any]) -> float:
+    def _score_technical_accuracy(self, data: dict[str, Any]) -> float:
         """
         Score based on technical accuracy indicators.
         This requires content analysis - for now, use heuristics.
@@ -329,7 +331,7 @@ class ReliabilityWeighter:
 
         return min(1.0, max(0.0, score))
 
-    def _score_author_reputation(self, data: Dict[str, Any]) -> float:
+    def _score_author_reputation(self, data: dict[str, Any]) -> float:
         """Score based on author's track record."""
         author = data.get("author", "")
         author_endorsements = data.get("author_endorsements", 0)
@@ -356,8 +358,8 @@ class ReliabilityWeighter:
         return min(1.0, max(0.0, score))
 
     def filter_by_reliability(
-        self, sources: List[Dict[str, Any]], min_score: float = 0.5, min_confidence: float = 0.3
-    ) -> List[Dict[str, Any]]:
+        self, sources: list[dict[str, Any]], min_score: float = 0.5, min_confidence: float = 0.3
+    ) -> list[dict[str, Any]]:
         """
         Filter sources by reliability score.
 

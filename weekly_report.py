@@ -11,9 +11,11 @@ Generates weekly email to chris@skymoddereai.com with:
 Run Mondays at 3 AM UTC via scheduler.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 
 from db import get_db_session
 from models import ConflictStat, KnowledgeSource, TrashBinItem, UserActivity, UserFeedback
@@ -21,7 +23,7 @@ from models import ConflictStat, KnowledgeSource, TrashBinItem, UserActivity, Us
 logger = logging.getLogger(__name__)
 
 
-def generate_weekly_report() -> Dict[str, Any]:
+def generate_weekly_report() -> dict[str, Any]:
     """
     Generate weekly self-improvement report.
 
@@ -65,7 +67,7 @@ def generate_weekly_report() -> Dict[str, Any]:
     return report
 
 
-def _gather_positive_metrics(start_date: datetime, end_date: datetime) -> List[str]:
+def _gather_positive_metrics(start_date: datetime, end_date: datetime) -> list[str]:
     """Gather positive metrics and wins from the week."""
     positives = []
     session = get_db_session()
@@ -149,7 +151,7 @@ def _gather_positive_metrics(start_date: datetime, end_date: datetime) -> List[s
     return positives
 
 
-def _gather_issues(start_date: datetime, end_date: datetime) -> List[str]:
+def _gather_issues(start_date: datetime, end_date: datetime) -> list[str]:
     """Gather issues and areas needing improvement."""
     issues = []
     session = get_db_session()
@@ -255,7 +257,7 @@ def _gather_issues(start_date: datetime, end_date: datetime) -> List[str]:
     return issues
 
 
-def _generate_suggestions(start_date: datetime, end_date: datetime) -> List[str]:
+def _generate_suggestions(start_date: datetime, end_date: datetime) -> list[str]:
     """Generate system optimization suggestions."""
     suggestions = []
     session = get_db_session()
@@ -328,7 +330,7 @@ def _generate_suggestions(start_date: datetime, end_date: datetime) -> List[str]
     return suggestions
 
 
-def _gather_new_knowledge(start_date: datetime, end_date: datetime) -> List[str]:
+def _gather_new_knowledge(start_date: datetime, end_date: datetime) -> list[str]:
     """Gather summary of new knowledge added."""
     knowledge_summary = []
     session = get_db_session()
@@ -341,7 +343,7 @@ def _gather_new_knowledge(start_date: datetime, end_date: datetime) -> List[str]
             .all()
         )
 
-        category_counts: Dict[str, int] = {}
+        category_counts: dict[str, int] = {}
         for source in sources:
             cat = source.category or "uncategorized"
             if cat not in category_counts:
@@ -352,7 +354,7 @@ def _gather_new_knowledge(start_date: datetime, end_date: datetime) -> List[str]
             knowledge_summary.append(f"{count} entries in {category}")
 
         # Count by game
-        game_counts: Dict[str, int] = {}
+        game_counts: dict[str, int] = {}
         for source in sources:
             if source.game not in game_counts:
                 game_counts[source.game] = 0
@@ -393,7 +395,7 @@ def _gather_new_knowledge(start_date: datetime, end_date: datetime) -> List[str]
     return knowledge_summary
 
 
-def _generate_questions(report: Dict[str, Any]) -> List[str]:
+def _generate_questions(report: dict[str, Any]) -> list[str]:
     """Generate questions for Chris based on report data."""
     questions = []
 
@@ -437,7 +439,7 @@ def _generate_questions(report: Dict[str, Any]) -> List[str]:
 # =============================================================================
 
 
-def get_user_feedback_summary(start_date: datetime, end_date: datetime) -> Dict[str, Any]:
+def get_user_feedback_summary(start_date: datetime, end_date: datetime) -> dict[str, Any]:
     """Get summary of user feedback for the period."""
     session = get_db_session()
 
@@ -468,7 +470,7 @@ def get_user_feedback_summary(start_date: datetime, end_date: datetime) -> Dict[
         return {"total": 0, "by_category": {}, "by_status": {}, "top_issues": []}
 
 
-def get_activity_metrics(start_date: datetime, end_date: datetime) -> Dict[str, Any]:
+def get_activity_metrics(start_date: datetime, end_date: datetime) -> dict[str, Any]:
     """Get activity metrics for the period."""
     session = get_db_session()
 

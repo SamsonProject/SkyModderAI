@@ -7,7 +7,7 @@ Handles user authentication, registration, and session management business logic
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from db import (
     create_user,
@@ -45,7 +45,7 @@ class AuthService:
         email: str,
         password: str,
         confirm_password: str,
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """
         Register a new user.
 
@@ -93,7 +93,7 @@ class AuthService:
         password: str,
         remember: bool = False,
         user_agent: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Authenticate user login.
 
@@ -148,7 +148,7 @@ class AuthService:
             "email_verified": True,
         }
 
-    def verify_email(self, token: str) -> Tuple[bool, str]:
+    def verify_email(self, token: str) -> tuple[bool, str]:
         """
         Verify user email with token.
 
@@ -185,7 +185,7 @@ class AuthService:
         """
         logger.info(f"User logged out: {email}")
 
-    def get_user(self, email: str) -> Optional[Dict[str, Any]]:
+    def get_user(self, email: str) -> Optional[dict[str, Any]]:
         """
         Get user by email.
 
@@ -197,7 +197,7 @@ class AuthService:
         """
         return get_user_by_email(email)
 
-    def send_verification_email(self, email: str) -> Tuple[bool, str]:
+    def send_verification_email(self, email: str) -> tuple[bool, str]:
         """
         Send email verification email.
 
@@ -220,7 +220,7 @@ class AuthService:
 
         return True, "Verification email sent"
 
-    def get_user_sessions(self, email: str) -> List[Dict[str, Any]]:
+    def get_user_sessions(self, email: str) -> list[dict[str, Any]]:
         """
         Get active sessions for user.
 

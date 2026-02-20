@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from sqlalchemy.orm import Session
 
@@ -30,7 +30,7 @@ class UserRepository:
         """
         self.session = session
 
-    def get_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+    def get_by_email(self, email: str) -> Optional[dict[str, Any]]:
         """
         Get user by email.
 
@@ -63,7 +63,7 @@ class UserRepository:
         email: str,
         password_hash: Optional[str] = None,
         email_verified: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create new user.
 
@@ -103,7 +103,7 @@ class UserRepository:
             logger.error(f"Failed to create user: {e}")
             raise DatabaseOperationError(str(e))
 
-    def update(self, email: str, **kwargs: Any) -> Optional[Dict[str, Any]]:
+    def update(self, email: str, **kwargs: Any) -> Optional[dict[str, Any]]:
         """
         Update user fields.
 
@@ -180,7 +180,7 @@ class UserRepository:
         display_id: str,
         user_agent: str,
         expires_at: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create user session.
 
@@ -220,7 +220,7 @@ class UserRepository:
             logger.error(f"Failed to create session: {e}")
             raise DatabaseOperationError(str(e))
 
-    def get_session(self, token: str) -> Optional[Dict[str, Any]]:
+    def get_session(self, token: str) -> Optional[dict[str, Any]]:
         """
         Get session by token.
 
@@ -276,7 +276,7 @@ class UserRepository:
             logger.error(f"Failed to delete session: {e}")
             raise DatabaseOperationError(str(e))
 
-    def get_sessions(self, email: str) -> List[Dict[str, Any]]:
+    def get_sessions(self, email: str) -> list[dict[str, Any]]:
         """
         Get all sessions for user.
 
@@ -309,7 +309,7 @@ class UserRepository:
         key_hash: str,
         key_prefix: str,
         label: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create API key.
 
@@ -347,7 +347,7 @@ class UserRepository:
             logger.error(f"Failed to create API key: {e}")
             raise DatabaseOperationError(str(e))
 
-    def get_api_key(self, key_hash: str) -> Optional[Dict[str, Any]]:
+    def get_api_key(self, key_hash: str) -> Optional[dict[str, Any]]:
         """
         Get API key by hash.
 
@@ -373,7 +373,7 @@ class UserRepository:
             logger.error(f"Failed to get API key: {e}")
             raise DatabaseOperationError(str(e))
 
-    def get_api_keys(self, email: str) -> List[Dict[str, Any]]:
+    def get_api_keys(self, email: str) -> list[dict[str, Any]]:
         """
         Get all API keys for user.
 

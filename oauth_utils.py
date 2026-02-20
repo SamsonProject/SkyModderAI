@@ -3,6 +3,8 @@ OAuth utility functions for Google and GitHub authentication.
 This module handles OAuth flows and token management.
 """
 
+from __future__ import annotations
+
 import json
 from urllib.parse import urlencode, urljoin
 

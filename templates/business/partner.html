@@ -1,0 +1,467 @@
+{% extends "base.html" %}
+
+{% block title %}Verified Partner Program - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .partner-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .partner-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .partner-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .partner-header p {
+        color: #94a3b8;
+        font-size: 1.125rem;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .coming-soon-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #000;
+        padding: 0.5rem 1.5rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+    }
+
+    /* Value Prop */
+    .value-prop {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 16px;
+        padding: 2.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .value-prop h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #e2e8f0;
+    }
+
+    .value-prop p {
+        color: #94a3b8;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+    }
+
+    /* Benefits Grid */
+    .benefits-section {
+        margin-bottom: 3rem;
+    }
+
+    .benefits-section h2 {
+        text-align: center;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        color: #e2e8f0;
+    }
+
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .benefit-card {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.2s;
+    }
+
+    .benefit-card:hover {
+        border-color: #8b5cf6;
+        transform: translateY(-2px);
+    }
+
+    .benefit-card h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #e2e8f0;
+    }
+
+    .benefit-card p {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .benefit-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Requirements */
+    .requirements-section {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid #334155;
+        border-radius: 16px;
+        padding: 2.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .requirements-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #e2e8f0;
+    }
+
+    .requirements-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .requirements-list li {
+        padding: 1rem 0;
+        border-bottom: 1px solid #334155;
+        color: #94a3b8;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .requirements-list li:last-child {
+        border-bottom: none;
+    }
+
+    .requirements-list li::before {
+        content: "✓";
+        color: #8b5cf6;
+        font-weight: bold;
+        font-size: 1.25rem;
+    }
+
+    /* Pricing */
+    .pricing-section {
+        text-align: center;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 16px;
+        padding: 3rem 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .pricing-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #e2e8f0;
+    }
+
+    .pricing-section .price {
+        font-size: 4rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 1rem 0;
+    }
+
+    .pricing-section .price span {
+        font-size: 1.5rem;
+        color: #94a3b8;
+    }
+
+    .pricing-section p {
+        color: #94a3b8;
+        font-size: 1.125rem;
+        max-width: 600px;
+        margin: 0 auto 2rem auto;
+    }
+
+    /* Notify Form */
+    .notify-section {
+        text-align: center;
+        padding: 2rem;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid #334155;
+        border-radius: 12px;
+    }
+
+    .notify-section h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #e2e8f0;
+    }
+
+    .notify-section p {
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+    }
+
+    .notify-form {
+        display: flex;
+        gap: 1rem;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .notify-form input {
+        flex: 1;
+        padding: 1rem;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.3);
+        color: #e2e8f0;
+        font-size: 1rem;
+    }
+
+    .notify-form input:focus {
+        outline: none;
+        border-color: #8b5cf6;
+    }
+
+    .notify-form button {
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .notify-form button:hover {
+        background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        transform: translateY(-2px);
+    }
+
+    /* FAQ */
+    .faq-section {
+        margin-top: 3rem;
+    }
+
+    .faq-section h2 {
+        text-align: center;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        color: #e2e8f0;
+    }
+
+    .faq-item {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .faq-item h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #e2e8f0;
+    }
+
+    .faq-item p {
+        color: #94a3b8;
+        line-height: 1.6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="partner-page">
+    <div class="partner-header">
+        <span class="coming-soon-badge">🚀 Coming Soon</span>
+        <h1>Verified Partner Program</h1>
+        <p>For established businesses ready for white-glove service and premium placement.</p>
+    </div>
+
+    <!-- Value Proposition -->
+    <div class="value-prop">
+        <h2>Why Verified Partner?</h2>
+        <p>
+            You've built a successful business. You've proven your commitment to the community. 
+            Now you're ready for the next level.
+        </p>
+        <p>
+            Verified Partners get premium placement, direct access to me (the founder), 
+            co-marketing opportunities, and custom integrations. Limited to 20 partners 
+            to ensure quality and attention.
+        </p>
+        <p>
+            This isn't for everyone. It's for businesses ready to invest in long-term 
+            relationships, not just ad campaigns.
+        </p>
+    </div>
+
+    <!-- Benefits -->
+    <div class="benefits-section">
+        <h2>Partner Benefits</h2>
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon">⭐</div>
+                <h3>Verified Badge</h3>
+                <p>"Verified Partner" badge displayed across site—signals trust and commitment to community.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">📍</div>
+                <h3>Premium Placement</h3>
+                <p>Top placement in directory, Shopping section, and search results. Maximum visibility.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">📧</div>
+                <h3>Newsletter Feature</h3>
+                <p>Featured in monthly newsletter (50k+ subscribers). Direct access to engaged audience.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">🤝</div>
+                <h3>Co-Marketing</h3>
+                <p>Joint campaigns, case studies, and content. We succeed together.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">📞</div>
+                <h3>Direct Line to Founder</h3>
+                <p>Monthly calls with me (Chris). Strategy, feedback, direct access. No support tickets.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">📊</div>
+                <h3>Quarterly Reviews</h3>
+                <p>Deep-dive business reviews every quarter. Optimize performance, plan growth.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">🔌</div>
+                <h3>Custom Integrations</h3>
+                <p>API access, custom tracking, bespoke solutions. Built for your needs.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">🎯</div>
+                <h3>Priority Support</h3>
+                <p>24-hour response time. Dedicated Slack channel. We're here when you need us.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requirements -->
+    <div class="requirements-section">
+        <h2>Requirements</h2>
+        <ul class="requirements-list">
+            <li>
+                <div>
+                    <strong>4.5+ Community Score</strong>
+                    <p style="font-size: 0.875rem; margin-top: 0.25rem;">Maintain exceptional standing with community for 6+ months.</p>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>$1,000+ Ad Spend</strong>
+                    <p style="font-size: 0.875rem; margin-top: 0.25rem;">Proven commitment to platform (not just testing waters).</p>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>Reference Checks</strong>
+                    <p style="font-size: 0.875rem; margin-top: 0.25rem;">3+ references from community members we trust.</p>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>Ethical Interview</strong>
+                    <p style="font-size: 0.875rem; margin-top: 0.25rem;">Virtual/in-person interview with founder (me). Values alignment check.</p>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>Signed Agreement</strong>
+                    <p style="font-size: 0.875rem; margin-top: 0.25rem;">Ethical partnership agreement. No dark patterns, no BS.</p>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Pricing -->
+    <div class="pricing-section">
+        <h2>Simple Pricing</h2>
+        <div class="price">$500 <span>/ month</span></div>
+        <p>Plus ad spend (separate, pay-per-click). $5 CPM. First month free.</p>
+        <p style="font-size: 0.9rem; color: #64748b;">
+            Limited to 20 partners. Ensures quality and attention for each.
+        </p>
+    </div>
+
+    <!-- Notify Form -->
+    <div class="notify-section">
+        <h3>Get Notified at Launch</h3>
+        <p>We're accepting applications in Month 3. Get notified when spots open.</p>
+        <form class="notify-form" action="/api/partner-notify" method="POST">
+            <input type="email" name="email" placeholder="your@email.com" required>
+            <input type="text" name="company" placeholder="Company Name" required>
+            <button type="submit">Notify Me</button>
+        </form>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq-section">
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+            <h3>When does the program launch?</h3>
+            <p>Month 3 (post-launch). We're focusing on nailing the core experience first. Quality over speed.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>How many partners do you accept?</h3>
+            <p>Limited to 20. This ensures each partner gets real attention and support. Not a scale-at-all-costs play.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>What if I'm not ready yet?</h3>
+            <p>Start with Free Directory or Advertising tier. Build your community score. Then apply when ready.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>Can I upgrade/downgrade?</h3>
+            <p>Yes. Start with Advertising, upgrade to Partner when ready. Or downgrade if circumstances change. No lock-in.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>What's the commitment?</h3>
+            <p>Month-to-month. No annual contracts. If we're not delivering value, you can leave. (But you won't want to.)</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>Do I get a discount for annual payment?</h3>
+            <p>Yes! $5,000/year (2 months free). Same benefits, just prepaid.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

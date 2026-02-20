@@ -13,12 +13,12 @@
         margin: 0 auto;
         padding: 2rem;
     }
-    
+
     .analysis-header {
         text-align: center;
         margin-bottom: 3rem;
     }
-    
+
     .analysis-header h1 {
         font-size: 2.5rem;
         font-weight: 800;
@@ -28,12 +28,12 @@
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
-    
+
     .analysis-header p {
         color: #94a3b8;
         font-size: 1.125rem;
     }
-    
+
     .analysis-form {
         background: #1e293b;
         border: 1px solid #334155;
@@ -41,18 +41,18 @@
         padding: 2rem;
         margin-bottom: 2rem;
     }
-    
+
     .form-group {
         margin-bottom: 1.5rem;
     }
-    
+
     .form-group label {
         display: block;
         font-weight: 600;
         margin-bottom: 0.5rem;
         color: #f8fafc;
     }
-    
+
     .form-group select,
     .form-group textarea {
         width: 100%;
@@ -64,25 +64,25 @@
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.875rem;
     }
-    
+
     .form-group textarea {
         min-height: 300px;
         resize: vertical;
     }
-    
+
     .form-group select:focus,
     .form-group textarea:focus {
         outline: none;
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
     }
-    
+
     .form-actions {
         display: flex;
         gap: 1rem;
         justify-content: flex-end;
     }
-    
+
     .btn-analyze {
         background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
         color: white;
@@ -93,19 +93,19 @@
         cursor: pointer;
         transition: transform 0.15s, box-shadow 0.15s;
     }
-    
+
     .btn-analyze:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
     }
-    
+
     .analysis-examples {
         margin-top: 2rem;
         padding: 1.5rem;
         background: #0f172a;
         border-radius: 8px;
     }
-    
+
     .analysis-examples h3 {
         font-size: 0.875rem;
         text-transform: uppercase;
@@ -113,7 +113,7 @@
         color: #64748b;
         margin-bottom: 1rem;
     }
-    
+
     .example-mods {
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.75rem;
@@ -125,14 +125,14 @@
 
 {% block content %}
 <div class="analysis-page">
-    
+
     <header class="analysis-header">
         <h1>Analyze Your Mod List</h1>
         <p>Paste your load order and get instant conflict detection, recommendations, and optimization tips.</p>
     </header>
-    
+
     <form class="analysis-form" method="POST" action="{{ url_for('analysis.analyze') }}">
-        
+
         <div class="form-group">
             <label for="game">Select Game</label>
             <select name="game" id="game" required>
@@ -146,7 +146,7 @@
                 <option value="starfield" {% if game == 'starfield' %}selected{% endif %}>Starfield</option>
             </select>
         </div>
-        
+
         <div class="form-group">
             <label for="mod_list">Your Mod List</label>
             <textarea name="mod_list" id="mod_list" placeholder="Paste your mod list here (one mod per line)..." required></textarea>
@@ -154,7 +154,7 @@
                 Supports .esp, .esm, .esl files. One per line.
             </p>
         </div>
-        
+
         <div class="form-actions">
             <button type="submit" class="btn-analyze">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 8px;">
@@ -163,9 +163,9 @@
                 Analyze Load Order
             </button>
         </div>
-        
+
     </form>
-    
+
     <div class="analysis-examples">
         <h3>Example Format</h3>
         <div class="example-mods">
@@ -181,7 +181,7 @@
             ...
         </div>
     </div>
-    
+
 </div>
 {% endblock %}
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Optional, TypedDict
 
 from constants import ESL_LIMIT, PLUGIN_LIMIT, PLUGIN_LIMIT_WARN_THRESHOLD
 
@@ -43,7 +43,7 @@ class ModWarning(TypedDict):
 # Fix Guide Links
 # =============================================================================
 
-_FIX_LINKS: Dict[str, WarningLink] = {
+_FIX_LINKS: dict[str, WarningLink] = {
     "plugin_limit": {
         "title": "How to fix",
         "url": "https://tes5edit.github.io/docs/5-mod-conversion-to-esl.html",
@@ -100,11 +100,11 @@ class WarningConfig:
 
 def get_mod_warnings(
     mod_list_text: Optional[str] = None,
-    mod_list: Optional[List[str]] = None,
+    mod_list: Optional[list[str]] = None,
     game: str = "skyrimse",
-    specs: Optional[Dict[str, Any]] = None,
+    specs: Optional[dict[str, Any]] = None,
     config: Optional[WarningConfig] = None,
-) -> List[ModWarning]:
+) -> list[ModWarning]:
     """
     Build dynamic warnings from mod list, game, and specs.
 
@@ -121,7 +121,7 @@ def get_mod_warnings(
     from conflict_detector import parse_mod_list_text
 
     config = config or WarningConfig()
-    warnings: List[ModWarning] = []
+    warnings: list[ModWarning] = []
 
     # Parse mod list
     if mod_list_text and mod_list_text.strip():
@@ -157,9 +157,9 @@ def get_mod_warnings(
 def _check_plugin_limit(
     enabled_count: int,
     config: WarningConfig,
-) -> List[ModWarning]:
+) -> list[ModWarning]:
     """Check for plugin limit violations."""
-    warnings: List[ModWarning] = []
+    warnings: list[ModWarning] = []
 
     if enabled_count >= config.plugin_limit:
         warnings.append(
@@ -186,14 +186,14 @@ def _check_plugin_limit(
 
 
 def _check_system_strain(
-    mod_names: List[str],
+    mod_names: list[str],
     enabled_count: int,
-    specs: Optional[Dict[str, Any]],
+    specs: Optional[dict[str, Any]],
     game: str,
     config: WarningConfig,
-) -> List[ModWarning]:
+) -> list[ModWarning]:
     """Check for system strain based on mods and specs."""
-    warnings: List[ModWarning] = []
+    warnings: list[ModWarning] = []
     from system_impact import get_system_impact
 
     si = get_system_impact(mod_names=mod_names, enabled_count=enabled_count, specs=specs)
@@ -245,9 +245,9 @@ def _check_system_strain(
     return warnings
 
 
-def _check_script_heavy_mods(mod_names: List[str]) -> List[ModWarning]:
+def _check_script_heavy_mods(mod_names: list[str]) -> list[ModWarning]:
     """Check for script-heavy mods that may cause issues."""
-    warnings: List[ModWarning] = []
+    warnings: list[ModWarning] = []
 
     # Known script-heavy mods
     script_heavy_patterns = [
@@ -282,7 +282,7 @@ def _check_script_heavy_mods(mod_names: List[str]) -> List[ModWarning]:
 # =============================================================================
 
 
-def get_warning_summary(warnings: List[ModWarning]) -> Dict[str, int]:
+def get_warning_summary(warnings: list[ModWarning]) -> dict[str, int]:
     """
     Get a summary count of warnings by severity.
 
@@ -300,7 +300,7 @@ def get_warning_summary(warnings: List[ModWarning]) -> Dict[str, int]:
     return summary
 
 
-def has_critical_warnings(warnings: List[ModWarning]) -> bool:
+def has_critical_warnings(warnings: list[ModWarning]) -> bool:
     """
     Check if there are any critical (error-level) warnings.
 

@@ -323,6 +323,44 @@
         <p>Reach thousands of modders in the SkyModderAI community. Pay only for actual clicks.</p>
     </div>
 
+    <!-- Why This Tab Exists -->
+    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1)); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; text-align: center;">
+        <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: #3b82f6;">🛒 Why This Tab Exists</h2>
+        <p style="color: #94a3b8; font-size: 1rem; line-height: 1.7; max-width: 800px; margin: 0 auto 1.5rem auto;">
+            Look, this tool costs money to run. Servers, APIs, all that.
+            We could put ads in the core tool. We could lock features behind paywalls.
+            We don't.
+        </p>
+        <p style="color: #94a3b8; font-size: 1rem; line-height: 1.7; max-width: 800px; margin: 0 auto 1.5rem auto;">
+            Instead, we have this tab. Optional. Ethical sponsors only.
+            If you like what you see, support them. If not, close the tab.
+            The tool still works. Always free. Always will be.
+        </p>
+        <p style="color: #94a3b8; font-size: 1rem; line-height: 1.7; max-width: 800px; margin: 0 auto 0 auto;">
+            Oh, and if a sponsor's product is genuinely good and you click their ads enough,
+            they might not even need to pay much. We give a shit about our sponsors
+            because they bring our user base free material. Win-win.
+        </p>
+    </div>
+
+    <!-- Why Support Our Sponsors -->
+    <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.1)); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 16px; padding: 2rem; margin-bottom: 3rem; text-align: center;">
+        <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: #22c55e;">💚 Why Support Our Sponsors?</h2>
+        <p style="color: #94a3b8; font-size: 1rem; line-height: 1.7; max-width: 800px; margin: 0 auto 1.5rem auto;">
+            Look, we all get our games in <em>wink wink</em> "various ways." But here's the thing: this tool needs to stay online.
+            Server costs don't care about your "special discount." API bills don't accept "exposure."
+            And I'd rather sell out to <strong>carefully vetted sponsors</strong> than put ads in the core tool or lock features behind paywalls.
+        </p>
+        <p style="color: #94a3b8; font-size: 1rem; line-height: 1.7; max-width: 800px; margin: 0 auto 1.5rem auto;">
+            Every sponsor you see here has been through <a href="/sponsors/charter" style="color: #22c55e; text-decoration: underline;">rigorous ethical vetting</a>.
+            No crypto scams. No data harvesters. No subscription traps. Just honest businesses that make relevant products for modders.
+            When you click their ads, you're not getting spammed—you're helping keep the lights on.
+        </p>
+        <p style="color: #94a3b8; font-size: 0.95rem; font-style: italic; max-width: 800px; margin: 0 auto;">
+            Plus, let's be real: their bureaucratic approval processes move so slowly, I need all the help I can get to pay next month's server bill. 🍯
+        </p>
+    </div>
+
     <!-- Pricing Section -->
     <div class="pricing-section">
         <div class="pricing-card featured">
@@ -332,7 +370,7 @@
             <ul>
                 <li>Free to join business directory</li>
                 <li>First month of advertising FREE</li>
-                <li>Up to 10,000 clicks at no cost</li>
+                <li>Pay only after first month</li>
                 <li>Automatic ad placement</li>
                 <li>Fraud protection included</li>
             </ul>
@@ -344,7 +382,7 @@
             <p style="color: #94a3b8; font-size: 0.875rem;">After first month</p>
             <ul>
                 <li>${{ "%.3f"|format(pricing.cost_per_click) }} per click</li>
-                <li>$50 = 10,000 clicks prepaid</li>
+                <li>Simple meter charge</li>
                 <li>No monthly caps or hidden fees</li>
                 <li>Server-side fraud protection</li>
                 <li>24h click deduplication</li>
@@ -352,15 +390,15 @@
         </div>
 
         <div class="pricing-card">
-            <h3>📊 Bulk Plan</h3>
-            <div class="price">${{ "%.2f"|format(pricing.plan_price) }} <span>/ {{ pricing.plan_clicks|int // 1000 }}k clicks</span></div>
-            <p style="color: #94a3b8; font-size: 0.875rem;">Best value</p>
+            <h3>📊 Same Rate Always</h3>
+            <div class="price">${{ "%.2f"|format(pricing.cpm_rate) }} <span>/ 1000 clicks</span></div>
+            <p style="color: #94a3b8; font-size: 0.875rem;">No tiers, no packages</p>
             <ul>
-                <li>10,000 clicks prepaid</li>
-                <li>Lowest cost per click</li>
+                <li>Same rate for all volumes</li>
                 <li>Credits never expire</li>
                 <li>Add more anytime</li>
                 <li>Detailed analytics</li>
+                <li>No package tiers</li>
             </ul>
         </div>
     </div>

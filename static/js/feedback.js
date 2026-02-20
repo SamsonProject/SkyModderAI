@@ -1,6 +1,6 @@
 /**
  * Feedback UI - User feedback collection for SkyModderAI
- * 
+ *
  * Provides:
  * - Rating widgets (1-5 stars)
  * - Feedback forms (bug reports, suggestions)
@@ -17,29 +17,29 @@ class SessionTracker {
         this.events = [];
         this.queries = [];
         this.resolutions = [];
-        
+
         // Store session ID for later use
         sessionStorage.setItem('skymodder_session_id', this.sessionId);
     }
-    
+
     generateSessionId() {
         return 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
     }
-    
+
     trackQuery(type, data) {
         this.queries.push({
             type: type,
             data: data,
             timestamp: new Date().toISOString()
         });
-        
+
         this.events.push({
             event: 'query',
             type: type,
             timestamp: new Date().toISOString()
         });
     }
-    
+
     trackResolution(type, data, helpful = true) {
         this.resolutions.push({
             type: type,
@@ -48,7 +48,7 @@ class SessionTracker {
             timestamp: new Date().toISOString()
         });
     }
-    
+
     trackAction(action, details = null) {
         this.events.push({
             event: 'action',
@@ -57,10 +57,10 @@ class SessionTracker {
             timestamp: new Date().toISOString()
         });
     }
-    
+
     getSessionSummary() {
         const duration = (new Date() - this.startTime) / 1000;
-        
+
         return {
             session_id: this.sessionId,
             user_email: this.userEmail,
@@ -75,18 +75,18 @@ class SessionTracker {
             events: this.events
         };
     }
-    
+
     async saveSession() {
         try {
             const summary = this.getSessionSummary();
-            
+
             // Send to backend (async, doesn't block)
             await fetch('/api/feedback/session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(summary)
             });
-            
+
             console.log('Session saved:', this.sessionId);
         } catch (error) {
             console.error('Failed to save session:', error);
@@ -100,7 +100,7 @@ class FeedbackCollector {
         this.currentRating = null;
         this.currentFeedback = null;
     }
-    
+
     /**
      * Create a rating widget
      * @param {string} containerId - ID of container element
@@ -110,7 +110,7 @@ class FeedbackCollector {
     createRatingWidget(containerId, onRate, context = {}) {
         const container = document.getElementById(containerId);
         if (!container) return;
-        
+
         container.innerHTML = `
             <div class="feedback-rating-widget">
                 <p class="feedback-prompt">Was this helpful?</p>
@@ -124,15 +124,15 @@ class FeedbackCollector {
                 <div class="feedback-status"></div>
             </div>
         `;
-        
+
         const stars = container.querySelectorAll('.star-btn');
         const status = container.querySelector('.feedback-status');
-        
+
         stars.forEach(star => {
             star.addEventListener('click', async (e) => {
                 const rating = parseInt(e.currentTarget.dataset.rating);
                 this.currentRating = rating;
-                
+
                 // Update visual
                 stars.forEach((s, i) => {
                     const starSpan = s.querySelector('.star');
@@ -144,21 +144,21 @@ class FeedbackCollector {
                         starSpan.classList.remove('filled');
                     }
                 });
-                
+
                 // Submit rating
                 status.textContent = 'Submitting...';
                 try {
                     await this.submitRating(rating, context);
                     status.textContent = 'Thanks for your feedback!';
                     status.classList.add('success');
-                    
+
                     if (onRate) onRate(rating);
                 } catch (error) {
                     status.textContent = 'Failed to submit. Please try again.';
                     status.classList.add('error');
                 }
             });
-            
+
             star.addEventListener('mouseenter', () => {
                 const rating = parseInt(star.dataset.rating);
                 stars.forEach((s, i) => {
@@ -171,7 +171,7 @@ class FeedbackCollector {
                 });
             });
         });
-        
+
         container.addEventListener('mouseleave', () => {
             if (this.currentRating) {
                 stars.forEach((s, i) => {
@@ -187,7 +187,7 @@ class FeedbackCollector {
             }
         });
     }
-    
+
     /**
      * Submit a rating
      * @param {number} rating - 1-5 rating
@@ -203,14 +203,14 @@ class FeedbackCollector {
                 session_id: sessionStorage.getItem('skymodder_session_id')
             })
         });
-        
+
         if (!response.ok) {
             throw new Error('Failed to submit rating');
         }
-        
+
         return await response.json();
     }
-    
+
     /**
      * Show feedback form modal
      * @param {string} type - "bug", "suggestion", "other"
@@ -237,10 +237,10 @@ class FeedbackCollector {
                             <label for="feedback-content">
                                 ${this.getFeedbackLabel(type)}
                             </label>
-                            <textarea 
-                                id="feedback-content" 
-                                name="content" 
-                                rows="5" 
+                            <textarea
+                                id="feedback-content"
+                                name="content"
+                                rows="5"
                                 required
                                 placeholder="${this.getFeedbackPlaceholder(type)}"
                             ></textarea>
@@ -259,24 +259,24 @@ class FeedbackCollector {
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(modal);
-        
+
         // Event handlers
         const closeBtn = modal.querySelector('.feedback-close');
         const cancelBtn = modal.querySelector('.feedback-cancel');
         const form = modal.querySelector('#feedback-form');
-        
+
         closeBtn.addEventListener('click', () => this.closeFeedbackForm(modal));
         cancelBtn.addEventListener('click', () => this.closeFeedbackForm(modal));
         modal.addEventListener('click', (e) => {
             if (e.target === modal) this.closeFeedbackForm(modal);
         });
-        
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(form);
-            
+
             const data = {
                 type: type,
                 category: formData.get('category'),
@@ -285,11 +285,11 @@ class FeedbackCollector {
                 context: context,
                 session_id: sessionStorage.getItem('skymodder_session_id')
             };
-            
+
             const submitBtn = modal.querySelector('.feedback-submit');
             submitBtn.textContent = 'Submitting...';
             submitBtn.disabled = true;
-            
+
             try {
                 await this.submitFeedback(data);
                 this.closeFeedbackForm(modal);
@@ -300,10 +300,10 @@ class FeedbackCollector {
                 alert('Failed to submit feedback. Please try again.');
             }
         });
-        
+
         modal.classList.add('show');
     }
-    
+
     getFeedbackTitle(type) {
         const titles = {
             'bug': 'Report a Bug',
@@ -314,7 +314,7 @@ class FeedbackCollector {
         };
         return titles[type] || 'Send Feedback';
     }
-    
+
     getFeedbackLabel(type) {
         const labels = {
             'bug': 'Describe the bug you encountered',
@@ -325,7 +325,7 @@ class FeedbackCollector {
         };
         return labels[type] || 'Your feedback';
     }
-    
+
     getFeedbackPlaceholder(type) {
         const placeholders = {
             'bug': 'I was trying to... and instead...',
@@ -336,7 +336,7 @@ class FeedbackCollector {
         };
         return placeholders[type] || 'Share your thoughts...';
     }
-    
+
     getCategoryOptions(type) {
         const categories = {
             'bug': [
@@ -373,32 +373,32 @@ class FeedbackCollector {
                 { value: 'other', label: 'Other' }
             ]
         };
-        
+
         const opts = categories[type] || categories['other'];
         return opts.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
     }
-    
+
     closeFeedbackForm(modal) {
         modal.classList.remove('show');
         setTimeout(() => modal.remove(), 300);
     }
-    
+
     showFeedbackThanks() {
         const toast = document.createElement('div');
         toast.className = 'feedback-toast';
         toast.textContent = 'Thanks for your feedback!';
         document.body.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.classList.add('show');
         }, 10);
-        
+
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
-    
+
     /**
      * Submit feedback
      * @param {object} data - Feedback data
@@ -409,11 +409,11 @@ class FeedbackCollector {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-        
+
         if (!response.ok) {
             throw new Error('Failed to submit feedback');
         }
-        
+
         return await response.json();
     }
 }
@@ -425,12 +425,12 @@ let feedbackCollector = null;
 function initFeedbackSystem(userEmail = null) {
     sessionTracker = new SessionTracker(userEmail);
     feedbackCollector = new FeedbackCollector();
-    
+
     // Track page view
     sessionTracker.trackAction('page_view', {
         path: window.location.pathname
     });
-    
+
     // Save session on page unload (async, doesn't block)
     window.addEventListener('beforeunload', () => {
         if (sessionTracker) {
@@ -440,7 +440,7 @@ function initFeedbackSystem(userEmail = null) {
             navigator.sendBeacon('/api/feedback/session', blob);
         }
     });
-    
+
     return { sessionTracker, feedbackCollector };
 }
 

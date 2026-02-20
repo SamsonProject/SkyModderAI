@@ -13,7 +13,7 @@
     --bg-card-solid: #0f172a;
     --bg-input: rgba(30, 41, 59, 0.5);
     --bg-glass: rgba(15, 23, 42, 0.4);
-    
+
     /* Vibrant neon accents */
     --accent-primary: #06b6d4;
     --accent-primary-glow: #22d3ee;
@@ -23,22 +23,22 @@
     --accent-warm: #f59e0b;
     --accent-success: #10b981;
     --accent-error: #ef4444;
-    
+
     /* Text colors */
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
-    
+
     /* Semantic colors */
     --error: #ef4444;
     --warning: #f59e0b;
     --success: #10b981;
     --info: #3b82f6;
-    
+
     /* Borders with transparency */
     --border: rgba(51, 65, 85, 0.5);
     --border-glow: rgba(6, 182, 212, 0.3);
-    
+
     /* Shadows — Layered depth */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
@@ -46,11 +46,11 @@
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
     --shadow-glow: 0 0 20px rgba(6, 182, 212, 0.3);
     --shadow-glow-purple: 0 0 20px rgba(168, 85, 247, 0.3);
-    
+
     /* Typography */
     --font-mono: 'JetBrains Mono', 'Consolas', monospace;
     --font-sans: 'Sora', 'Inter', system-ui, sans-serif;
-    
+
     /* Spacing */
     --space-xs: 4px;
     --space-sm: 8px;
@@ -59,14 +59,14 @@
     --space-xl: 32px;
     --space-xxl: 48px;
     --space-xxxl: 64px;
-    
+
     /* Border radius */
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;
     --radius-xl: 20px;
     --radius-full: 9999px;
-    
+
     /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -112,7 +112,7 @@ body::before {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: 
+    background:
         radial-gradient(ellipse at 20% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
         radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
         radial-gradient(ellipse at 50% 80%, rgba(236, 72, 153, 0.06) 0%, transparent 50%);
@@ -132,7 +132,7 @@ body::after {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: 
+    background-image:
         linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
     background-size: 50px 50px;
@@ -243,10 +243,10 @@ a:hover {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(6, 182, 212, 0.3), 
-        rgba(168, 85, 247, 0.2), 
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(6, 182, 212, 0.3),
+        rgba(168, 85, 247, 0.2),
         transparent
     );
 }
@@ -285,10 +285,10 @@ a:hover {
     font-size: 1.5rem;
     font-weight: 800;
     letter-spacing: -0.03em;
-    background: linear-gradient(135deg, 
-        var(--accent-primary-glow) 0%, 
+    background: linear-gradient(135deg,
+        var(--accent-primary-glow) 0%,
         var(--accent-primary) 30%,
-        var(--accent-secondary-glow) 70%, 
+        var(--accent-secondary-glow) 70%,
         var(--accent-secondary) 100%
     );
     background-size: 200% 100%;
@@ -433,9 +433,9 @@ a:hover {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.2) 0%, 
-        transparent 50%, 
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        transparent 50%,
         rgba(255, 255, 255, 0.1) 100%
     );
     opacity: 0;
@@ -504,14 +504,14 @@ a:hover {
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, 
-            transparent, 
-            rgba(255, 255, 255, 0.2), 
+        background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
             transparent
         );
         transition: left 0.5s;
     }
-    
+
     &:hover::after {
         left: 100%;
     }
@@ -531,7 +531,7 @@ a:hover {
 .hero-glow {
     position: absolute;
     inset: -30%;
-    background: 
+    background:
         radial-gradient(ellipse 50% 40% at 30% 40%, rgba(6, 182, 212, 0.12) 0%, transparent 60%),
         radial-gradient(ellipse 40% 30% at 70% 40%, rgba(168, 85, 247, 0.1) 0%, transparent 60%),
         radial-gradient(ellipse 30% 50% at 50% 80%, rgba(236, 72, 153, 0.08) 0%, transparent 60%);
@@ -551,10 +551,10 @@ a:hover {
     letter-spacing: -0.04em;
     margin-bottom: var(--space-lg);
     line-height: 1.1;
-    background: linear-gradient(135deg, 
-        var(--text-primary) 0%, 
+    background: linear-gradient(135deg,
+        var(--text-primary) 0%,
         var(--text-primary) 30%,
-        var(--accent-primary-glow) 60%, 
+        var(--accent-primary-glow) 60%,
         var(--accent-secondary-glow) 100%
     );
     background-size: 200% 100%;
@@ -951,8 +951,8 @@ a:hover {
 .ai-summary-section {
     margin-bottom: var(--space-lg);
     padding: var(--space-lg);
-    background: linear-gradient(135deg, 
-        rgba(6, 182, 212, 0.1), 
+    background: linear-gradient(135deg,
+        rgba(6, 182, 212, 0.1),
         rgba(168, 85, 247, 0.08)
     );
     border: 1px solid var(--border-glow);
@@ -1211,7 +1211,7 @@ a:hover {
     .tool-section {
         grid-template-columns: 1fr;
     }
-    
+
     .hero-title {
         font-size: 2.5rem;
     }
@@ -1222,40 +1222,40 @@ a:hover {
         flex-wrap: wrap;
         gap: var(--space-md);
     }
-    
+
     .header-search {
         order: 3;
         max-width: 100%;
         width: 100%;
     }
-    
+
     .hero-title {
         font-size: 2rem;
     }
-    
+
     .hero-subtitle {
         font-size: 1rem;
     }
-    
+
     .main-tabs {
         overflow-x: auto;
     }
-    
+
     .input-actions {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .input-actions-import,
     .input-actions-main {
         justify-content: center;
     }
-    
+
     .mod-counter {
         margin-left: 0;
         align-items: center;
     }
-    
+
     .summary {
         justify-content: center;
     }
@@ -1360,14 +1360,14 @@ a:focus-visible {
         background: white;
         color: black;
     }
-    
+
     .site-header,
     .hero,
     .main-tabs,
     .input-actions {
         display: none;
     }
-    
+
     .input-panel,
     .results-panel {
         box-shadow: none;
@@ -2143,4 +2143,3 @@ body.user-is-pro .main-tab.active {
 .community-post-content a:hover {
     color: var(--accent-primary-glow);
 }
-

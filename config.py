@@ -3,6 +3,8 @@ Centralized configuration management for SkyModderAI.
 Loads settings from environment variables with sensible defaults for development.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from pathlib import Path
@@ -21,6 +23,9 @@ except ModuleNotFoundError:  # pragma: no cover
 # Load environment variables from .env file if it exists
 env_path = Path(".") / ".env"
 load_dotenv(dotenv_path=env_path)
+
+# Initialize logging before configuration
+logger = logging.getLogger(__name__)
 
 
 class Config:
@@ -172,7 +177,6 @@ config = Config()
 config.validate_config()
 
 # Log configuration status
-logger = logging.getLogger(__name__)
 logger.info(f"Running in {config.FLASK_ENV} mode")
 if config.PAYMENTS_ENABLED:
     logger.info("Payments enabled")

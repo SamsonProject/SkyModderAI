@@ -197,27 +197,27 @@
         </div>
 
         <div class="auth-split-grid">
-            
+
             <!-- Login Card -->
             <div class="auth-card auth-split-card {% if active == 'login' %}active{% endif %}" id="login-panel" role="tabpanel" aria-labelledby="login-tab" style="display: {% if active == 'login' %}block{% else %}none{% endif %};">
                 <div class="auth-logo">
                     <h1><span class="logo-icon-rotate" style="vertical-align: middle; margin-right: 8px; display: inline-block;"></span> SkyModderAI</h1>
                     <p class="auth-tagline-top">Welcome back</p>
                 </div>
-                
+
                 <p class="auth-tagline">Sign in to continue to your dashboard</p>
-                
+
                 {% if request.args.get('error') == 'google_oauth_failed' %}
                 <div class="auth-error" style="margin-bottom: 1.5rem; padding: 0.75rem; background: #fff5f5; border-left: 3px solid #ff4d4f; color: #cf1322;">
                     Google sign-in didn't complete. Try again below.
                 </div>
                 {% endif %}
-                
+
                 <div class="auth-providers" style="margin-bottom: 1.5rem;">
                     {% if google_oauth_enabled %}
                     <div class="auth-provider-row" style="margin-bottom: 1rem;">
-                        <a href="{{ url_for('auth_google', next=request.args.get('next')) if request.args.get('next') else url_for('auth_google') }}" 
-                           class="oauth-btn" 
+                        <a href="{{ url_for('auth_google', next=request.args.get('next')) if request.args.get('next') else url_for('auth_google') }}"
+                           class="oauth-btn"
                            style="display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; background: white; color: #444; text-decoration: none; font-weight: 500; transition: all 0.2s;"
                            onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';"
                            onmouseout="this.style.boxShadow='none';">
@@ -238,11 +238,11 @@
                         <hr style="position: absolute; top: 50%; width: 100%; margin: 0; border: none; border-top: 1px solid #e0e0e0; z-index: -1;">
                     </div>
                     {% endif %}
-                    
+
                     {% if github_oauth_enabled %}
                     <div class="auth-provider-row" style="margin-bottom: 1rem;">
-                        <a href="{{ url_for('auth_github', next=request.args.get('next')) if request.args.get('next') else url_for('auth_github') }}" 
-                           class="oauth-btn" 
+                        <a href="{{ url_for('auth_github', next=request.args.get('next')) if request.args.get('next') else url_for('auth_github') }}"
+                           class="oauth-btn"
                            style="display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; background: #24292e; color: white; text-decoration: none; font-weight: 500; transition: all 0.2s;"
                            onmouseover="this.style.opacity='0.9';"
                            onmouseout="this.style.opacity='1';">
@@ -253,7 +253,7 @@
                         </a>
                     </div>
                     {% endif %}
-                    
+
                     {% if google_oauth_enabled or github_oauth_enabled %}
                     <div class="auth-divider" style="margin: 1.5rem 0; text-align: center; position: relative;">
                         <span style="background: white; padding: 0 10px; color: #666; font-size: 0.9rem;">or</span>
@@ -261,13 +261,13 @@
                     </div>
                     {% endif %}
                 </div>
-                
+
                 <form id="login-form" class="auth-form">
                     <div class="form-group">
                         <label for="login-email">Email</label>
                         <input type="email" id="login-email" name="email" placeholder="you@example.com" required autocomplete="email" autofocus>
                     </div>
-                    
+
                     <div class="form-group">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <label for="login-password">Password</label>
@@ -275,14 +275,14 @@
                         </div>
                         <input type="password" id="login-password" name="password" placeholder="••••••••" required autocomplete="current-password">
                     </div>
-                    
+
                     <div class="form-group" style="margin-top: 0.5rem;">
                         <label class="checkbox-label" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none;">
                             <input type="checkbox" id="login-remember" name="remember_me" checked style="width: auto;">
                             <span>Keep me signed in</span>
                         </label>
                     </div>
-                    
+
                     <div class="auth-actions">
                         <button type="submit" id="login-submit-btn" class="primary-button" style="width: 100%; padding: 0.75rem; font-size: 1rem;">
                             Sign in
@@ -290,21 +290,21 @@
                     </div>
                 </form>
             </div>
-            
+
             <!-- Signup Card -->
             <div class="auth-card auth-split-card {% if active == 'signup' %}active{% endif %}" id="signup-panel" role="tabpanel" aria-labelledby="signup-tab" style="display: {% if active == 'signup' %}block{% else %}none{% endif %};">
                 <div class="auth-logo">
                     <h1><span class="logo-icon-rotate" style="vertical-align: middle; margin-right: 8px; display: inline-block;"></span> SkyModderAI</h1>
                     <p class="auth-tagline-top">Create account</p>
                 </div>
-                
+
                 <p class="auth-tagline">Join thousands of modders in our community</p>
-                
+
                 <div class="auth-providers" style="margin-bottom: 1.5rem;">
                     {% if google_oauth_enabled %}
                     <div class="auth-provider-row" style="margin-bottom: 1rem;">
-                        <a href="{{ url_for('auth_google', next=request.args.get('next')) if request.args.get('next') else url_for('auth_google') }}" 
-                           class="oauth-btn" 
+                        <a href="{{ url_for('auth_google', next=request.args.get('next')) if request.args.get('next') else url_for('auth_google') }}"
+                           class="oauth-btn"
                            style="display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; background: white; color: #444; text-decoration: none; font-weight: 500; transition: all 0.2s;"
                            onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';"
                            onmouseout="this.style.boxShadow='none';">
@@ -325,11 +325,11 @@
                         <hr style="position: absolute; top: 50%; width: 100%; margin: 0; border: none; border-top: 1px solid #e0e0e0; z-index: -1;">
                     </div>
                     {% endif %}
-                    
+
                     {% if github_oauth_enabled %}
                     <div class="auth-provider-row" style="margin-bottom: 1rem;">
-                        <a href="{{ url_for('auth_github', next=request.args.get('next')) if request.args.get('next') else url_for('auth_github') }}" 
-                           class="oauth-btn" 
+                        <a href="{{ url_for('auth_github', next=request.args.get('next')) if request.args.get('next') else url_for('auth_github') }}"
+                           class="oauth-btn"
                            style="display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; background: #24292e; color: white; text-decoration: none; font-weight: 500; transition: all 0.2s;"
                            onmouseover="this.style.opacity='0.9';"
                            onmouseout="this.style.opacity='1';">
@@ -340,7 +340,7 @@
                         </a>
                     </div>
                     {% endif %}
-                    
+
                     {% if google_oauth_enabled or github_oauth_enabled %}
                     <div class="auth-divider" style="margin: 1.5rem 0; text-align: center; position: relative;">
                         <span style="background: white; padding: 0 10px; color: #666; font-size: 0.9rem;">or</span>
@@ -348,50 +348,50 @@
                     </div>
                     {% endif %}
                 </div>
-                
+
                 <div id="signup-success" class="auth-success-box" style="display: none; margin-bottom: 1.5rem; padding: 0.75rem; background: #f6ffed; border-left: 3px solid #52c41a; color: #237804;">
                     <p style="margin: 0;"><strong>Check your email.</strong> Click the link we sent—then log in and go to Pro checkout when ready.</p>
                 </div>
-                
+
                 <form id="signup-pro-form" class="auth-form">
                     <div class="form-group">
                         <label for="signup-email">Email</label>
                         <input type="email" id="signup-email" name="email" placeholder="you@example.com" required autocomplete="email" autofocus>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="signup-password">Password</label>
                         <input type="password" id="signup-password" name="password" placeholder="••••••••" minlength="8" required autocomplete="new-password">
                         <p class="hint" style="margin: 0.25rem 0 0; font-size: 0.8rem; color: #666;">Use at least 8 characters</p>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="signup-confirm">Confirm password</label>
                         <input type="password" id="signup-confirm" name="confirm" placeholder="••••••••" minlength="8" required autocomplete="new-password">
                     </div>
-                    
+
                     <div class="auth-actions">
                         <button type="submit" id="signup-submit-btn" class="primary-button" style="width: 100%; padding: 0.75rem; font-size: 1rem;">
                             Create account
                         </button>
                     </div>
                 </form>
-                
+
                 <p class="hint" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #f0f0f0; font-size: 0.8rem; color: #666; line-height: 1.5;">
-                    By creating an account, you agree to our 
-                    <a href="/terms" style="color: var(--primary-color); text-decoration: none;">Terms of Service</a> and 
+                    By creating an account, you agree to our
+                    <a href="/terms" style="color: var(--primary-color); text-decoration: none;">Terms of Service</a> and
                     <a href="/privacy" style="color: var(--primary-color); text-decoration: none;">Privacy Policy</a>.
                     OpenClaw Lab is separate from Pro and requires explicit risk acknowledgements before checkout.
                 </p>
             </div>
         </div>
-        
+
         <footer class="auth-footer">
             <p>© 2023 SkyModderAI. All rights reserved.</p>
             <p>
-                <a href="/privacy">Privacy</a> · 
-                <a href="/terms">Terms</a> · 
-                <a href="/cookies">Cookies</a> · 
+                <a href="/privacy">Privacy</a> ·
+                <a href="/terms">Terms</a> ·
+                <a href="/cookies">Cookies</a> ·
                 <a href="mailto:support@skymodderai.com">Support</a>
             </p>
         </footer>

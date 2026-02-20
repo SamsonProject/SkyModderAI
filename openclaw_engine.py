@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # =============================================================================
 # Permission Scopes
@@ -87,9 +87,9 @@ class PlanAction:
     phase: str
     kind: str
     description: str
-    requires_permissions: List[str] = field(default_factory=list)
+    requires_permissions: list[str] = field(default_factory=list)
     file_action: Optional[FileAction] = None
-    launch: Optional[Dict[str, str]] = None
+    launch: Optional[dict[str, str]] = None
 
 
 @dataclass
@@ -109,12 +109,12 @@ class OpenClawPlan:
     game: str
     objective: str
     playstyle: str
-    actions: List[PlanAction] = field(default_factory=list)
+    actions: list[PlanAction] = field(default_factory=list)
     safety_contract: SafetyContract = field(default_factory=SafetyContract)
-    telemetry: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    telemetry: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert plan to dictionary for JSON serialization."""
         return {
             "game": self.game,
@@ -159,9 +159,9 @@ def build_openclaw_plan(
     game: str,
     objective: str,
     playstyle: str,
-    permissions: Dict[str, bool],
-    telemetry: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    permissions: dict[str, bool],
+    telemetry: Optional[dict[str, Any]] = None,
+) -> dict[str, Any]:
     """
     Build a constrained, explainable plan for OpenClaw.
     The plan is intentionally sandbox-first and can be preflight-validated.
@@ -307,7 +307,7 @@ def build_openclaw_plan(
 # =============================================================================
 
 
-def suggest_loop_adjustments(feedback: Dict[str, Any]) -> List[str]:
+def suggest_loop_adjustments(feedback: dict[str, Any]) -> list[str]:
     """
     Turn post-run feedback into next-step suggestions.
 
@@ -321,7 +321,7 @@ def suggest_loop_adjustments(feedback: Dict[str, Any]) -> List[str]:
     Returns:
         List of suggestion strings (max 5)
     """
-    tips: List[str] = []
+    tips: list[str] = []
     fps_avg = _to_float(feedback.get("fps_avg"))
     crashes = _to_int(feedback.get("crashes"))
     stutter = _to_int(feedback.get("stutter_events"))
@@ -358,7 +358,7 @@ def suggest_loop_adjustments(feedback: Dict[str, Any]) -> List[str]:
 # =============================================================================
 
 
-def validate_plan_safety(plan: Dict[str, Any]) -> tuple[bool, List[str]]:
+def validate_plan_safety(plan: dict[str, Any]) -> tuple[bool, list[str]]:
     """
     Validate a plan against safety constraints.
 
@@ -368,7 +368,7 @@ def validate_plan_safety(plan: Dict[str, Any]) -> tuple[bool, List[str]]:
     Returns:
         Tuple of (is_safe, list_of_violations)
     """
-    violations: List[str] = []
+    violations: list[str] = []
 
     # Check safety contract
     safety = plan.get("safety_contract", {})
@@ -408,7 +408,7 @@ def validate_plan_safety(plan: Dict[str, Any]) -> tuple[bool, List[str]]:
     return len(violations) == 0, violations
 
 
-def validate_permissions(permissions: Dict[str, bool]) -> tuple[bool, List[str]]:
+def validate_permissions(permissions: dict[str, bool]) -> tuple[bool, list[str]]:
     """
     Validate permission grants.
 
@@ -418,7 +418,7 @@ def validate_permissions(permissions: Dict[str, bool]) -> tuple[bool, List[str]]
     Returns:
         Tuple of (is_valid, list_of_issues)
     """
-    issues: List[str] = []
+    issues: list[str] = []
 
     for scope in permissions:
         if scope not in OPENCLAW_PERMISSION_SCOPES:
@@ -456,7 +456,7 @@ def _to_float(v: Any) -> Optional[float]:
         return None
 
 
-def get_permission_descriptions() -> Dict[str, str]:
+def get_permission_descriptions() -> dict[str, str]:
     """Get human-readable descriptions for each permission scope."""
     return {
         PermissionScope.LAUNCH_GAME: "Launch the game through OpenClaw wrapper",

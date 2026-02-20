@@ -1,6 +1,6 @@
 # Community Builds Implementation
 
-**Date:** February 19, 2026  
+**Date:** February 19, 2026
 **Status:** ✅ Complete - Ready for Testing
 
 ---
@@ -171,7 +171,7 @@ CREATE TABLE community_build_votes (
 🔍 Search | 📋 Paste | 📁 Import | 🔥 Community Builds
                                                       ↓
                                         [Select Game: Skyrim SE ▼]
-                                        
+
                                         Gate to Sovngarde
                                         1700+ mods • vanilla_plus • mid
                                         👍 0  👎 0  🌱 Seed
@@ -211,10 +211,10 @@ CREATE TABLE community_build_votes (
    ```bash
    # Get all builds
    curl http://localhost:5000/api/community-builds
-   
+
    # Get Skyrim SE builds
    curl http://localhost:5000/api/community-builds?game=skyrimse
-   
+
    # Get stats
    curl http://localhost:5000/api/community-builds/stats
    ```
@@ -302,5 +302,5 @@ templates/includes/dev_panel.html     (MODIFIED - replaced Popular Mods tab)
 
 ---
 
-**Built by modders, for modders.**  
+**Built by modders, for modders.**
 **Community-driven, not developer-curated.**

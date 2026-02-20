@@ -26,4 +26,3 @@ CREATE INDEX IF NOT EXISTS idx_shared_load_orders_expires ON shared_load_orders(
 -- Created: 2026-02-17
 -- Purpose: Enable sharing mod lists via URL
 -- Rollback: DROP TABLE IF EXISTS shared_load_orders;
-

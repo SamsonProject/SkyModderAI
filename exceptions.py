@@ -6,7 +6,7 @@ Professional-grade error handling with specific exception types for different er
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 class SkyModderAIError(Exception):
@@ -17,7 +17,7 @@ class SkyModderAIError(Exception):
         message: str,
         error_code: str = "UNKNOWN_ERROR",
         status_code: int = 500,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         self.message = message
         self.error_code = error_code
@@ -25,7 +25,7 @@ class SkyModderAIError(Exception):
         self.details = details or {}
         super().__init__(self.message)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert exception to dictionary for JSON response."""
         return {
             "error": self.message,
@@ -47,7 +47,7 @@ class AuthenticationError(SkyModderAIError):
         self,
         message: str = "Authentication required",
         error_code: str = "AUTH_REQUIRED",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 401, details)
 
@@ -59,7 +59,7 @@ class InvalidCredentialsError(SkyModderAIError):
         self,
         message: str = "Invalid email or password",
         error_code: str = "INVALID_CREDENTIALS",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 401, details)
 
@@ -71,7 +71,7 @@ class TokenExpiredError(SkyModderAIError):
         self,
         message: str = "Token has expired",
         error_code: str = "TOKEN_EXPIRED",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 401, details)
 
@@ -83,7 +83,7 @@ class TokenInvalidError(SkyModderAIError):
         self,
         message: str = "Invalid token",
         error_code: str = "TOKEN_INVALID",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 401, details)
 
@@ -95,7 +95,7 @@ class AuthorizationError(SkyModderAIError):
         self,
         message: str = "You do not have permission to access this resource",
         error_code: str = "FORBIDDEN",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 403, details)
 
@@ -107,7 +107,7 @@ class AccountNotVerifiedError(SkyModderAIError):
         self,
         message: str = "Please verify your email address",
         error_code: str = "ACCOUNT_NOT_VERIFIED",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 403, details)
 
@@ -124,7 +124,7 @@ class ValidationError(SkyModderAIError):
         self,
         message: str = "Validation failed",
         error_code: str = "VALIDATION_ERROR",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 400, details)
 
@@ -136,7 +136,7 @@ class InvalidEmailError(ValidationError):
         self,
         message: str = "Invalid email format",
         error_code: str = "INVALID_EMAIL",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, details)
 
@@ -148,7 +148,7 @@ class InvalidPasswordError(ValidationError):
         self,
         message: str = "Password does not meet requirements",
         error_code: str = "INVALID_PASSWORD",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, details)
 
@@ -160,7 +160,7 @@ class InvalidGameIDError(ValidationError):
         self,
         message: str = "Invalid game ID",
         error_code: str = "INVALID_GAME_ID",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, details)
 
@@ -172,7 +172,7 @@ class InvalidModListError(ValidationError):
         self,
         message: str = "Invalid mod list",
         error_code: str = "INVALID_MOD_LIST",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, details)
 
@@ -184,7 +184,7 @@ class InputTooLargeError(ValidationError):
         self,
         message: str = "Input exceeds maximum size limit",
         error_code: str = "INPUT_TOO_LARGE",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, details)
 
@@ -201,7 +201,7 @@ class ResourceNotFoundError(SkyModderAIError):
         self,
         message: str = "Resource not found",
         error_code: str = "NOT_FOUND",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 404, details)
 
@@ -213,7 +213,7 @@ class UserNotFoundError(ResourceNotFoundError):
         self,
         message: str = "User not found",
         error_code: str = "USER_NOT_FOUND",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, details)
 
@@ -225,7 +225,7 @@ class ModNotFoundError(ResourceNotFoundError):
         self,
         message: str = "Mod not found",
         error_code: str = "MOD_NOT_FOUND",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, details)
 
@@ -237,7 +237,7 @@ class ConflictError(SkyModderAIError):
         self,
         message: str = "Resource conflict",
         error_code: str = "CONFLICT",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 409, details)
 
@@ -249,7 +249,7 @@ class DuplicateResourceError(ConflictError):
         self,
         message: str = "Resource already exists",
         error_code: str = "DUPLICATE_RESOURCE",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, details)
 
@@ -267,7 +267,7 @@ class AnalysisError(SkyModderAIError):
         message: str = "Analysis failed",
         error_code: str = "ANALYSIS_ERROR",
         status_code: int = 500,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, status_code, details)
 
@@ -279,7 +279,7 @@ class ConflictDetectionError(AnalysisError):
         self,
         message: str = "Failed to detect conflicts",
         error_code: str = "CONFLICT_DETECTION_FAILED",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 500, details)
 
@@ -291,7 +291,7 @@ class LOOTParserError(AnalysisError):
         self,
         message: str = "Failed to parse LOOT data",
         error_code: str = "LOOT_PARSER_ERROR",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 500, details)
 
@@ -303,7 +303,7 @@ class DataNotAvailableError(AnalysisError):
         self,
         message: str = "Required data is not available",
         error_code: str = "DATA_NOT_AVAILABLE",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 503, details)
 
@@ -321,7 +321,7 @@ class OpenClawError(SkyModderAIError):
         message: str = "OpenCLAW operation failed",
         error_code: str = "OPENCLAW_ERROR",
         status_code: int = 500,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, status_code, details)
 
@@ -333,7 +333,7 @@ class SandboxError(OpenClawError):
         self,
         message: str = "Sandbox operation failed",
         error_code: str = "SANDBOX_ERROR",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 500, details)
 
@@ -345,7 +345,7 @@ class PathTraversalError(SandboxError):
         self,
         message: str = "Path traversal detected",
         error_code: str = "PATH_TRAVERSAL",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 400, details)
 
@@ -357,7 +357,7 @@ class PermissionDeniedError(OpenClawError):
         self,
         message: str = "Permission denied",
         error_code: str = "PERMISSION_DENIED",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 403, details)
 
@@ -369,7 +369,7 @@ class PlanExecutionError(OpenClawError):
         self,
         message: str = "Plan execution failed",
         error_code: str = "PLAN_EXECUTION_FAILED",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 500, details)
 
@@ -381,7 +381,7 @@ class SafetyViolationError(OpenClawError):
         self,
         message: str = "Safety check failed",
         error_code: str = "SAFETY_VIOLATION",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 400, details)
 
@@ -398,7 +398,7 @@ class RateLimitError(SkyModderAIError):
         self,
         message: str = "Rate limit exceeded",
         error_code: str = "RATE_LIMIT_EXCEEDED",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 429, details)
 
@@ -410,7 +410,7 @@ class ServiceUnavailableError(SkyModderAIError):
         self,
         message: str = "Service temporarily unavailable",
         error_code: str = "SERVICE_UNAVAILABLE",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 503, details)
 
@@ -427,7 +427,7 @@ class DatabaseError(SkyModderAIError):
         self,
         message: str = "Database operation failed",
         error_code: str = "DATABASE_ERROR",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, 500, details)
 
@@ -439,7 +439,7 @@ class DatabaseConnectionError(DatabaseError):
         self,
         message: str = "Failed to connect to database",
         error_code: str = "DATABASE_CONNECTION_FAILED",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, details)
 
@@ -451,6 +451,6 @@ class DatabaseOperationError(DatabaseError):
         self,
         message: str = "Database operation failed",
         error_code: str = "DATABASE_OPERATION_FAILED",
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ):
         super().__init__(message, error_code, details)

@@ -15,10 +15,12 @@ to the best existing resources. This is scientific citation for modding.
 No vague links. No content duplication. Just smart linking.
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,7 @@ class Citation:
     quote: Optional[str] = None  # Direct quote if applicable
     reliability_score: float = 1.0  # 0-1 confidence in source
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "source_type": self.source_type,
             "url": self.url,
@@ -169,7 +171,7 @@ class WalkthroughManager:
         self,
         game: str,
         topic: str,
-    ) -> Dict[str, Citation]:
+    ) -> dict[str, Citation]:
         """Get all citations for a topic."""
         game = game.lower().strip()
         return self.citations.get(game, {}).get(topic, {})
@@ -244,7 +246,7 @@ class WalkthroughManager:
 
         return True
 
-    def get_stuck_index(self, game: str) -> List[Dict[str, Any]]:
+    def get_stuck_index(self, game: str) -> list[dict[str, Any]]:
         """
         Return index of common stuck points with full citations.
 
@@ -309,7 +311,7 @@ class WalkthroughManager:
         game: str,
         query: str,
         min_reliability: float = 0.8,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search for citations matching query.
 

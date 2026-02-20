@@ -8,10 +8,12 @@ Handles:
 - B2B connections
 """
 
+from __future__ import annotations
+
 import logging
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from db import get_db
 
@@ -40,7 +42,7 @@ class BusinessService:
     ]
 
     def register_business(
-        self, data: Dict[str, Any], owner_email: Optional[str] = None
+        self, data: dict[str, Any], owner_email: Optional[str] = None
     ) -> Optional[str]:
         """
         Register a new business.
@@ -103,7 +105,7 @@ class BusinessService:
             logger.error(f"Failed to register business: {e}")
             return None
 
-    def get_business_by_slug(self, slug: str) -> Optional[Dict[str, Any]]:
+    def get_business_by_slug(self, slug: str) -> Optional[dict[str, Any]]:
         """Get business by slug."""
         try:
             db = get_db()
@@ -121,7 +123,7 @@ class BusinessService:
             logger.error(f"Failed to get business: {e}")
             return None
 
-    def get_directory(self, filters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def get_directory(self, filters: dict[str, Any] = None) -> list[dict[str, Any]]:
         """
         Get business directory with optional filters.
 
@@ -323,7 +325,7 @@ class BusinessService:
         except Exception as e:
             logger.error(f"Failed to recalculate trust score: {e}")
 
-    def get_trust_score(self, business_id: str) -> Dict[str, Any]:
+    def get_trust_score(self, business_id: str) -> dict[str, Any]:
         """Get trust score for a business."""
         try:
             db = get_db()
@@ -379,7 +381,7 @@ class BusinessService:
             logger.error(f"Failed to reject business: {e}")
             return False
 
-    def get_hub_resources(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_hub_resources(self, category: Optional[str] = None) -> list[dict[str, Any]]:
         """
         Get education hub resources, optionally filtered by category.
 
@@ -404,20 +406,22 @@ class BusinessService:
                     (category,),
                 ).fetchall()
             else:
-                resources = db.execute("""
+                resources = db.execute(
+                    """
                     SELECT id, title, description, category, resource_type,
                            url, analogy, game_reference, difficulty_level, order_index,
                            is_free, created_at
                     FROM hub_resources
                     ORDER BY category, order_index ASC
-                """).fetchall()
+                """
+                ).fetchall()
 
             return [dict(row) for row in resources]
         except Exception as e:
             logger.error(f"Failed to get hub resources: {e}")
             return []
 
-    def add_hub_resource(self, data: Dict[str, Any], submitted_by: str) -> Optional[str]:
+    def add_hub_resource(self, data: dict[str, Any], submitted_by: str) -> Optional[str]:
         """
         Add a new hub resource (requires approval).
 

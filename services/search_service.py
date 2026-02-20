@@ -7,7 +7,7 @@ Handles mod search and query operations.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from exceptions import InvalidGameIDError, ValidationError
 from search_engine import get_search_engine
@@ -36,7 +36,7 @@ class SearchService:
         query: str,
         limit: int = 10,
         for_ai: bool = False,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search for mods.
 
@@ -73,7 +73,7 @@ class SearchService:
         self,
         mod_name: str,
         include_patches: bool = True,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search for mod requirements.
 
@@ -96,7 +96,7 @@ class SearchService:
 
         return requirements
 
-    def search_incompatibilities(self, mod_name: str) -> List[Dict[str, Any]]:
+    def search_incompatibilities(self, mod_name: str) -> list[dict[str, Any]]:
         """
         Search for mod incompatibilities.
 
@@ -118,7 +118,7 @@ class SearchService:
         self,
         query: str,
         threshold: float = 0.6,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Fuzzy search for mods.
 
@@ -132,7 +132,7 @@ class SearchService:
         se = get_search_engine(self.game)
         return se.fuzzy_search(query, threshold=threshold)
 
-    def get_mod_suggestions(self, prefix: str, limit: int = 5) -> List[str]:
+    def get_mod_suggestions(self, prefix: str, limit: int = 5) -> list[str]:
         """
         Get mod name suggestions for autocomplete.
 
