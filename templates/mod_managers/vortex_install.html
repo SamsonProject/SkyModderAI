@@ -1,0 +1,147 @@
+<!--
+  SkyModderAI - Vortex Extension Installation Guide
+-->
+{% extends "base.html" %}
+
+{% block title %}Vortex Extension Installation - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .install-guide {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .guide-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border);
+    }
+    .guide-header h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    .guide-header p {
+        color: var(--text-secondary);
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--accent-primary);
+        text-decoration: none;
+        margin-bottom: 2rem;
+        font-weight: 500;
+    }
+    .back-link:hover {
+        text-decoration: underline;
+    }
+    .steps-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    .step {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+    .step-icon {
+        font-size: 3rem;
+    }
+    .step-content h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .step-content p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+    .step-content ul {
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .step-content li {
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+    }
+    .download-section {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(168, 85, 247, 0.1));
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        text-align: center;
+        margin-top: 3rem;
+    }
+    .btn-download {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 1.125rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+    }
+    .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="install-guide">
+    <a href="/mod-managers" class="back-link">← Back to Mod Managers</a>
+    <header class="guide-header">
+        <h1>🌀 Vortex Extension Installation</h1>
+        <p>Step-by-step guide to install SkyModderAI extension for Vortex</p>
+    </header>
+    <div class="steps-container">
+        {% for step in steps %}
+        <div class="step">
+            <div class="step-icon">{{ step.icon }}</div>
+            <div class="step-content">
+                <h3>Step {{ loop.index }}: {{ step.title }}</h3>
+                <p>{{ step.description }}</p>
+                {% if loop.index == 2 %}
+                <ul>
+                    <li>Open Vortex</li>
+                    <li>Navigate to <strong>Settings</strong> → <strong>Extensions</strong></li>
+                    <li>Click <strong>"Install from File"</strong> button</li>
+                </ul>
+                {% endif %}
+                {% if loop.index == 4 %}
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                    <h4 style="color: #10b981; margin-bottom: 0.5rem;">✅ Verification</h4>
+                    <p style="color: var(--text-secondary); margin: 0;">
+                        After enabling, you should see the SkyModderAI icon in the Vortex toolbar.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="download-section">
+        <h3>Ready to Get Started?</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Download the Vortex extension and integrate SkyModderAI with Nexus Mods.
+        </p>
+        <a href="/mod-managers/vortex/download" class="btn-download">
+            📥 Download Vortex Extension
+        </a>
+    </div>
+</div>
+{% endblock %}

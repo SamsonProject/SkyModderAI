@@ -406,15 +406,13 @@ class BusinessService:
                     (category,),
                 ).fetchall()
             else:
-                resources = db.execute(
-                    """
+                resources = db.execute("""
                     SELECT id, title, description, category, resource_type,
                            url, analogy, game_reference, difficulty_level, order_index,
                            is_free, created_at
                     FROM hub_resources
                     ORDER BY category, order_index ASC
-                """
-                ).fetchall()
+                """).fetchall()
 
             return [dict(row) for row in resources]
         except Exception as e:

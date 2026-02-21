@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 # Prefer python3, fallback to python
 PYTHON="${PYTHON:-$(command -v python3 2>/dev/null || command -v python)}"
 if [ -z "$PYTHON" ]; then
-    echo "Error: Python 3.8+ required. Install python3 or set PYTHON."
+    echo "Error: Python 3.11+ required. Install python3 or set PYTHON."
     exit 1
 fi
 

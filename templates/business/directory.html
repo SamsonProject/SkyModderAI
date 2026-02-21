@@ -5,41 +5,38 @@
 {% block extra_css %}
 <style>
     /* Directory Styles Only - NO ADS (ads are in /shopping) */
-    .directory-intro {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border: 1px solid #334155;
-        border-radius: 12px;
+    .directory-page {
+        max-width: 1200px;
+        margin: 0 auto;
         padding: 2rem;
-        margin-bottom: 2rem;
+    }
+    
+    .directory-header {
         text-align: center;
+        margin-bottom: 2rem;
     }
-    .directory-intro h2 {
-        font-size: 1.5rem;
-        font-weight: 600;
+    
+    .directory-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
         margin-bottom: 0.5rem;
-        color: #e2e8f0;
     }
-    .directory-intro p {
-        color: #94a3b8;
-        max-width: 700px;
-        margin: 0 auto 1rem auto;
+    
+    .directory-header p {
+        color: var(--text-secondary);
+        font-size: 1.125rem;
     }
-    .network-perks {
-        display: flex;
-        justify-content: center;
-        gap: 2rem;
-        flex-wrap: wrap;
-        margin-top: 1.5rem;
+    
+    .back-to-hub {
+        display: inline-block;
+        margin-bottom: 1.5rem;
+        color: #3b82f6;
+        text-decoration: underline;
+        font-size: 0.9375rem;
     }
-    .network-perk {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #94a3b8;
-        font-size: 0.875rem;
-    }
-    .network-perk span {
-        font-size: 1.25rem;
+    
+    .back-to-hub:hover {
+        color: #2563eb;
     }
     .businesses-grid {
         display: grid;
@@ -144,26 +141,31 @@
 {% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 900px; margin: 3rem auto; padding: 0 2rem;">
-    <h1 style="margin-bottom: 1rem;">Business Directory</h1>
+<div class="directory-page" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+    <a href="/business/" class="back-to-hub" style="display: inline-block; margin-bottom: 1.5rem; color: #3b82f6; text-decoration: underline; font-size: 0.9375rem;">← Back to Business Hub</a>
+    
+    <div class="directory-header" style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">📖 Business Directory</h1>
+        <p style="color: var(--text-secondary); font-size: 1.125rem;">Free, ethical businesses in the modding community. No ads, no catch.</p>
+    </div>
 
     <!-- Networking Intro -->
-    <div class="directory-intro">
-        <h2>🤝 Network with Fellow Modders & Entrepreneurs</h2>
-        <p>
+    <div class="directory-intro" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; margin-bottom: 2rem; text-align: center;">
+        <h2 style="font-size: 1.25rem; margin-bottom: 0.5rem;">🤝 Network with Fellow Modders & Entrepreneurs</h2>
+        <p style="color: var(--text-secondary); max-width: 700px; margin: 0 auto 1.5rem;">
             Join our free directory to network with fellow modders, creators, and entrepreneurs.
             Get discovered, form partnerships, share resources, and collaborate on projects—like
             teaming up for a massive Skyrim overhaul. Trust-ranked and community-verified for
             genuine connections.
         </p>
-        <div class="network-perks">
-            <div class="network-perk">
+        <div class="network-perks" style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 1.5rem;">
+            <div class="network-perk" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
                 <span>🔗</span> Form Partnerships
             </div>
-            <div class="network-perk">
+            <div class="network-perk" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
                 <span>💡</span> Share Resources
             </div>
-            <div class="network-perk">
+            <div class="network-perk" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
                 <span>🤝</span> Collaborate on Projects
             </div>
             <div class="network-perk">

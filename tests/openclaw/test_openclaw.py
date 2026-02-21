@@ -296,8 +296,7 @@ class TestGuardChecker:
         conn = sqlite3.connect(temp_db)
 
         # Create permissions table
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE openclaw_permissions (
                 user_email TEXT NOT NULL,
                 scope TEXT NOT NULL,
@@ -305,8 +304,7 @@ class TestGuardChecker:
                 granted_at TIMESTAMP,
                 PRIMARY KEY (user_email, scope)
             )
-        """
-        )
+        """)
         conn.commit()
 
         yield conn
@@ -396,16 +394,14 @@ class TestOpenClawAutomator:
         temp_workspace = tempfile.mkdtemp()
 
         db = sqlite3.connect(temp_db)
-        db.execute(
-            """
+        db.execute("""
             CREATE TABLE openclaw_permissions (
                 user_email TEXT NOT NULL,
                 scope TEXT NOT NULL,
                 granted INTEGER DEFAULT 0,
                 PRIMARY KEY (user_email, scope)
             )
-        """
-        )
+        """)
 
         # Grant all permissions for testing
         for scope in PermissionScope:

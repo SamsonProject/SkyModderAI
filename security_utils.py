@@ -305,17 +305,32 @@ def validate_list_name(name: Optional[str]) -> tuple[bool, str, str]:
     return True, sanitized, ""
 
 
-def validate_game_id(game_id: Optional[str], allowed_games: set[str]) -> tuple[bool, str, str]:
+def validate_game_id(
+    game_id: Optional[str], allowed_games: Optional[set[str]] = None
+) -> tuple[bool, str, str]:
     """
     Validate and normalize game ID.
 
     Args:
         game_id: Game ID to validate
-        allowed_games: Set of allowed game IDs
+        allowed_games: Set of allowed game IDs. If None, uses default supported games.
 
     Returns:
         Tuple of (is_valid, normalized_game_id, error_message)
     """
+    # Default to standard supported games if not specified
+    if allowed_games is None:
+        allowed_games = {
+            "skyrimse",
+            "skyrim",
+            "skyrimvr",
+            "oblivion",
+            "fallout3",
+            "falloutnv",
+            "fallout4",
+            "starfield",
+        }
+
     if not game_id:
         return False, "", "Game ID is required"
 

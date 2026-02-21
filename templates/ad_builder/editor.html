@@ -1,0 +1,695 @@
+{% extends "base.html" %}
+
+{% block title %}{{ design.name if design else 'New Design' }} - Ad Builder{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ad-editor {
+        display: grid;
+        grid-template-columns: 280px 1fr 300px;
+        grid-template-rows: 60px 1fr;
+        height: calc(100vh - 80px);
+        gap: 1px;
+        background: var(--border);
+    }
+
+    /* Toolbar (top) */
+    .editor-toolbar {
+        grid-column: 1 / -1;
+        background: var(--bg-primary);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+        gap: 1rem;
+    }
+
+    .toolbar-group {
+        display: flex;
+        gap: 0.5rem;
+        padding-right: 1rem;
+        border-right: 1px solid var(--border);
+    }
+
+    .toolbar-group:last-child {
+        border-right: none;
+    }
+
+    .toolbar-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .toolbar-btn:hover {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+
+    .toolbar-btn.active {
+        background: var(--bg-tertiary);
+        border-color: var(--accent-primary);
+        color: var(--accent-primary);
+    }
+
+    .toolbar-btn svg {
+        width: 20px;
+        height: 20px;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Left Panel (Layers/Assets) */
+    .editor-panel-left {
+        background: var(--bg-primary);
+        border-right: 1px solid var(--border);
+        overflow-y: auto;
+    }
+
+    .panel-section {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-primary);
+    }
+
+    /* Canvas Area */
+    .editor-canvas {
+        background: var(--bg-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: auto;
+        position: relative;
+    }
+
+    .canvas-wrapper {
+        background: white;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Right Panel (Properties) */
+    .editor-panel-right {
+        background: var(--bg-primary);
+        border-left: 1px solid var(--border);
+        overflow-y: auto;
+    }
+
+    .property-group {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .property-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .property-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .property-input {
+        flex: 1;
+        margin-left: 0.75rem;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="color"],
+    select {
+        width: 100%;
+        padding: 0.5rem;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+
+    input[type="color"] {
+        height: 36px;
+        padding: 0.25rem;
+        cursor: pointer;
+    }
+
+    /* Layer Item */
+    .layer-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .layer-item:hover {
+        background: var(--bg-secondary);
+    }
+
+    .layer-item.selected {
+        border: 1px solid var(--accent-primary);
+    }
+
+    .layer-icon {
+        font-size: 1rem;
+    }
+
+    .layer-name {
+        flex: 1;
+        font-size: 0.875rem;
+        color: var(--text-primary);
+    }
+
+    /* Export Modal */
+    .export-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .export-modal.active {
+        display: flex;
+    }
+
+    .export-content {
+        background: var(--bg-primary);
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+    }
+
+    .export-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .export-option {
+        padding: 1rem;
+        background: var(--bg-tertiary);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .export-option:hover {
+        border-color: var(--accent-primary);
+    }
+
+    .export-option.selected {
+        border-color: var(--accent-primary);
+        background: rgba(59, 130, 246, 0.1);
+    }
+
+    .export-option-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .export-option-desc {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ad-editor">
+    
+    <!-- Toolbar (Top) -->
+    <div class="editor-toolbar">
+        <div class="toolbar-group">
+            <button class="toolbar-btn" onclick="editor.addText()" title="Add Text">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 7V4h16v3M9 20h6M12 4v16"/>
+                </svg>
+                Text
+            </button>
+            <button class="toolbar-btn" onclick="editor.addShape('rectangle')" title="Add Rectangle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                </svg>
+                Shape
+            </button>
+            <button class="toolbar-btn" onclick="document.getElementById('image-upload').click()" title="Upload Image">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>
+                </svg>
+                Image
+            </button>
+            <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="editor.addImage(event)">
+        </div>
+
+        <div class="toolbar-group">
+            <button class="toolbar-btn" onclick="editor.undo()" title="Undo (Ctrl+Z)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 7v6h6M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+                </svg>
+                Undo
+            </button>
+            <button class="toolbar-btn" onclick="editor.redo()" title="Redo (Ctrl+Y)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 7v6h-6M3 17a9 9 0 019-9 9 9 0 016 2.3l3 3.7"/>
+                </svg>
+                Redo
+            </button>
+        </div>
+
+        <div class="toolbar-group" style="margin-left: auto;">
+            <button class="toolbar-btn" onclick="editor.save()" title="Save (Ctrl+S)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>
+                </svg>
+                Save
+            </button>
+            <button class="toolbar-btn" onclick="showExportModal()" title="Export (Ctrl+E)" style="color: var(--accent-primary);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+                Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Left Panel (Layers) -->
+    <div class="editor-panel-left">
+        <div class="panel-section">
+            <h3 class="panel-title">Layers</h3>
+            <div id="layers-list">
+                <!-- Layers will be populated by JavaScript -->
+                <p class="hint" style="font-size: 0.875rem; color: var(--text-secondary);">No layers yet. Add text, shapes, or images to get started.</p>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <h3 class="panel-title">Assets</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+                <button class="btn btn-sm btn-secondary" onclick="document.getElementById('image-upload').click()">Upload</button>
+                <button class="btn btn-sm btn-secondary">Stock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas Area -->
+    <div class="editor-canvas">
+        <div class="canvas-wrapper">
+            <canvas id="ad-canvas" width="{{ width or 1080 }}" height="{{ height or 1080 }}" style="display: block;"></canvas>
+        </div>
+    </div>
+
+    <!-- Right Panel (Properties) -->
+    <div class="editor-panel-right">
+        <div class="panel-section">
+            <h3 class="panel-title">Design Info</h3>
+            <div class="property-row">
+                <label class="property-label">Name</label>
+                <input type="text" class="property-input" id="design-name" value="{{ design.name if design else 'Untitled Design' }}" onchange="editor.updateDesignName(this.value)">
+            </div>
+            <div class="property-row">
+                <label class="property-label">Size</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="number" value="{{ width or 1080 }}" disabled style="width: 80px;">
+                    <span style="align-self: center;">×</span>
+                    <input type="number" value="{{ height or 1080 }}" disabled style="width: 80px;">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-section" id="properties-panel" style="display: none;">
+            <h3 class="panel-title">Properties</h3>
+            <div class="property-row">
+                <label class="property-label">Fill Color</label>
+                <input type="color" class="property-input" id="fill-color" onchange="editor.updateFill(this.value)">
+            </div>
+            <div class="property-row">
+                <label class="property-label">Opacity</label>
+                <input type="range" class="property-input" min="0" max="100" value="100" onchange="editor.updateOpacity(this.value)">
+            </div>
+            <div class="property-row">
+                <label class="property-label">Position</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="number" id="pos-x" placeholder="X" style="width: 70px;" onchange="editor.updatePosition()">
+                    <input type="number" id="pos-y" placeholder="Y" style="width: 70px;" onchange="editor.updatePosition()">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <h3 class="panel-title">Actions</h3>
+            <button class="btn btn-sm btn-secondary" onclick="editor.deleteSelected()" style="width: 100%; margin-bottom: 0.5rem;">Delete Selected</button>
+            <button class="btn btn-sm btn-secondary" onclick="editor.duplicateSelected()" style="width: 100%;">Duplicate</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Export Modal -->
+<div class="export-modal" id="export-modal">
+    <div class="export-content">
+        <h2 style="margin-bottom: 1rem;">Export Design</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Choose your export format:</p>
+        
+        <div class="export-options">
+            <div class="export-option selected" onclick="selectExportFormat('png', this)">
+                <div class="export-option-label">PNG</div>
+                <div class="export-option-desc">Best for web</div>
+            </div>
+            <div class="export-option" onclick="selectExportFormat('jpg', this)">
+                <div class="export-option-label">JPG</div>
+                <div class="export-desc">Smaller file</div>
+            </div>
+            <div class="export-option" onclick="selectExportFormat('pdf', this)">
+                <div class="export-option-label">PDF</div>
+                <div class="export-option-desc">Print ready</div>
+            </div>
+            <div class="export-option" onclick="selectExportFormat('svg', this)">
+                <div class="export-option-label">SVG</div>
+                <div class="export-option-desc">Scalable</div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="closeExportModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="exportDesign()">Export</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script>
+// Ad Builder Editor
+class AdEditor {
+    constructor(canvasId) {
+        this.canvas = new fabric.Canvas(canvasId);
+        this.canvasId = canvasId;
+        this.designName = '{{ design.name if design else "Untitled Design" }}';
+        this.designId = '{{ design.id if design else "" }}';
+        this.setupEventListeners();
+        this.setupKeyboardShortcuts();
+    }
+
+    setupEventListeners() {
+        // Update properties panel when object is selected
+        this.canvas.on('selection:created', (e) => this.onObjectSelected(e));
+        this.canvas.on('selection:updated', (e) => this.onObjectSelected(e));
+        this.canvas.on('selection:cleared', () => this.onObjectDeselected());
+    }
+
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+S: Save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                this.save();
+            }
+            // Ctrl+E: Export
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                showExportModal();
+            }
+            // Delete: Delete selected
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (document.activeElement.tagName !== 'INPUT') {
+                    e.preventDefault();
+                    this.deleteSelected();
+                }
+            }
+        });
+    }
+
+    addText() {
+        const text = new fabric.IText('Your Text', {
+            left: 100,
+            top: 100,
+            fontFamily: 'Arial',
+            fill: '#000000',
+            fontSize: 48
+        });
+        this.canvas.add(text);
+        this.canvas.setActiveObject(text);
+        this.updateLayersList();
+    }
+
+    addShape(type) {
+        let shape;
+        if (type === 'rectangle') {
+            shape = new fabric.Rect({
+                left: 100,
+                top: 100,
+                fill: '#3b82f6',
+                width: 200,
+                height: 150
+            });
+        } else if (type === 'circle') {
+            shape = new fabric.Circle({
+                left: 100,
+                top: 100,
+                fill: '#8b5cf6',
+                radius: 100
+            });
+        }
+        if (shape) {
+            this.canvas.add(shape);
+            this.canvas.setActiveObject(shape);
+            this.updateLayersList();
+        }
+    }
+
+    addImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (f) => {
+            fabric.Image.fromURL(f.target.result, (img) => {
+                img.set({ left: 100, top: 100 });
+                img.scaleToWidth(300);
+                this.canvas.add(img);
+                this.canvas.setActiveObject(img);
+                this.updateLayersList();
+            });
+        };
+        reader.readAsDataURL(file);
+        event.target.value = ''; // Reset for next upload
+    }
+
+    deleteSelected() {
+        const active = this.canvas.getActiveObjects();
+        if (active.length) {
+            this.canvas.discardActiveObject();
+            active.forEach((obj) => this.canvas.remove(obj));
+            this.updateLayersList();
+        }
+    }
+
+    duplicateSelected() {
+        const active = this.canvas.getActiveObject();
+        if (active) {
+            active.clone((cloned) => {
+                this.canvas.add(cloned);
+                cloned.set({
+                    left: cloned.left + 20,
+                    top: cloned.top + 20
+                });
+                this.canvas.setActiveObject(cloned);
+                this.updateLayersList();
+            });
+        }
+    }
+
+    updateFill(color) {
+        const active = this.canvas.getActiveObject();
+        if (active) {
+            active.set('fill', color);
+            this.canvas.requestRenderAll();
+        }
+    }
+
+    updateOpacity(value) {
+        const active = this.canvas.getActiveObject();
+        if (active) {
+            active.set('opacity', parseInt(value) / 100);
+            this.canvas.requestRenderAll();
+        }
+    }
+
+    updatePosition() {
+        const active = this.canvas.getActiveObject();
+        const x = document.getElementById('pos-x').value;
+        const y = document.getElementById('pos-y').value;
+        if (active && x && y) {
+            active.set({ left: parseInt(x), top: parseInt(y) });
+            this.canvas.requestRenderAll();
+        }
+    }
+
+    onObjectSelected(e) {
+        const obj = e.selected[0];
+        if (!obj) return;
+
+        document.getElementById('properties-panel').style.display = 'block';
+        
+        // Update property inputs
+        if (obj.fill && typeof obj.fill === 'string') {
+            document.getElementById('fill-color').value = obj.fill;
+        }
+        if (obj.opacity !== undefined) {
+            document.querySelector('input[type="range"]').value = obj.opacity * 100;
+        }
+        document.getElementById('pos-x').value = Math.round(obj.left);
+        document.getElementById('pos-y').value = Math.round(obj.top);
+
+        this.updateLayersList();
+    }
+
+    onObjectDeselected() {
+        document.getElementById('properties-panel').style.display = 'none';
+        this.updateLayersList();
+    }
+
+    updateLayersList() {
+        const layersList = document.getElementById('layers-list');
+        const objects = this.canvas.getObjects();
+
+        if (objects.length === 0) {
+            layersList.innerHTML = '<p class="hint" style="font-size: 0.875rem; color: var(--text-secondary);">No layers yet. Add text, shapes, or images to get started.</p>';
+            return;
+        }
+
+        layersList.innerHTML = objects.map((obj, index) => {
+            const icon = obj.type === 'i-text' ? '📝' : obj.type === 'rect' ? '⬜' : obj.type === 'circle' ? '⚪' : '🖼️';
+            const name = obj.text || `${obj.type} ${index + 1}`;
+            const selected = obj === this.canvas.getActiveObject() ? 'selected' : '';
+            return `
+                <div class="layer-item ${selected}" onclick="editor.selectLayer(${index})">
+                    <span class="layer-icon">${icon}</span>
+                    <span class="layer-name">${name}</span>
+                </div>
+            `;
+        }).reverse().join('');
+    }
+
+    selectLayer(index) {
+        const objects = this.canvas.getObjects();
+        const obj = objects[objects.length - 1 - index];
+        if (obj) {
+            this.canvas.setActiveObject(obj);
+            this.canvas.requestRenderAll();
+        }
+    }
+
+    updateDesignName(name) {
+        this.designName = name;
+        // Auto-save could be triggered here
+    }
+
+    save() {
+        const designData = {
+            name: this.designName,
+            design_data: this.canvas.toJSON(),
+            width: this.canvas.width,
+            height: this.canvas.height
+        };
+
+        // Save to backend
+        fetch('/ad-builder/api/designs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(designData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Design saved!');
+                this.designId = data.design_id;
+            } else {
+                alert('Failed to save design');
+            }
+        })
+        .catch(err => {
+            console.error('Save error:', err);
+            alert('Failed to save design');
+        });
+    }
+
+    undo() {
+        // TODO: Implement undo/redo stack
+        console.log('Undo not yet implemented');
+    }
+
+    redo() {
+        // TODO: Implement undo/redo stack
+        console.log('Redo not yet implemented');
+    }
+}
+
+// Initialize editor
+const editor = new AdEditor('ad-canvas');
+editor.updateLayersList();
+
+// Export modal functions
+function showExportModal() {
+    document.getElementById('export-modal').classList.add('active');
+}
+
+function closeExportModal() {
+    document.getElementById('export-modal').classList.remove('active');
+}
+
+let selectedFormat = 'png';
+
+function selectExportFormat(format, element) {
+    selectedFormat = format;
+    document.querySelectorAll('.export-option').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+}
+
+function exportDesign() {
+    const dataURL = editor.canvas.toDataURL({
+        format: selectedFormat,
+        quality: 1,
+        multiplier: 1
+    });
+
+    // Create download link
+    const link = document.createElement('a');
+    link.download = `${editor.designName}.${selectedFormat}`;
+    link.href = dataURL;
+    link.click();
+
+    closeExportModal();
+}
+</script>
+{% endblock %}

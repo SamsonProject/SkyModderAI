@@ -63,19 +63,45 @@
                 </a>
 
                 <div class="nav-links" role="menubar" aria-label="Main menu">
-                    <a href="{{ url_for('index') }}" class="nav-link" role="menuitem">Analysis</a>
-                    <a href="{{ url_for('openclaw.openclaw_index') }}" class="nav-link" role="menuitem">OpenCLAW</a>
+                    <!-- Core Features -->
+                    <a href="{{ url_for('index') }}#analyze" class="nav-link" role="menuitem" title="Check mod conflicts">Analyze</a>
+                    <a href="{{ url_for('compatibility.search') }}" class="nav-link" role="menuitem" title="Browse compatibility database">Compatibility</a>
+                    <a href="{{ url_for('openclaw.openclaw_index') }}" class="nav-link" role="menuitem" title="Automated modding assistant">OpenCLAW</a>
+                    
+                    <!-- Community & Support -->
                     <a href="{{ url_for('community.community_index') }}" class="nav-link" role="menuitem">Community</a>
-                    <a href="{{ url_for('shopping.shopping_home') }}" class="nav-link" role="menuitem">Shopping</a>
-                    <a href="{{ url_for('business.hub_landing') }}" class="nav-link" role="menuitem">Business</a>
-                    <a href="{{ url_for('api_hub') }}" class="nav-link" role="menuitem">API</a>
-                    {% if current_user %}
+                    <a href="{{ url_for('mod_author.dashboard') }}" class="nav-link" role="menuitem" title="Tools for mod creators">Mod Authors</a>
+                    
+                    <!-- More Menu (Dropdown) -->
+                    <div class="nav-dropdown" role="menu">
+                        <button class="nav-link nav-dropdown-toggle" role="menuitem" aria-haspopup="true" aria-expanded="false">
+                            More ▾
+                        </button>
+                        <div class="nav-dropdown-menu">
+                            <a href="{{ url_for('mod_manager.index') }}" class="nav-dropdown-item" role="menuitem">🔌 Mod Managers</a>
+                            <a href="{{ url_for('shopping.shopping_home') }}" class="nav-dropdown-item" role="menuitem">🛒 Shopping</a>
+                            <a href="{{ url_for('business.hub_landing') }}" class="nav-dropdown-item" role="menuitem">💼 Business Hub</a>
+                            <a href="{{ url_for('ad_builder.editor_home') }}" class="nav-dropdown-item" role="menuitem">📝 Ad Builder</a>
+                            <a href="{{ url_for('api_hub') }}" class="nav-dropdown-item" role="menuitem">🔌 API</a>
+                            <a href="{{ url_for('vision') }}" class="nav-dropdown-item" role="menuitem">🌟 Vision</a>
+                            <div class="nav-dropdown-divider"></div>
+                            <a href="https://github.com/SamsonProject/SkyModderAI" target="_blank" rel="noopener" class="nav-dropdown-item" role="menuitem">
+                                <span class="icon">📦</span> GitHub
+                            </a>
+                            <a href="{{ url_for('quickstart_page') }}" class="nav-dropdown-item" role="menuitem">
+                                <span class="icon">📖</span> Quick Start
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- User Actions -->
+                    {% if session.get('user_email') %}
                         <a href="{{ url_for('profile') }}" class="nav-link nav-link-user" role="menuitem">Profile</a>
                         <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline" role="menuitem">Logout</a>
                     {% else %}
                         <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary" role="menuitem">Sign In</a>
                     {% endif %}
-                    <button type="button" id="tour-trigger" class="btn btn-sm btn-outline" style="margin-left: 0.5rem;" aria-label="Take a tour">
+                    <button type="button" id="tour-trigger" class="btn btn-sm btn-outline" aria-label="Take a tour">
                         🎯 Tour
                     </button>
                 </div>
@@ -101,37 +127,67 @@
                 <div class="footer-section">
                     <h4>SkyModderAI</h4>
                     <p>Built by modders, for modders.</p>
+                    <p style="font-size: 0.875rem; color: #94a3b8; margin-top: 0.5rem;">
+                        Free forever. Open source. Privacy-first.
+                    </p>
                 </div>
                 <div class="footer-section">
-                    <h4>Links</h4>
+                    <h4>Tools</h4>
                     <ul>
-                        <li><a href="{{ url_for('index') }}">Analysis</a></li>
+                        <li><a href="{{ url_for('index') }}#analyze">Analysis</a></li>
+                        <li><a href="{{ url_for('compatibility.search') }}">Compatibility DB</a></li>
                         <li><a href="{{ url_for('openclaw.openclaw_index') }}">OpenCLAW</a></li>
                         <li><a href="{{ url_for('community.community_index') }}">Community</a></li>
                         <li><a href="{{ url_for('shopping.shopping_home') }}">Shopping</a></li>
-                        <li><a href="{{ url_for('business.hub_landing') }}">Business</a></li>
-                        <li><a href="{{ url_for('api_hub') }}">API</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Legal</h4>
+                    <h4>Developers</h4>
                     <ul>
-                        <li><a href="{{ url_for('terms') }}">Terms</a></li>
-                        <li><a href="{{ url_for('privacy') }}">Privacy</a></li>
-                        <li><a href="{{ url_for('safety') }}">Safety</a></li>
+                        <li><a href="{{ url_for('api_hub') }}">API</a></li>
+                        <li><a href="{{ url_for('mod_author.dashboard') }}">Mod Author Tools</a></li>
+                        <li><a href="{{ url_for('ad_builder.editor_home') }}">Ad Builder</a></li>
+                        <li><a href="https://github.com/SamsonProject/SkyModderAI" target="_blank" rel="noopener">GitHub</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="{{ url_for('quickstart_page') }}">Quick Start Guide</a></li>
+                        <li><a href="{{ url_for('vision') }}">Vision & Roadmap</a></li>
+                        <li><a href="{{ url_for('business.hub_landing') }}">Business Hub</a></li>
+                        <li><a href="https://github.com/SamsonProject/SkyModderAI" target="_blank" rel="noopener">Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal & Safety</h4>
+                    <ul>
+                        <li><a href="{{ url_for('terms') }}">Terms of Service</a></li>
+                        <li><a href="{{ url_for('privacy') }}">Privacy Policy</a></li>
+                        <li><a href="{{ url_for('safety') }}">Safety Center</a></li>
+                        <li><a href="{{ url_for('index') }}#footer">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>The Samson Project</h4>
+                    <ul>
+                        <li><a href="{{ url_for('vision') }}">The Vision</a></li>
+                        <li><a href="https://github.com/SamsonProject/SkyModderAI/blob/main/docs/samson_manifesto.md" target="_blank" rel="noopener">Manifesto</a></li>
+                        <li><a href="{{ url_for('community.community_index') }}">Governance</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Support</h4>
                     <ul>
-                        <li><a href="https://github.com/SamsonProject/SkyModderAI" target="_blank">GitHub</a></li>
-                        <li><a href="mailto:support@skymodderai.com">Email</a></li>
+                        <li><a href="mailto:support@skymodderai.com">Email Support</a></li>
+                        <li><a href="https://github.com/SamsonProject/SkyModderAI/issues" target="_blank" rel="noopener">Issue Tracker</a></li>
+                        <li><a href="https://reddit.com/r/skyrimmods" target="_blank" rel="noopener">Reddit Community</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 SkyModderAI. MIT License.</p>
-                <p>Not affiliated with Bethesda Softworks.</p>
+                <p>Not affiliated with Bethesda Softworks or ZeniMax Media.</p>
             </div>
         </div>
     </footer>
@@ -164,7 +220,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js" integrity="sha512-g2F2jvXJZqR5zVNqRqNqRqRqRqRqRqRqRqRqRqRqRqRqRq" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js" integrity="sha512-g2TeAWw5GPnX7z0Kn8nFbYfeHcvAu/tx6d6mrLe/90mkCxO+RcptyYpksUz35EO337F83bZwcmUyHiHamspkfg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="{{ url_for('static', filename='js/toast-utils.js') }}"></script>
     <script src="{{ url_for('static', filename='js/storage-utils.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>

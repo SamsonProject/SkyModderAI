@@ -41,6 +41,18 @@ def hub_landing():
     return render_template("business/hub_overhaul.html", categories=categories, featured=featured)
 
 
+@business_bp.route("/landing")
+def redirect_landing():
+    """Redirect old /business/landing to /business/"""
+    return redirect(url_for("business.hub_landing"))
+
+
+@business_bp.route("/hub")
+def redirect_hub():
+    """Redirect old /business/hub to /business/"""
+    return redirect(url_for("business.hub_landing"))
+
+
 @business_bp.route("/directory")
 def directory():
     """Searchable business directory - NO ADS (pure networking)."""

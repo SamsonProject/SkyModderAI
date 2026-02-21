@@ -1,0 +1,565 @@
+<!--
+  SkyModderAI - Compatibility Search Template
+  Search for compatibility reports between mods
+-->
+{% extends "base.html" %}
+
+{% block title %}Compatibility Database - SkyModderAI{% endblock %}
+
+{% block meta_description %}Search the community-driven mod compatibility database. Find out if mods work together before you install them. Real reports from real users.{% endblock %}
+
+{% block extra_css %}
+<style>
+    .compat-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-header p {
+        color: var(--text-secondary);
+        font-size: 1.125rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Search Box */
+    .search-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .search-form {
+        display: grid;
+        grid-template-columns: 2fr 1fr auto;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    @media (max-width: 768px) {
+        .search-form {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 0.875rem;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        color: var(--text-primary);
+        font-size: 1rem;
+        transition: all 0.15s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+    }
+
+    .search-btn {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+        border: none;
+        padding: 0.875rem 2rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+    }
+
+    /* Browse Section */
+    .browse-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .browse-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .browse-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        transition: all 0.15s;
+        cursor: pointer;
+    }
+
+    .browse-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--accent-primary);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .browse-card-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .browse-card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .browse-card-desc {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    /* Results Section */
+    .results-section {
+        margin-top: 2rem;
+    }
+
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .result-count {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .result-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .result-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        transition: all 0.15s;
+    }
+
+    .result-card:hover {
+        transform: translateX(4px);
+        border-color: var(--accent-primary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .result-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .mod-pair {
+        font-size: 1.25rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .mod-name {
+        color: var(--accent-primary);
+    }
+
+    .compat-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.875rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .status-compatible {
+        background: rgba(34, 197, 94, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .status-incompatible {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .status-needs_patch {
+        background: rgba(251, 191, 36, 0.1);
+        color: #fbbf24;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+
+    .result-description {
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .result-meta {
+        display: flex;
+        gap: 1.5rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .result-link {
+        color: var(--accent-primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.15s;
+    }
+
+    .result-link:hover {
+        color: var(--accent-primary-glow);
+        text-decoration: underline;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+        color: var(--text-primary);
+    }
+
+    .empty-state p {
+        margin-bottom: 1.5rem;
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Filters */
+    .filters-bar {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-full);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+        background: var(--accent-primary);
+        color: white;
+        border-color: var(--accent-primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="compat-page">
+    <header class="page-header">
+        <h1>🔍 Compatibility Database</h1>
+        <p>Search thousands of community-reported mod compatibilities. Know before you install.</p>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-value">15,000+</div>
+            <div class="stat-label">Compatibility Reports</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">8,500+</div>
+            <div class="stat-label">Mods Tracked</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">12,000+</div>
+            <div class="stat-label">Active Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">94%</div>
+            <div class="stat-label">Accuracy Rate</div>
+        </div>
+    </div>
+
+    <!-- Search Box -->
+    <div class="search-box">
+        <form class="search-form" method="GET" action="/compatibility/search">
+            <div class="form-group">
+                <label for="q">Search Mod Name</label>
+                <input type="text" id="q" name="q" value="{{ query or '' }}" placeholder="e.g., USSEP, SkyUI, Ordinator..." required>
+            </div>
+
+            <div class="form-group">
+                <label for="game">Game</label>
+                <select id="game" name="game">
+                    <option value="skyrimse" {% if game == 'skyrimse' %}selected{% endif %}>Skyrim SE</option>
+                    <option value="skyrim" {% if game == 'skyrim' %}selected{% endif %}>Skyrim LE</option>
+                    <option value="skyrimvr" {% if game == 'skyrimvr' %}selected{% endif %}>Skyrim VR</option>
+                    <option value="fallout4" {% if game == 'fallout4' %}selected{% endif %}>Fallout 4</option>
+                    <option value="falloutnv" {% if game == 'falloutnv' %}selected{% endif %}>Fallout NV</option>
+                    <option value="oblivion" {% if game == 'oblivion' %}selected{% endif %}>Oblivion</option>
+                    <option value="all" {% if game == 'all' %}selected{% endif %}>All Games</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button type="submit" class="search-btn">
+                    <span>🔍</span> Search
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Browse Categories -->
+    <section class="browse-section">
+        <h2 class="section-title">📚 Browse by Category</h2>
+        <div class="browse-grid">
+            <a href="/compatibility/search?q=graphics&game=skyrimse" class="browse-card">
+                <div class="browse-card-icon">🎨</div>
+                <div class="browse-card-title">Graphics & Textures</div>
+                <div class="browse-card-desc">Visual enhancements, texture packs, ENB presets</div>
+            </a>
+            <a href="/compatibility/search?q=gameplay&game=skyrimse" class="browse-card">
+                <div class="browse-card-icon">⚔️</div>
+                <div class="browse-card-title">Gameplay Overhauls</div>
+                <div class="browse-card-desc">Combat, magic, stealth, and skill changes</div>
+            </a>
+            <a href="/compatibility/search?q=quest&game=skyrimse" class="browse-card">
+                <div class="browse-card-icon">📜</div>
+                <div class="browse-card-title">Quests & Stories</div>
+                <div class="browse-card-desc">New quests, storylines, and adventures</div>
+            </a>
+            <a href="/compatibility/search?q=ui&game=skyrimse" class="browse-card">
+                <div class="browse-card-icon">🖥️</div>
+                <div class="browse-card-title">User Interface</div>
+                <div class="browse-card-desc">Menus, HUD, inventory improvements</div>
+            </a>
+            <a href="/compatibility/search?q=armor&game=skyrimse" class="browse-card">
+                <div class="browse-card-icon">🛡️</div>
+                <div class="browse-card-title">Armor & Weapons</div>
+                <div class="browse-card-desc">New gear, rebalances, and additions</div>
+            </a>
+            <a href="/compatibility/search?q=performance&game=skyrimse" class="browse-card">
+                <div class="browse-card-icon">⚡</div>
+                <div class="browse-card-title">Performance</div>
+                <div class="browse-card-desc">FPS improvements, optimization mods</div>
+            </a>
+        </div>
+    </section>
+
+    {% if query %}
+    <!-- Search Results -->
+    <div class="results-section">
+        <div class="results-header">
+            <h2 class="section-title">🔎 Results for "{{ query }}"</h2>
+            <span class="result-count">{{ results|length }} compatibility reports found</span>
+        </div>
+
+        <div class="filters-bar">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Compatible</button>
+            <button class="filter-btn">Incompatible</button>
+            <button class="filter-btn">Needs Patch</button>
+        </div>
+
+        {% if results %}
+        <div class="result-list">
+            {% for result in results %}
+            <div class="result-card">
+                <div class="result-card-header">
+                    <div class="mod-pair">
+                        <span class="mod-name">{{ result.mod_a }}</span>
+                        <span>↔</span>
+                        <span class="mod-name">{{ result.mod_b }}</span>
+                    </div>
+                    <span class="compat-status status-{{ result.status }}">
+                        {% if result.status == 'compatible' %}
+                            ✓ Compatible
+                        {% elif result.status == 'incompatible' %}
+                            ✗ Incompatible
+                        {% else %}
+                            ⚠ Needs Patch
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="result-description">
+                    {{ result.description[:250] }}{% if result.description|length > 250 %}...{% endif %}
+                </div>
+
+                <div class="result-meta">
+                    <div class="meta-item">
+                        🎮 {{ result.game }}
+                    </div>
+                    <div class="meta-item">
+                        📊 {{ result.report_count }} reports
+                    </div>
+                    <div class="meta-item">
+                        👍 {{ result.upvotes }} upvotes
+                    </div>
+                    <div class="meta-item">
+                        <a href="/compatibility/{{ result.mod_a }}/vs/{{ result.mod_b }}?game={{ result.game }}" class="result-link">
+                            View Details →
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <h3>No compatibility reports found</h3>
+            <p>Be the first to submit a compatibility report for "{{ query }}"!</p>
+            <a href="/compatibility/submit?q={{ query }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                📝 Submit Report
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <!-- Recent Reports -->
+    <div class="results-section">
+        <h2 class="section-title">📈 Recently Updated</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Latest compatibility reports from the community</p>
+        <p style="color: var(--text-muted); font-size: 0.875rem;">Sign in to see personalized recommendations based on your saved lists.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Filter buttons functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const filter = this.textContent.toLowerCase();
+            const cards = document.querySelectorAll('.result-card');
+            
+            cards.forEach(card => {
+                const status = card.querySelector('.compat-status').textContent.toLowerCase();
+                if (filter === 'all' || status.includes(filter)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

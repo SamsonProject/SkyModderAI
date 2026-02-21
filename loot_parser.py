@@ -592,24 +592,24 @@ if __name__ == "__main__":
     for game in games:
         g = game.lower()
         if g not in LOOTParser.LATEST_VERSIONS:
-            print(f"Unknown game: {g}")
+            logger.warning(f"Unknown game: {g}")
             failed.append(g)
             continue
         p = LOOTParser(g)
         if p.download_masterlist(force_refresh=False):
             p.parse_masterlist()
             p.save_database()
-            print(f"OK: {g} ({len(p.mod_database)} mods)")
+            logger.info(f"OK: {g} ({len(p.mod_database)} mods)")
             if export_fuel:
                 try:
                     from samson_fuel import extract_fuel, write_fuel
 
                     fuel = extract_fuel(p)
                     path = write_fuel(fuel)
-                    print(f"  Fuel: {path}")
+                    logger.info(f"  Fuel: {path}")
                 except Exception as e:
-                    print(f"  Samson fuel export failed: {e}")
+                    logger.warning(f"  Samson fuel export failed: {e}")
         else:
-            print(f"FAIL: {g}")
+            logger.error(f"FAIL: {g}")
             failed.append(g)
     sys.exit(1 if failed else 0)

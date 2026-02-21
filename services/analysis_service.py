@@ -81,7 +81,9 @@ class AnalysisService:
         """
         try:
             # Validate mod list
-            mod_list = validate_mod_list(mod_list)
+            is_valid, mod_list, error = validate_mod_list(mod_list)
+            if not is_valid:
+                raise InvalidModListError(error or "Invalid mod list")
 
             # Parse mods
             mods = parse_mod_list_text(mod_list)

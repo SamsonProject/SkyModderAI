@@ -366,6 +366,177 @@ class ConflictStat(Base):
 
 
 # =============================================================================
+# Mod Author Models
+# =============================================================================
+
+
+class ModAuthorClaim(Base):
+    """Mod author claim/verification model."""
+
+    __tablename__ = "mod_author_claims"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    mod_name = Column(String(255), nullable=False)
+    nexus_id = Column(Integer, nullable=True)
+    game = Column(String(50), nullable=False)
+    author_email = Column(String(255), ForeignKey("users.email"), nullable=False)
+    author_name = Column(String(255), nullable=False)
+    verification_status = Column(String(50), default="pending")  # pending, verified, rejected
+    verification_method = Column(String(50), nullable=True)  # nexus_api, file_upload, manual
+    verified_at = Column(DateTime, nullable=True)
+    verified_by = Column(String(255), nullable=True)
+    nexus_profile_url = Column(String(500), nullable=True)
+    mod_page_url = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (UniqueConstraint("mod_name", "game", "author_email", name="uq_mod_claim"),)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "id": self.id,
+            "mod_name": self.mod_name,
+            "nexus_id": self.nexus_id,
+            "game": self.game,
+            "author_email": self.author_email,
+            "author_name": self.author_name,
+            "verification_status": self.verification_status,
+            "verification_method": self.verification_method,
+            "verified_at": self.verified_at.isoformat() if self.verified_at else None,
+            "nexus_profile_url": self.nexus_profile_url,
+            "mod_page_url": self.mod_page_url,
+        }
+
+
+class ModAuthorNotification(Base):
+    """Notification for mod authors."""
+
+    __tablename__ = "mod_author_notifications"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_email = Column(String(255), ForeignKey("users.email"), nullable=False)
+    notification_type = Column(String(50), nullable=False)
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    mod_name = Column(String(255), nullable=True)
+    related_url = Column(String(500), nullable=True)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "id": self.id,
+            "type": self.notification_type,
+            "title": self.title,
+            "message": self.message,
+            "mod_name": self.mod_name,
+            "related_url": self.related_url,
+            "is_read": self.is_read,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class ModDetail(Base):
+    """Aggregated mod detail and compatibility data."""
+
+    __tablename__ = "mod_details"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    mod_name = Column(String(255), nullable=False)
+    game = Column(String(50), nullable=False)
+    nexus_id = Column(Integer, nullable=True)
+    author_name = Column(String(255), nullable=True)
+    mod_page_url = Column(String(500), nullable=True)
+    description = Column(Text, nullable=True)
+    mod_version = Column(String(50), nullable=True)
+    game_versions = Column(Text, nullable=True)  # JSON array
+    requirements = Column(Text, nullable=True)  # JSON array
+    incompatibilities = Column(Text, nullable=True)  # JSON array
+    tags = Column(Text, nullable=True)  # JSON array
+    download_count = Column(Integer, default=0)
+    endorsement_count = Column(Integer, default=0)
+    compatibility_score = Column(Float, default=1.0)  # 0.0-1.0
+    total_reports = Column(Integer, default=0)
+    conflict_count = Column(Integer, default=0)
+    patch_count = Column(Integer, default=0)
+    last_updated = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (UniqueConstraint("mod_name", "game", name="uq_mod_detail"),)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary."""
+        import json
+
+        return {
+            "id": self.id,
+            "mod_name": self.mod_name,
+            "game": self.game,
+            "nexus_id": self.nexus_id,
+            "author_name": self.author_name,
+            "mod_page_url": self.mod_page_url,
+            "description": self.description,
+            "mod_version": self.mod_version,
+            "game_versions": json.loads(self.game_versions) if self.game_versions else [],
+            "requirements": json.loads(self.requirements) if self.requirements else [],
+            "incompatibilities": json.loads(self.incompatibilities)
+            if self.incompatibilities
+            else [],
+            "tags": json.loads(self.tags) if self.tags else [],
+            "compatibility_score": round(self.compatibility_score, 3)
+            if self.compatibility_score
+            else None,
+            "total_reports": self.total_reports,
+            "conflict_count": self.conflict_count,
+            "patch_count": self.patch_count,
+            "last_updated": self.last_updated.isoformat() if self.last_updated else None,
+        }
+
+
+class ModWebhook(Base):
+    """Webhook configuration for mod authors."""
+
+    __tablename__ = "mod_webhooks"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_email = Column(String(255), ForeignKey("users.email"), nullable=False)
+    mod_name = Column(String(255), nullable=False)
+    game = Column(String(50), nullable=False)
+    webhook_url = Column(String(500), nullable=False)
+    events = Column(Text, nullable=False)  # JSON array of event types
+    is_active = Column(Boolean, default=True)
+    last_triggered = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (UniqueConstraint("user_email", "mod_name", "game", name="uq_mod_webhook"),)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary."""
+        import json
+
+        return {
+            "id": self.id,
+            "mod_name": self.mod_name,
+            "game": self.game,
+            "webhook_url": self.webhook_url,
+            "events": json.loads(self.events) if self.events else [],
+            "is_active": self.is_active,
+            "last_triggered": self.last_triggered.isoformat() if self.last_triggered else None,
+        }
+
+
+# =============================================================================
 # Reliability & Credibility Models
 # =============================================================================
 

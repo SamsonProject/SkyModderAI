@@ -1,0 +1,142 @@
+<!--
+  SkyModderAI - Wabbajack Integration Guide
+-->
+{% extends "base.html" %}
+
+{% block title %}Wabbajack Integration - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .install-guide {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .guide-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border);
+    }
+    .guide-header h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    .guide-header p {
+        color: var(--text-secondary);
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--accent-primary);
+        text-decoration: none;
+        margin-bottom: 2rem;
+        font-weight: 500;
+    }
+    .back-link:hover {
+        text-decoration: underline;
+    }
+    .steps-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    .step {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+    .step-icon {
+        font-size: 3rem;
+    }
+    .step-content h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .step-content p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+    .step-content code {
+        background: var(--bg-input);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-family: var(--font-mono);
+        font-size: 0.9em;
+    }
+    .download-section {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(168, 85, 247, 0.1));
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        text-align: center;
+        margin-top: 3rem;
+    }
+    .btn-download {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 1.125rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+    }
+    .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="install-guide">
+    <a href="/mod-managers" class="back-link">← Back to Mod Managers</a>
+    <header class="guide-header">
+        <h1>🎩 Wabbajack Integration</h1>
+        <p>Add SkyModderAI validation to your custom mod lists</p>
+    </header>
+    <div class="steps-container">
+        {% for step in steps %}
+        <div class="step">
+            <div class="step-icon">{{ step.icon }}</div>
+            <div class="step-content">
+                <h3>Step {{ loop.index }}: {{ step.title }}</h3>
+                <p>{{ step.description }}</p>
+                {% if loop.index == 3 %}
+                <div style="background: var(--bg-input); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <code style="display: block; margin-bottom: 0.5rem;">"tools": [</code>
+                    <code style="display: block; margin-bottom: 0.5rem; padding-left: 2rem;">{</code>
+                    <code style="display: block; margin-bottom: 0.5rem; padding-left: 4rem;">"name": "SkyModderAI",</code>
+                    <code style="display: block; margin-bottom: 0.5rem; padding-left: 4rem;">"type": "validation",</code>
+                    <code style="display: block; margin-bottom: 0.5rem; padding-left: 4rem;">"enabled": true</code>
+                    <code style="display: block; margin-bottom: 0.5rem; padding-left: 2rem;">}</code>
+                    <code style="display: block;">]</code>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="download-section">
+        <h3>Ready to Get Started?</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Download the Wabbajack integration and validate your mod lists before sharing.
+        </p>
+        <a href="/mod-managers/wabbajack/download" class="btn-download">
+            📥 Download Wabbajack Integration
+        </a>
+    </div>
+</div>
+{% endblock %}

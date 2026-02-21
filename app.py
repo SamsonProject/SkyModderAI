@@ -3033,8 +3033,15 @@ def api_list_preferences():
     analysis_snapshot = (
         data.get("analysis_snapshot") if isinstance(data.get("analysis_snapshot"), dict) else None
     )
-    list_text = validate_mod_list(data.get("list", ""))
-    name = validate_list_name(data.get("name", ""))
+
+    # Validate mod list and list name
+    is_valid, list_text, error = validate_mod_list(data.get("list", ""))
+    if not is_valid:
+        raise ValueError(error or "Invalid mod list")
+
+    is_valid, name, error = validate_list_name(data.get("name", ""))
+    if not is_valid:
+        raise ValueError(error or "Invalid list name")
 
     ok = upsert_user_saved_list(
         user_email,
@@ -4529,11 +4536,11 @@ def analyze_mods():
         masterlist_version = (data.get("masterlist_version") or "").strip() or "latest"
         game_version = (data.get("game_version") or "").strip()
         try:
-            active_parser = LOOTParser(game_id=game)
+            active_parser = LOOTParser(game)  # Positional argument, not keyword
             active_parser.download_masterlist()
         except Exception as e:
             logger.warning(f"Parser for {game} failed: {e}, using default")
-            active_parser = LOOTParser(game_id=DEFAULT_GAME)
+            active_parser = LOOTParser(DEFAULT_GAME)
 
         nexus_slug = NEXUS_GAME_SLUGS.get(game, "skyrimspecialedition")
         detector = ConflictDetector(active_parser, nexus_slug=nexus_slug)
@@ -8357,6 +8364,7 @@ def openclaw_models_export():
 
 # noqa: E402 - Import at bottom to avoid circular imports
 from blueprints import (
+    ad_builder_bp,
     analysis_bp,
     api_bp,
     auth_bp,
@@ -8368,6 +8376,10 @@ from blueprints import (
     shopping_bp,
     sponsors_bp,
 )
+from blueprints.compatibility import compatibility_bp
+from blueprints.mod_author import mod_author_bp
+from blueprints.mod_detail import mod_detail_bp
+from blueprints.mod_manager import mod_manager_bp
 
 # Register all blueprints
 app.register_blueprint(auth_bp)
@@ -8380,6 +8392,11 @@ app.register_blueprint(export_bp)
 app.register_blueprint(sponsors_bp)
 app.register_blueprint(business_bp)
 app.register_blueprint(shopping_bp, url_prefix="/shopping")
+app.register_blueprint(ad_builder_bp, url_prefix="/ad-builder")
+app.register_blueprint(mod_author_bp)
+app.register_blueprint(compatibility_bp)
+app.register_blueprint(mod_detail_bp)
+app.register_blueprint(mod_manager_bp)
 
 logger.info("All blueprints registered")
 

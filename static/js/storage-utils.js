@@ -1,6 +1,6 @@
 /**
  * SkyModderAI - Local-First Storage Utilities
- * 
+ *
  * Philosophy:
  * - Store user data in browser localStorage by default
  * - Compress data before storage (pako gzip)
@@ -8,6 +8,14 @@
  * - Auto-save session data (every 30 seconds)
  * - Export/import functionality (user owns their data)
  */
+
+// Simple logging utility (replaces console.log in production)
+const Logger = window.Logger || (window.Logger = {
+    debug: (...args) => { if (window.location.hostname === 'localhost') window.Logger.debug(...args); },
+    info: (...args) => { if (window.location.hostname === 'localhost') window.Logger.info(...args); },
+    warn: (...args) => { if (window.location.hostname === 'localhost') window.Logger.warn(...args); },
+    error: (...args) => { window.Logger.error(...args); }
+});
 
 // Compression utilities (using pako.js for gzip)
 const StorageUtils = {
@@ -23,7 +31,7 @@ const StorageUtils = {
             // Convert Uint8Array to base64 for localStorage
             return btoa(String.fromCharCode(...compressed));
         } catch (e) {
-            console.warn('Compression failed, storing uncompressed:', e);
+            Logger.warn('Compression failed, storing uncompressed:', e);
             return JSON.stringify(data);
         }
     },
@@ -45,12 +53,12 @@ const StorageUtils = {
             const json = pako.ungzip(bytes, { to: 'string' });
             return JSON.parse(json);
         } catch (e) {
-            console.warn('Decompression failed, trying uncompressed:', e);
+            Logger.warn('Decompression failed, trying uncompressed:', e);
             // Fallback: try parsing as uncompressed JSON
             try {
                 return JSON.parse(compressed);
             } catch (e2) {
-                console.error('Failed to parse data:', e2);
+                Logger.error('Failed to parse data:', e2);
                 return null;
             }
         }
@@ -78,7 +86,7 @@ const StorageUtils = {
                 
             }
         } catch (e) {
-            console.error('[Storage] Failed to store:', e);
+            Logger.error('[Storage] Failed to store:', e);
             // Handle quota exceeded
             if (e.name === 'QuotaExceededError') {
                 this.handleQuotaExceeded();
@@ -101,7 +109,7 @@ const StorageUtils = {
 
             return compressed ? this.decompress(value) : JSON.parse(value);
         } catch (e) {
-            console.warn('[Storage] Failed to retrieve:', e);
+            Logger.warn('[Storage] Failed to retrieve:', e);
             return defaultValue;
         }
     },
@@ -120,7 +128,7 @@ const StorageUtils = {
      * Strategy: Clear old session data, keep user saves
      */
     handleQuotaExceeded() {
-        console.warn('[Storage] Quota exceeded, clearing old session data...');
+        Logger.warn('[Storage] Quota exceeded, clearing old session data...');
         
         // Clear session data (keep saved lists)
         const sessionKeys = [
@@ -180,7 +188,7 @@ const StorageUtils = {
                     
                     resolve(data);
                 } catch (err) {
-                    console.error('[Storage] Import failed:', err);
+                    Logger.error('[Storage] Import failed:', err);
                     reject(err);
                 }
             };

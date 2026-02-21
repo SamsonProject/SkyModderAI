@@ -4,6 +4,7 @@ SkyModderAI - Blueprint Package
 
 from __future__ import annotations
 
+from .ad_builder import ad_builder_bp
 from .analysis import analysis_bp
 from .api import api_bp
 from .auth import auth_bp
@@ -26,4 +27,5 @@ __all__ = [
     "sponsors_bp",
     "business_bp",
     "shopping_bp",
+    "ad_builder_bp",
 ]

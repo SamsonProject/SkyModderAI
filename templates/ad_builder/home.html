@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Ad Builder - Create Professional Ads Free{% endblock %}
+
+{% block content %}
+<div class="ad-builder-page" style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
+    
+    <!-- Header -->
+    <header class="ad-builder-header" style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; background: linear-gradient(135deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            🎨 Ad Builder
+        </h1>
+        <p class="hero-subtitle" style="font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; margin: 0 auto 1.5rem;">
+            Create professional ads, social posts, and marketing materials. Free forever. No account required.
+        </p>
+        <p style="font-size: 1rem; color: var(--text-secondary); max-width: 700px; margin: 0 auto 2rem;">
+            <strong>💡 Tool for Dreamers:</strong> Part of the hyper-productivity toolkit. 
+            Create ads for your business, your projects, your impossible dreams.
+            <a href="/vision" style="color: #3b82f6; text-decoration: underline;">See the vision →</a>
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/ad-builder/editor/new" class="btn btn-primary" style="padding: 0.875rem 2rem; font-size: 1rem;">Start New Design →</a>
+            <a href="/ad-builder/templates" class="btn btn-secondary" style="padding: 0.875rem 2rem; font-size: 1rem;">Browse Templates</a>
+        </div>
+    </header>
+
+    <!-- Features Grid -->
+    <section class="features-section" style="margin-bottom: 4rem;">
+        <h2 style="text-align: center; font-size: 1.75rem; margin-bottom: 2rem;">Why Use Ad Builder?</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+            <div class="feature-card" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🆓</div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Free Forever</h3>
+                <p style="color: var(--text-secondary);">No account required. No credit card. Create professional ads for free.</p>
+            </div>
+            <div class="feature-card" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📐</div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">All Formats</h3>
+                <p style="color: var(--text-secondary);">Social media, print, display ads, video thumbnails. Every format you need.</p>
+            </div>
+            <div class="feature-card" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🎨</div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Pro Templates</h3>
+                <p style="color: var(--text-secondary);">Hundreds of professionally designed templates. Customize in minutes.</p>
+            </div>
+            <div class="feature-card" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Easy Export</h3>
+                <p style="color: var(--text-secondary);">Download as PNG, JPG, PDF, or SVG. Ready to use anywhere.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Templates -->
+    <section class="templates-section" style="margin-bottom: 4rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2 style="font-size: 1.75rem;">Popular Templates</h2>
+            <a href="/ad-builder/templates" class="btn btn-secondary" style="padding: 0.5rem 1.5rem;">View All →</a>
+        </div>
+
+        {% if templates %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+            {% for template in templates[:6] %}
+            <div class="template-card" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.2s; cursor: pointer;" onclick="window.location.href='/ad-builder/templates/{{ template.id }}'">
+                <div style="aspect-ratio: 4/3; background: linear-gradient(135deg, #1e293b, #0f172a); display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 3rem;">
+                    📋
+                </div>
+                <div style="padding: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; margin-bottom: 0.5rem;">{{ template.name }}</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">{{ template.category }}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.75rem; color: #64748b; text-transform: uppercase;">{{ template.width }}×{{ template.height }}</span>
+                        <span class="btn btn-sm btn-primary" style="padding: 0.375rem 1rem; font-size: 0.75rem;">Use Template</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 4rem; background: var(--bg-tertiary); border-radius: 12px; border: 1px solid var(--border);">
+            <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Templates Coming Soon</h3>
+            <p style="color: var(--text-secondary);">We're adding professional templates every week.</p>
+            <a href="/ad-builder/editor/new" class="btn btn-primary" style="margin-top: 1.5rem; padding: 0.75rem 2rem;">Start from Scratch →</a>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Recent Designs (if logged in) -->
+    {% if designs %}
+    <section class="designs-section" style="margin-bottom: 4rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2 style="font-size: 1.75rem;">Your Recent Designs</h2>
+            <a href="/ad-builder/designs" class="btn btn-secondary" style="padding: 0.5rem 1.5rem;">View All →</a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+            {% for design in designs[:4] %}
+            <div class="design-card" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.2s;">
+                <div style="aspect-ratio: 1/1; background: linear-gradient(135deg, #1e293b, #0f172a); display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 3rem;">
+                    🎨
+                </div>
+                <div style="padding: 1rem;">
+                    <h3 style="font-size: 1rem; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ design.name }}</h3>
+                    <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.75rem;">{{ design.format_type }}</p>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="/ad-builder/editor/{{ design.id }}" class="btn btn-sm btn-primary" style="flex: 1; text-align: center; padding: 0.375rem;">Edit</a>
+                        <a href="/ad-builder/export/{{ design.id }}" class="btn btn-sm btn-secondary" style="padding: 0.375rem 0.75rem;">Export</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- How It Works -->
+    <section class="how-it-works" style="margin-bottom: 4rem; background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 3rem 2rem;">
+        <h2 style="text-align: center; font-size: 1.75rem; margin-bottom: 2rem;">How It Works</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; max-width: 1000px; margin: 0 auto;">
+            <div style="text-align: center;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; font-weight: 700; color: white;">1</div>
+                <h3 style="font-size: 1.125rem; margin-bottom: 0.5rem;">Choose a Format</h3>
+                <p style="color: var(--text-secondary);">Select from social media, print, display ads, or custom dimensions.</p>
+            </div>
+            <div style="text-align: center;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; font-weight: 700; color: white;">2</div>
+                <h3 style="font-size: 1.125rem; margin-bottom: 0.5rem;">Customize Design</h3>
+                <p style="color: var(--text-secondary);">Add text, images, shapes. Change colors, fonts, and layout.</p>
+            </div>
+            <div style="text-align: center;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; font-weight: 700; color: white;">3</div>
+                <h3 style="font-size: 1.125rem; margin-bottom: 0.5rem;">Export & Use</h3>
+                <p style="color: var(--text-secondary);">Download in your preferred format. Ready to use anywhere.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="cta-section" style="text-align: center; padding: 3rem 2rem; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1)); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
+        <h2 style="font-size: 1.75rem; margin-bottom: 1rem;">Ready to Create?</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+            Start designing professional ads in minutes. No account required. Free forever.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/ad-builder/editor/new" class="btn btn-primary" style="padding: 0.875rem 2rem; font-size: 1rem;">Start New Design →</a>
+            <a href="/ad-builder/templates" class="btn btn-secondary" style="padding: 0.875rem 2rem; font-size: 1rem;">Browse Templates</a>
+        </div>
+        <p style="margin-top: 2rem; font-size: 0.9375rem; color: var(--text-secondary);">
+            <strong>Building a business?</strong> <a href="/business/" style="color: #3b82f6; text-decoration: underline;">Learn business skills</a> · 
+            <a href="/shopping/" style="color: #3b82f6; text-decoration: underline;">Promote your products</a> · 
+            <a href="/vision" style="color: #3b82f6; text-decoration: underline;">Fund your dreams</a>
+        </p>
+    </div>
+
+</div>
+{% endblock %}

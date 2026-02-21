@@ -3,15 +3,15 @@ set -e  # Exit on error
 
 echo "🚀 Setting up SkyModderAI development environment..."
 
-# Check if Python 3.8+ is installed
+# Check if Python 3.11+ is installed
 if ! command -v python3 &> /dev/null; then
-    echo "❌ Python 3.8 or higher is required. Please install it first."
+    echo "❌ Python 3.11 or higher is required. Please install it first."
     exit 1
 fi
 
 PYTHON_VERSION=$(python3 -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))")
-if [[ "$PYTHON_VERSION" < "3.8" ]]; then
-    echo "❌ Python 3.8 or higher is required. Found Python $PYTHON_VERSION"
+if [[ "$PYTHON_VERSION" < "3.11" ]]; then
+    echo "❌ Python 3.11 or higher is required. Found Python $PYTHON_VERSION"
     exit 1
 fi
 

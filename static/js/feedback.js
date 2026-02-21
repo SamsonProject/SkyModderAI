@@ -8,6 +8,14 @@
  * - Post-session curation trigger
  */
 
+// Simple logging utility (replaces console.log in production)
+const Logger = window.Logger || (window.Logger = {
+    debug: (...args) => { if (window.location.hostname === 'localhost') window.Logger.debug(...args); },
+    info: (...args) => { if (window.location.hostname === 'localhost') window.Logger.info(...args); },
+    warn: (...args) => { if (window.location.hostname === 'localhost') window.Logger.warn(...args); },
+    error: (...args) => { window.Logger.error(...args); }
+});
+
 // Session tracker
 class SessionTracker {
     constructor(userEmail = null) {

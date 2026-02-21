@@ -372,23 +372,19 @@ class CommunityBuildsService:
             stats["community_builds"] = stats["total_builds"] - stats["seed_builds"]
 
             # Builds by game
-            rows = db.execute(
-                """
+            rows = db.execute("""
                     SELECT game, COUNT(*) as count
                     FROM community_builds
                     GROUP BY game
                     ORDER BY count DESC
-                """
-            ).fetchall()
+                """).fetchall()
             stats["by_game"] = {row["game"]: row["count"] for row in rows}
 
             # Total votes
-            row = db.execute(
-                """
+            row = db.execute("""
                     SELECT SUM(upvotes) as total_up, SUM(downvotes) as total_down
                     FROM community_builds
-                """
-            ).fetchone()
+                """).fetchone()
             stats["total_upvotes"] = row["total_up"] or 0
             stats["total_downvotes"] = row["total_down"] or 0
 

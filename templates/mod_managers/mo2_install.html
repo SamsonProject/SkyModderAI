@@ -1,0 +1,247 @@
+<!--
+  SkyModderAI - Mod Organizer 2 Installation Guide
+-->
+{% extends "base.html" %}
+
+{% block title %}MO2 Plugin Installation - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .install-guide {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .guide-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .guide-header h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .guide-header p {
+        color: var(--text-secondary);
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--accent-primary);
+        text-decoration: none;
+        margin-bottom: 2rem;
+        font-weight: 500;
+    }
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+    .steps-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .step {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .step-icon {
+        font-size: 3rem;
+        flex-shrink: 0;
+    }
+
+    .step-content h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .step-content p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .step-content code {
+        background: var(--bg-input);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-family: var(--font-mono);
+        font-size: 0.9em;
+    }
+
+    .step-content pre {
+        background: var(--bg-input);
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+        margin: 1rem 0;
+    }
+
+    .step-content pre code {
+        background: transparent;
+        padding: 0;
+    }
+
+    .step-content ul {
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .step-content li {
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+    }
+
+    .step-image {
+        background: var(--bg-input);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+    .step-image img {
+        max-width: 100%;
+        border-radius: var(--radius-sm);
+    }
+
+    .tip-box {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .tip-box h4 {
+        color: var(--info);
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .tip-box p {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    .download-section {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(168, 85, 247, 0.1));
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    .download-section h3 {
+        margin-bottom: 1rem;
+    }
+
+    .btn-download {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 1.125rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+    }
+
+    .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="install-guide">
+    <a href="/mod-managers" class="back-link">← Back to Mod Managers</a>
+
+    <header class="guide-header">
+        <h1>🔧 Mod Organizer 2 Plugin Installation</h1>
+        <p>Step-by-step guide to install SkyModderAI integration for MO2</p>
+    </header>
+
+    <div class="steps-container">
+        {% for step in steps %}
+        <div class="step">
+            <div class="step-icon">{{ step.icon }}</div>
+            <div class="step-content">
+                <h3>Step {{ loop.index }}: {{ step.title }}</h3>
+                <p>{{ step.description }}</p>
+                {% if loop.index == 2 %}
+                <div class="tip-box">
+                    <h4>💡 Default MO2 Paths</h4>
+                    <p>
+                        Windows: <code>C:\Modding\Mod Organizer 2\plugins\</code><br>
+                        Or right-click MO2 shortcut → Open file location → navigate to <code>plugins</code>
+                    </p>
+                </div>
+                {% endif %}
+                {% if loop.index == 3 %}
+                <ul>
+                    <li>Open Mod Organizer 2</li>
+                    <li>Go to <strong>Tools</strong> → <strong>Settings</strong></li>
+                    <li>Select the <strong>Plugins</strong> tab</li>
+                    <li>Find <strong>SkyModderAI</strong> in the list</li>
+                    <li>Check the box to enable it</li>
+                </ul>
+                {% endif %}
+                {% if loop.index == 4 %}
+                <div class="tip-box">
+                    <h4>🔑 Don't Have an API Key?</h4>
+                    <p>
+                        No worries! Basic features work without an account. 
+                        <a href="/auth/login" style="color: var(--accent-primary);">Sign in</a> 
+                        to get your personal API key from the profile page.
+                    </p>
+                </div>
+                {% endif %}
+                {% if loop.index == 5 %}
+                <div class="tip-box">
+                    <h4>⚡ Pro Tip</h4>
+                    <p>
+                        You can also analyze individual mods by right-clicking them in the left pane 
+                        and selecting <strong>"Check Compatibility"</strong>.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="download-section">
+        <h3>Ready to Get Started?</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Download the MO2 plugin and start analyzing your mods in seconds.
+        </p>
+        <a href="/mod-managers/mo2/download" class="btn-download">
+            📥 Download MO2 Plugin
+        </a>
+    </div>
+</div>
+{% endblock %}

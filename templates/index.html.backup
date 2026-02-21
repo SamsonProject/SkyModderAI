@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="SkyModderAI: The ultimate modding powerhouse for Bethesda games. AI-powered conflict detection, load order optimization, community-driven insights, and intelligent recommendations for Skyrim, Fallout, and Starfield. Built on LOOT data, enhanced with machine learning. 100% free and open source.">
+    <meta name="theme-color" content="#050810">
+    <meta property="og:title" content="SkyModderAI — Your Modding Powerhouse">
+    <meta property="og:description"
+        content="AI-powered conflict detection, load order optimization, and community-driven insights for Skyrim, Fallout, and Starfield. Built on LOOT data, enhanced with machine learning. 100% free.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://i.imgur.com/MGVsgjM.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://i.imgur.com/MGVsgjM.png">
+    <link rel="canonical" href="/">
+    <meta name="ai-discovery" content="SkyModderAI feed at /ai-feed.json">
+    <link rel="alternate" type="application/json" href="/ai-feed.json" title="SkyModderAI AI Feed">
+    <title>SkyModderAI <span class="beta-tag">Beta</span> — Your Modding Powerhouse for Bethesda Games</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.modern.svg">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.modern.css">
+    <link rel="stylesheet" href="/static/css/centering-fixes.css">
+    <link rel="stylesheet" href="/static/css/style.phase1-additions.css">
+    <link rel="stylesheet" href="/static/css/mobile-accessibility.css">
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    <style>
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 100px;
+        }
+        /* Analysis Header Components */
+        .analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #334155;
+        }
+
+        .analysis-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .analysis-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+        }
+
+        .transparency-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .transparency-toggle:hover {
+            border-color: #3b82f6;
+            color: #fff;
+        }
+
+        .transparency-panel {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .transparency-panel h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1.125rem;
+            color: #e2e8f0;
+        }
+
+        .transparency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .transparency-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .transparency-item-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .transparency-item-value {
+            font-size: 1rem;
+            color: #e2e8f0;
+            margin-top: 0.25rem;
+        }
+
+        .data-source-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #334155;
+            color: #e2e8f0;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            margin: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .analysis-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .analysis-header-actions {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Promo Section - Business & Donation */
+        .promo-section {
+            margin: 3rem 0;
+            padding: 2rem;
+        }
+
+        .promo-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .promo-card {
+            background: var(--bg-card, rgba(15, 23, 42, 0.6));
+            border: 1px solid var(--border, rgba(51, 65, 85, 0.5));
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .promo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .promo-icon {
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+
+        .promo-content {
+            flex: 1;
+        }
+
+        .promo-content h3 {
+            margin: 0 0 0.75rem 0;
+            font-size: 1.5rem;
+            color: var(--text-primary, #f8fafc);
+        }
+
+        .promo-content p {
+            color: var(--text-secondary, #94a3b8);
+            margin: 0 0 1rem 0;
+            line-height: 1.6;
+        }
+
+        .promo-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .promo-features span {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success, #10b981);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Donation Progress */
+        .donation-progress {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary, #94a3b8);
+            font-weight: 500;
+        }
+
+        .progress-amount {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--accent-primary, #06b6d4);
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: rgba(51, 65, 85, 0.5);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary, #06b6d4), var(--accent-secondary, #a855f7));
+            border-radius: 9999px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-sub {
+            font-size: 0.875rem;
+            color: var(--text-muted, #64748b);
+            margin: 0;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .promo-container {
+                grid-template-columns: 1fr;
+            }
+
+            .promo-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .promo-features {
+                justify-content: center;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "SkyModderAI",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Web",
+      "description": "Bethesda mod compatibility analysis, ranking, build generation, and dev tooling using LOOT data.",
+      "offers": [{"@type":"Offer","price":"0","priceCurrency":"USD"},{"@type":"Offer","price":"5","priceCurrency":"USD"},{"@type":"Offer","price":"15","priceCurrency":"USD"}],
+      "url": "/",
+      "softwareHelp": "/api",
+      "softwareVersion": "1.0",
+      "provider": {"@type":"Organization","name":"SkyModderAI"}
+    }
+    </script>
+</head>
+
+<body>
+    <script>window.__USER_TIER__ = 'free';</script>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <!-- LOADING OVERLAY - FIXED -->
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+        <p style="color: white; margin-top: 20px; font-size: 1.2rem;">Analyzing your mods...</p>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="site-header">
+            <a href="/" class="logo-link">
+                <span class="logo-icon logo-icon-rotate" role="img" aria-hidden="true"></span>
+                <div class="logo-text">
+                    <h1 class="logo-title">SkyModderAI</h1>
+                    <span class="beta-tag" title="Beta version">Beta</span>
+                    <p class="tagline">Built by modders, for modders.</p>
+                </div>
+            </a>
+            <button type="button" class="header-search" id="command-palette-trigger" title="Quick actions (⌘K)"
+                aria-label="Open command palette">
+                <span class="header-search-icon" aria-hidden="true">⌘</span>
+                <span class="header-search-placeholder">Commands</span>
+                <kbd class="header-search-kbd">⌘K</kbd>
+            </button>
+            <nav class="header-nav">
+                <a href="#panel-community" class="nav-link" style="color: #f59e0b; font-weight: 700;">🔥 Community</a>
+                <a href="/shopping/" class="nav-link">Shopping</a>
+                <a href="/business" class="nav-link">Business</a>
+                {% if session.get('user_email') %}
+                <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
+                <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+                {% else %}
+                <a href="{{ url_for('auth', tab='login') }}" class="nav-link">Login</a>
+                <a href="{{ url_for('auth', tab='signup') }}" class="nav-link">Sign Up</a>
+                {% endif %}
+                <button type="button" id="tour-trigger" class="btn btn-sm btn-outline" style="margin-left: 0.5rem;" aria-label="Take a tour">
+                    🎯 Tour
+                </button>
+            </nav>
+        </header>
+
+        {% if error_message %}
+        <div class="index-error-banner" role="alert">
+            <span class="index-error-icon" aria-hidden="true">!</span>
+            <p>{{ error_message }}</p>
+            <a href="{{ url_for('signup_pro') }}" class="index-error-cta">Try again</a>
+            <button type="button" class="index-error-dismiss" id="index-error-dismiss"
+                aria-label="Dismiss">&times;</button>
+        </div>
+        {% endif %}
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-glow"></div>
+            <div class="hero-badges">
+                <span class="pro-badge">✨ AI-Powered</span>
+                <span class="pro-badge" style="background: linear-gradient(135deg, #10b981, #059669);">✓ 100% Free</span>
+                <span class="pro-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🔥 Community</span>
+                <span class="pro-badge" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">🛒 Shopping</span>
+            </div>
+            <h2 class="hero-title">Your modding powerhouse</h2>
+            <p class="hero-subtitle">AI-powered conflict detection, load order optimization, and community-driven insights for Skyrim, Fallout, and Starfield. Built on LOOT data, enhanced with machine learning.</p>
+        </section>
+
+        <!-- Simple Free Banner -->
+        <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; max-width: 900px; margin-left: auto; margin-right: auto;">
+            <h3 style="color: #22c55e; margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 600;">🎯 Free Tool. No Catch.</h3>
+            <p style="color: #94a3b8; line-height: 1.6; margin-bottom: 0;">
+                This tool is free. Optional advertising in the Shopping tab keeps the lights on.
+                Support sponsors if you want. Use the tool free either way.
+            </p>
+        </div>
+
+        <!-- Main Tool -->
+        <main id="main-content">
+
+            <div class="main-tabs" role="tablist">
+                <button type="button" class="main-tab" data-tab="community" role="tab" aria-selected="false"
+                    style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25)); border: 2px solid #f59e0b; font-weight: 700;">
+                    🔥 Community
+                </button>
+                <button type="button" class="main-tab active" data-tab="analyze" role="tab"
+                    aria-selected="true">🔍 Analyze</button>
+                <button type="button" class="main-tab" data-tab="openclaw" role="tab" aria-selected="false"
+                    style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15)); border: 1px solid #3b82f6; font-weight: 600;">
+                    🐾 OpenCLAW
+                </button>
+                <button type="button" class="main-tab" data-tab="quickstart" role="tab" aria-selected="false">Quick
+                    Start</button>
+                <button type="button" class="main-tab" data-tab="build-list" role="tab" aria-selected="false">Build a
+                    List</button>
+                <button type="button" class="main-tab" data-tab="library" role="tab"
+                    aria-selected="false">Library</button>
+                <button type="button" class="main-tab" data-tab="gameplay" role="tab"
+                    aria-selected="false">Gameplay</button>
+                <button type="button" class="main-tab main-tab-dev" data-tab="dev" role="tab" aria-selected="false"
+                    style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(6, 182, 212, 0.15)); border: 1px solid var(--accent-primary);">
+                    🛠️ Mod Authors
+                </button>
+            </div>
+            <section class="tool-section tab-panel" id="panel-analyze" role="tabpanel" aria-hidden="true">
+                <div class="input-panel">
+                    <form id="analyze-form" action="#" method="post" novalidate>
+                        <h3 class="input-panel-title">Analyze your mod list</h3>
+                        <p class="input-panel-subtitle">Get AI-powered conflict detection, load order optimization, and compatibility insights. Our engine combines LOOT data with machine learning and community knowledge.</p>
+                        <div class="game-select-wrap">
+                            <label for="game-select" class="game-label">Game:</label>
+                            <select id="game-select" title="Select game for LOOT masterlist">
+                                <option value="skyrimse">Skyrim SE</option>
+                                <option value="skyrim">Skyrim LE</option>
+                                <option value="skyrimvr">Skyrim VR</option>
+                                <option value="oblivion">Oblivion</option>
+                                <option value="fallout3">Fallout 3</option>
+                                <option value="falloutnv">Fallout New Vegas</option>
+                                <option value="fallout4">Fallout 4</option>
+                                <option value="starfield">Starfield</option>
+                            </select>
+                            <label for="game-version" class="game-label">Game version:</label>
+                            <select id="game-version"
+                                title="Your game executable version. Affects compatibility warnings (e.g. Skyrim 1.5.97 vs 1.6.640).">
+                                <option value="">Not specified</option>
+                            </select>
+                            <label for="masterlist-version" class="game-label">LOOT data:</label>
+                            <select id="masterlist-version"
+                                title="LOOT metadata version. Older = fewer mods in database. Search and analysis use this.">
+                                <option value="">Latest</option>
+                            </select>
+                        </div>
+                        <div id="game-version-info" class="game-version-info hidden" role="status"></div>
+                        <details class="game-folder-scan-details" id="game-folder-scan-details">
+                            <summary class="game-folder-scan-summary">Scan game folder — Drop your Data folder; AI
+                                checks overwrites, conflicts, odd structure beyond load order</summary>
+                            <div class="game-folder-scan-content">
+                                <p class="hint">Modders change files in the game folder. Drop your game folder (or Data
+                                    folder) here and the AI will look for issues: overwrites, conflicts, odd structure,
+                                    missing files. Works with MO2, Vortex, or vanilla installs.</p>
+                                <div id="game-folder-drop-zone" class="game-folder-drop-zone" role="button" tabindex="0"
+                                    aria-label="Drop game folder here or click to select">
+                                    <span class="game-folder-drop-icon" aria-hidden="true">📁</span>
+                                    <span class="game-folder-drop-text">Drop your game folder here</span>
+                                    <span class="game-folder-drop-sub">or click to browse</span>
+                                    <button type="button" id="game-folder-browse-btn" class="secondary-button">Browse
+                                        folder</button>
+                                </div>
+                                <input type="file" id="game-folder-input" webkitdirectory mozdirectory directory
+                                    multiple class="hidden" aria-hidden="true">
+                                <div id="game-folder-scan-status" class="game-folder-scan-status hint hidden"
+                                    aria-live="polite"></div>
+                                <div id="game-folder-scan-results" class="game-folder-scan-results hidden"></div>
+                            </div>
+                        </details>
+                        <div class="mod-search-wrap">
+                            <label for="mod-search-input" class="hint">Search mods — same LOOT data as analysis. Type to
+                                find, <kbd>/</kbd> to focus, click or Enter to add to your list</label>
+                            <div class="mod-search-input-wrap">
+                                <input type="text" id="mod-search-input" placeholder="e.g. USSEP, Skyrim..."
+                                    autocomplete="off">
+                                <button type="button" id="mod-search-clear" class="mod-search-clear hidden"
+                                    title="Clear search" aria-label="Clear search">&times;</button>
+                            </div>
+                            <div id="mod-search-results" class="mod-search-results hidden"></div>
+                        </div>
+                        <textarea id="mod-list-input" placeholder="Paste your mod list here (plugins.txt, Mod Organizer 2 load order, or any ESP/ESM list).
+
+Examples:
+*Skyrim.esm
+*Update.esm
++Unofficial Skyrim Special Edition Patch.esp
+-Dawnguard.esm (disabled)
+
+Supports:
+• plugins.txt format
+• Mod Organizer 2 load orders
+• Vortex exports
+• Plain text lists" rows="10"></textarea>
+                        <p class="hint shortcut-hint">Ctrl+Enter to analyze</p>
+                        <div class="input-actions">
+                            <div class="input-actions-import">
+                                <button type="button" id="share-link-btn" class="import-button"
+                                    title="Copy share link — anyone can load your list">Share</button>
+                                <button type="button" id="paste-btn" class="import-button"
+                                    title="Paste from clipboard">Paste</button>
+                                <button type="button" id="import-file-btn" class="import-button"
+                                    title="Import from plugins.txt or text file">Import file</button>
+                                <input type="file" id="import-file-input" accept=".txt,.log,text/plain" class="hidden"
+                                    aria-hidden="true">
+                                <button type="button" id="sample-btn" class="import-button import-button-muted"
+                                    title="Load a typical sample list for the selected game (base + DLC + common mods)">Sample</button>
+                                <button type="button" id="save-list-btn" class="import-button"
+                                    title="Save this list for later">Save list</button>
+                                <select id="load-saved-list" class="import-button load-saved-select"
+                                    title="Load a saved list">
+                                    <option value="">Load saved…</option>
+                                </select>
+                            </div>
+                            <div class="input-actions-main">
+                                <button type="submit" id="analyze-btn" class="primary-button">Analyze Now</button>
+                                <button type="button" id="auto-format-btn" class="secondary-button"
+                                    title="Auto-format and best-match your list">Auto-format</button>
+                                <button type="button" id="refresh-matches-btn" class="secondary-button"
+                                    title="Refresh fuzzy matches and suggestions">Match preview</button>
+                                <button type="button" id="clear-btn" class="secondary-button">Clear</button>
+                            </div>
+                            <div class="mod-counter">
+                                <p id="mod-count">0 mods</p>
+                                <p id="mod-count-detail" class="hint hidden"></p>
+                                <p id="plugin-limit-warning" class="warning hidden"></p>
+                            </div>
+                        </div>
+                        <div id="recommendations-strip" class="recommendations-strip hidden" aria-live="polite">
+                            <div id="recommendations-warnings" class="recommendations-warnings" aria-live="polite">
+                            </div>
+                            <p class="recommendations-label">Missing requirements detected</p>
+                            <div id="recommendations-cards" class="recommendations-cards"></div>
+                        </div>
+                        <p id="action-feedback" class="hint" aria-live="polite"></p>
+                        <div id="input-match-preview" class="input-match-preview hidden" aria-live="polite">
+                            <div class="input-match-preview-header">
+                                <strong>Your input, matched</strong>
+                                <span id="input-match-summary" class="hint"></span>
+                            </div>
+                            <div id="input-match-list" class="input-match-list"></div>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="results-panel" class="results-panel hidden">
+                    <div class="analysis-header">
+                        <h3>Analysis Results</h3>
+                        <div class="analysis-header-actions">
+                            <span class="confidence-badge" id="confidence-badge" title="Based on data sources, match rate, and credibility scores">
+                                🎯 <span id="confidence-value">--</span>% Confidence
+                            </span>
+                            <button class="transparency-toggle" id="transparency-toggle-btn" onclick="toggleTransparencyPanel()" title="View analysis methodology">
+                                🔍 How This Was Analyzed
+                            </button>
+                        </div>
+                    </div>
+                    <div id="transparency-panel" class="transparency-panel hidden">
+                        <!-- Transparency details injected by JS -->
+                    </div>
+                    <div id="plugin-limit-banner" class="plugin-limit-banner hidden"></div>
+                    <div id="ai-summary-section" class="ai-summary-section hidden">
+                        <!-- AI Strategic Plan will be injected here -->
+                    </div>
+                    <div id="mod-warnings-section" class="mod-warnings-section hidden" role="region"
+                        aria-label="Mod list warnings">
+                        <!-- Plugin limit, VRAM, system strain — filled by JS from mod_warnings -->
+                    </div>
+                    <div id="next-actions-section" class="quickstart-section hidden" role="region"
+                        aria-label="What to do next">
+                        <h4>What to do next</h4>
+                        <p class="hint" id="next-actions-hint">Based on your results, here are the best next steps.</p>
+                        <div id="next-actions-content"></div>
+                    </div>
+                    <div class="summary">
+                        <div class="stat error-stat">
+                            <span>Errors:</span>
+                            <span class="count" id="error-count">0</span>
+                        </div>
+                        <div class="stat warning-stat">
+                            <span>Warnings:</span>
+                            <span class="count" id="warning-count">0</span>
+                        </div>
+                        <div class="stat info-stat">
+                            <span>Info:</span>
+                            <span class="count" id="info-count">0</span>
+                        </div>
+                    </div>
+                    <div class="filter-toggles">
+                        <span class="filter-label">Show:</span>
+                        <label class="filter-check"><input type="checkbox" id="filter-errors" checked> Errors</label>
+                        <label class="filter-check"><input type="checkbox" id="filter-warnings" checked>
+                            Warnings</label>
+                        <label class="filter-check"><input type="checkbox" id="filter-info" checked> Info</label>
+                    </div>
+                    <div class="results-search-wrap">
+                        <label for="results-search-input" class="hint">Search results — <kbd>/</kbd> to focus, type to
+                            filter</label>
+                        <div class="results-search-input-wrap">
+                            <input type="text" id="results-search-input"
+                                placeholder="Filter conflicts and heaviest mods..." autocomplete="off"
+                                aria-describedby="results-search-count">
+                            <button type="button" id="results-search-clear" class="results-search-clear hidden"
+                                title="Clear search" aria-label="Clear search">&times;</button>
+                        </div>
+                        <span id="results-search-count" class="results-search-count" aria-live="polite"></span>
+                    </div>
+                    <div id="fix-guide-preview" class="fix-guide-preview hidden" role="region"
+                        aria-label="Fix guide preview">
+                        <div class="fix-guide-preview-inner">
+                            <span class="fix-guide-preview-icon" aria-hidden="true">📋</span>
+                            <div class="fix-guide-preview-text">
+                                <strong id="fix-guide-preview-title">Your Fix Guide</strong>
+                                <span id="fix-guide-preview-summary" class="fix-guide-preview-summary"></span>
+                            </div>
+                            <button type="button" id="fix-guide-preview-scroll" class="fix-guide-preview-btn"
+                                aria-label="Scroll to full guide">View full →</button>
+                        </div>
+                    </div>
+                    <div id="fix-guide-section" class="fix-guide-section hidden">
+                        <div class="fix-guide-header">
+                            <h4>Your Fix Guide</h4>
+                            <p class="fix-guide-subtitle">Step-by-step guide that updates as you chat with the AI</p>
+                            {% if not session.get('user_email') %}
+                            <div class="pro-feature-banner" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-top: 1rem; font-size: 0.875rem;">
+                                <span style="font-size: 1.1rem;">💡</span>
+                                <span style="margin-left: 0.5rem;">
+                                    <strong>AI chat &amp; Fix Guide are Pro features.</strong>
+                                    Pro is $5/mo and keeps this tool free for everyone.
+                                    <a href="/profile" style="color: #3b82f6; text-decoration: underline;">[Support the project →]</a>
+                                </span>
+                            </div>
+                            {% endif %}
+                            <div class="fix-guide-actions">
+                                <button type="button" id="download-fix-guide-btn" class="secondary-button"
+                                    title="Download as beautiful HTML">Download guide</button>
+                                <button type="button" id="print-fix-guide-btn" class="secondary-button"
+                                    title="Print or save as PDF">Print / PDF</button>
+                            </div>
+                        </div>
+                        <div id="fix-guide-content" class="fix-guide-content"></div>
+                    </div>
+                    <div id="conflicts-container" class="conflicts-container">
+                        <!-- Conflicts will be appended here -->
+                    </div>
+                    <div class="system-impact-section hidden" id="system-impact-section">
+                        <h4>Heaviest mods (system impact ranking)</h4>
+                        <div id="system-impact-content" class="system-impact-content hidden">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+                    <div class="load-order-section hidden" id="load-order-section">
+                        <h4>Suggested load order (LOOT-based)</h4>
+                        <div id="load-order-actions-wrap" class="load-order-actions">
+                            <p class="hint">Copy as plugins.txt format or apply to replace your list below.</p>
+                            <button type="button" id="copy-load-order-btn" class="secondary-button">Copy as
+                                plugins.txt</button>
+                            <button type="button" id="apply-load-order-btn" class="primary-button">Apply to my
+                                list</button>
+                        </div>
+                    </div>
+                    <div class="results-actions">
+                        <div id="export-buttons-wrap" class="export-buttons-wrap">
+                            <button id="export-btn" class="primary-button">Copy Report</button>
+                            <button id="download-report-btn" class="secondary-button">Download .txt</button>
+                            <button id="download-report-json-btn" class="secondary-button">Download .json</button>
+                        </div>
+                        <div id="export-pro-cta" class="export-pro-cta hidden">
+                            <p class="hint">Copy and download your report — free for everyone.</p>
+                        </div>
+                        <button id="new-analysis-btn" class="secondary-button">New Analysis</button>
+                    </div>
+                    <div id="analysis-feedback-panel" class="quickstart-section hidden" role="region"
+                        aria-label="Analysis feedback">
+                        <h4>Was this analysis helpful?</h4>
+                        <p class="hint">Your quick rating helps improve SkyModderAI for the whole modding community.</p>
+                        <div class="analysis-feedback-actions" id="analysis-feedback-actions">
+                            <button type="button" class="secondary-button analysis-rating-btn"
+                                data-rating="1">1</button>
+                            <button type="button" class="secondary-button analysis-rating-btn"
+                                data-rating="2">2</button>
+                            <button type="button" class="secondary-button analysis-rating-btn"
+                                data-rating="3">3</button>
+                            <button type="button" class="secondary-button analysis-rating-btn"
+                                data-rating="4">4</button>
+                            <button type="button" class="secondary-button analysis-rating-btn"
+                                data-rating="5">5</button>
+                        </div>
+                        <textarea id="analysis-feedback-text" rows="2"
+                            placeholder="Optional: What should be better?"></textarea>
+                        <p id="analysis-feedback-status" class="hint"></p>
+                    </div>
+                    <div id="chat-section" class="chat-section hidden">
+                        <h4>Ask about your results</h4>
+
+                        {% if not session.get('user_email') %}
+                        <div class="pro-feature-banner" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                            <span style="font-size: 1.25rem;">💡</span>
+                            <span style="margin-left: 0.5rem;">
+                                <strong>AI chat &amp; Fix Guide are Pro features.</strong>
+                                Pro is $5/mo and keeps this tool free for everyone.
+                                <a href="/profile" style="color: #3b82f6; text-decoration: underline;">[Support the project →]</a>
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        <!-- User Guidance Tag -->
+                        <div class="ai-guidance-tag">
+                            <span class="ai-guidance-icon">💡</span>
+                            <span class="ai-guidance-text">
+                                <strong>Tip:</strong> SkyModderAI works best when conversations stay focused on modding.
+                                Casual chat is welcome, but may reduce result precision.
+                            </span>
+                        </div>
+
+                        <div id="chat-messages" class="chat-messages"></div>
+                        <form id="chat-form" class="chat-form">
+                            <input type="text" id="chat-input" placeholder="e.g. How do I fix the load order for USSEP?"
+                                autocomplete="off">
+                            <button type="submit" id="chat-send-btn" class="primary-button">Send</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- OpenCLAW: Automated Modding Assistant -->
+            <section class="tab-panel openclaw-panel" id="panel-openclaw" role="tabpanel" aria-hidden="true">
+                <div class="openclaw-content">
+                    <!-- OpenCLAW Warning Banner -->
+                    <div class="openclaw-warning-banner" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.05)); border: 1px solid rgba(245, 158, 11, 0.3); border-left: 4px solid #f59e0b; border-radius: 8px; padding: 1.25rem; margin-bottom: 2rem;">
+                        <div style="display: flex; gap: 1rem; align-items: start;">
+                            <div style="font-size: 1.5rem; flex-shrink: 0;">⚠️</div>
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 1rem; font-weight: 600; color: #f59e0b; margin-bottom: 0.5rem;">OpenCLAW Is a Powerful Tool</h3>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0.75rem;">
+                                    This is not a toy. OpenCLAW can make real changes to your mod setup. It operates in a sandbox for safety, but you should understand what you're granting permission for.
+                                </p>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.8125rem; color: var(--text-muted);">
+                                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">🔒 <strong>Read permissions carefully</strong></span>
+                                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">🧠 <strong>Understand the risks</strong></span>
+                                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">✅ <strong>Only grant what you trust</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="openclaw-header">
+                        <h2 class="openclaw-title">🐾 OpenCLAW</h2>
+                        <p class="openclaw-subtitle">Your automated modding assistant. OpenCLAW learns from your sessions, proposes improvements, and guides implementation — all safely sandboxed.</p>
+                    </div>
+                    
+                    <div class="openclaw-features">
+                        <div class="openclaw-feature">
+                            <div class="openclaw-feature-icon">🔍</div>
+                            <h3>Analyzes</h3>
+                            <p>Your current mod conflicts and performance</p>
+                        </div>
+                        <div class="openclaw-feature">
+                            <div class="openclaw-feature-icon">📚</div>
+                            <h3>Researches</h3>
+                            <p>Solutions from Nexus, Reddit, GitHub</p>
+                        </div>
+                        <div class="openclaw-feature">
+                            <div class="openclaw-feature-icon">📋</div>
+                            <h3>Proposes</h3>
+                            <p>A 5-phase improvement plan</p>
+                        </div>
+                        <div class="openclaw-feature">
+                            <div class="openclaw-feature-icon">✅</div>
+                            <h3>Executes</h3>
+                            <p>Changes in sandbox (with your permission)</p>
+                        </div>
+                        <div class="openclaw-feature">
+                            <div class="openclaw-feature-icon">🧠</div>
+                            <h3>Learns</h3>
+                            <p>From your feedback to improve</p>
+                        </div>
+                    </div>
+
+                    <div class="openclaw-cta">
+                        <a href="/api/v1/openclaw/" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
+                            Launch OpenCLAW Dashboard →
+                        </a>
+                        <p class="hint" style="margin-top: 1rem;">
+                            🔒 Permission-based access • Sandbox isolation • Safety-first design
+                        </p>
+                    </div>
+
+                    <div class="openclaw-safety">
+                        <h3>Safety Features</h3>
+                        <ul>
+                            <li>✅ Permission-based access (you control what it can do)</li>
+                            <li>✅ Sandbox isolation (can't modify system files)</li>
+                            <li>✅ Hard-coded denied operations (BIOS, kernel, drivers blocked)</li>
+                            <li>✅ File extension whitelist (only safe types allowed)</li>
+                            <li>✅ Path traversal protection (no escapes from sandbox)</li>
+                            <li>✅ Audit logging (all operations tracked)</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Start Guide (dynamic from /api/quickstart) -->
+            <section class="tab-panel quickstart-panel" id="panel-quickstart" role="tabpanel" aria-hidden="true">
+                <div class="quickstart-content">
+                    <h2 class="quickstart-title">Your Modding Journey Starts Here</h2>
+                    <p class="quickstart-intro">Whether you're a seasoned Dragonborn or just stepping into the
+                        Commonwealth, this is your command center. Every tool below has live previews - hover links to
+                        peek without leaving your workflow.</p>
+
+                    <div class="quickstart-game-select">
+                        <label for="quickstart-game">Choose your adventure:</label>
+                        <select id="quickstart-game" aria-label="Select game for quick start links">
+                            <option value="skyrimse">Skyrim SE</option>
+                            <option value="skyrim">Skyrim LE</option>
+                            <option value="skyrimvr">Skyrim VR</option>
+                            <option value="oblivion">Oblivion</option>
+                            <option value="fallout3">Fallout 3</option>
+                            <option value="falloutnv">Fallout New Vegas</option>
+                            <option value="fallout4">Fallout 4</option>
+                            <option value="starfield">Starfield</option>
+                        </select>
+                    </div>
+
+                    <div id="quickstart-first-steps" class="quickstart-section">
+                        <h3>New to modding? Welcome, adventurer.</h3>
+                        <div id="quickstart-first-steps-content">
+                            <p class="hint">Loading your essential tools…</p>
+                        </div>
+                    </div>
+
+                    <div class="quickstart-section">
+                        <h3>Where did my build go?</h3>
+                        <p>Your generated mod setup appears in <strong>Build a List</strong>, then automatically gets
+                            sent to <strong>Analyze</strong> for instant conflict checking. No more juggling tools!</p>
+                        <p>
+                            <button type="button" class="secondary-button tab-switch" data-tab="build-list">Go to Build
+                                a List</button>
+                            <button type="button" class="secondary-button tab-switch" data-tab="analyze">Go to
+                                Analyze</button>
+                        </p>
+                    </div>
+
+                    <div class="quickstart-section">
+                        <h3>Where do I find my mod list?</h3>
+                        <p>Your load order lives in different places depending on your mod manager. Pick yours:</p>
+                        <div id="quickstart-mod-managers">
+                            <p class="hint">Loading…</p>
+                        </div>
+                    </div>
+
+                    <div class="quickstart-section">
+                        <h3>Can’t make a square peg fit?</h3>
+                        <ul>
+                            <li>Paste any style: MO2/Vortex export, plugin names with or without <code>*</code>, one mod
+                                per line.</li>
+                            <li>Linux/Steam Deck users: use Proton prefix <code>AppData/Local/.../plugins.txt</code>
+                                when no manager export is available.</li>
+                            <li>macOS users: Bethesda modding is typically non-native; use VM/CrossOver exports and
+                                paste directly here.</li>
+                        </ul>
+                        <p class="hint">If analyze says "not found", keep the plugin filename (e.g.
+                            <code>SomeMod.esp</code>) and remove extra commentary text on that line.
+                        </p>
+                    </div>
+
+                    <div class="quickstart-section">
+                        <h3>What does SkyModderAI check?</h3>
+                        <p>We use the same data as <a href="https://loot.github.io/" target="_blank"
+                                rel="noopener">LOOT</a>—the community standard. We look for:</p>
+                        <ul>
+                            <li><strong>Missing requirements</strong> — Mods that need <a
+                                    href="https://skse.silverlock.org/" target="_blank" rel="noopener">SKSE</a>/<a
+                                    href="https://f4se.silverlock.org/" target="_blank" rel="noopener">F4SE</a>, DLCs,
+                                or other mods</li>
+                            <li><strong>Load order issues</strong> — Mods that should load before or after others</li>
+                            <li><strong>Incompatibilities</strong> — Mods that conflict</li>
+                            <li><strong>Dirty edits</strong> — Plugins that need cleaning with <a
+                                    href="https://tes5edit.github.io/" target="_blank" rel="noopener">xEdit</a>
+                                (SSEEdit, FO4Edit, etc.)</li>
+                        </ul>
+                    </div>
+
+                    <div class="quickstart-section">
+                        <h3>Essential tools &amp; sites</h3>
+                        <ul id="quickstart-tools" class="quickstart-tools">
+                            <li class="hint">Loading…</li>
+                        </ul>
+                    </div>
+
+                    <div class="quickstart-section">
+                        <h3>Approachable resources for the harder stuff</h3>
+                        <p>When SkyModderAI flags dirty edits, load order, or conflicts, these videos and guides walk
+                            you through fixing them:</p>
+                        <ul id="quickstart-learning" class="quickstart-resources">
+                            <li class="hint">Loading…</li>
+                        </ul>
+                    </div>
+
+                    <p class="quickstart-cta"><button type="button" class="primary-button tab-switch"
+                            data-tab="analyze">Paste your list and analyze</button></p>
+                </div>
+            </section>
+
+            <!-- Build a List: preference-based mod list generation -->
+            <section class="tab-panel build-list-panel" id="panel-build-list" role="tabpanel" aria-hidden="true">
+                <div class="build-list-content">
+                    <h2 class="build-list-title">Build a List</h2>
+                    <p class="build-list-intro">Pick your preferences—gameplay style, visuals, performance—and we'll
+                        generate a mod list, then automatically send it to Analyze and run checks. Add your system specs
+                        for performance-aware picks.</p>
+                    <div class="build-list-form-wrap">
+                        <div class="build-list-game-row">
+                            <label for="build-list-game">Game:</label>
+                            <select id="build-list-game">
+                                <option value="skyrimse">Skyrim SE</option>
+                                <option value="skyrim">Skyrim LE</option>
+                                <option value="skyrimvr">Skyrim VR</option>
+                                <option value="oblivion">Oblivion</option>
+                                <option value="fallout3">Fallout 3</option>
+                                <option value="fallout4">Fallout 4</option>
+                                <option value="falloutnv">Fallout New Vegas</option>
+                                <option value="starfield">Starfield</option>
+                            </select>
+                        </div>
+                        <div class="build-list-specs-section">
+                            <div class="system-scan-wrap">
+                                <button type="button" id="scan-system-btn" class="scan-system-btn"
+                                    title="Auto-detect CPU, RAM, GPU, and resolution from your browser">
+                                    <span class="scan-system-icon" aria-hidden="true">⟳</span> Scan my system
+                                </button>
+                                <span id="scan-system-status" class="scan-system-status hint" aria-live="polite"></span>
+                            </div>
+                            <details class="specs-details" id="specs-details">
+                                <summary class="specs-summary">My system specs (optional — tailors mod list to your rig)
+                                </summary>
+                                <div class="specs-form">
+                                    <p class="hint">We use your specs to recommend mods that fit your GPU/VRAM, suggest
+                                        performance vs ultra options, and improve AI advice. Logged-in: saved to
+                                        profile. Guests: saved in browser.</p>
+                                    <div class="specs-grid">
+                                        <label for="specs-cpu">CPU</label>
+                                        <input type="text" id="specs-cpu" placeholder="e.g. AMD Ryzen 5 5600X">
+                                        <label for="specs-gpu">GPU</label>
+                                        <input type="text" id="specs-gpu" placeholder="e.g. NVIDIA RTX 3060">
+                                        <label for="specs-ram">RAM (GB)</label>
+                                        <input type="number" id="specs-ram" min="4" max="128" placeholder="16">
+                                        <label for="specs-vram">VRAM (GB)</label>
+                                        <input type="number" id="specs-vram" min="2" max="24" placeholder="8">
+                                        <label for="specs-resolution">Resolution</label>
+                                        <input type="text" id="specs-resolution"
+                                            placeholder="e.g. 1920x1080, 2560x1440">
+                                    </div>
+                                    <p class="specs-or">— or paste Steam System Info —</p>
+                                    <p class="hint">Steam → Help → System Information → Copy to clipboard, paste below
+                                    </p>
+                                    <textarea id="specs-steam-paste"
+                                        placeholder="Paste Steam System Information here..." rows="4"></textarea>
+                                    <button type="button" id="specs-save-btn" class="secondary-button">Save
+                                        specs</button>
+                                    <span id="specs-status" class="specs-status hint"></span>
+                                </div>
+                            </details>
+                        </div>
+                        <div id="build-list-preferences" class="build-list-preferences">
+                            <!-- Filled by JS from /api/list-preferences/options -->
+                        </div>
+                        <div class="build-list-actions">
+                            <label class="build-list-pro-check" id="build-list-pro-check-wrap">
+                                <input type="checkbox" id="build-list-pro-setups"
+                                    title="AI generates multiple setup combinations">
+                                <span>AI multiple setups</span>
+                            </label>
+                            <button type="button" id="build-list-btn" class="primary-button">Generate List</button>
+                        </div>
+                    </div>
+                    <div id="build-list-results" class="build-list-results hidden">
+                        <h3>Your Mod List</h3>
+                        <p class="hint">Smart flow: this list is auto-sent to Analyze right after generation.</p>
+                        <div id="build-list-mods" class="build-list-mods"></div>
+                        <div id="build-list-setups" class="build-list-setups hidden"></div>
+                        <div class="build-list-export-actions">
+                            <button type="button" id="build-list-copy-btn" class="secondary-button">Copy as
+                                plugins.txt</button>
+                            <button type="button" id="build-list-to-analyze-btn" class="secondary-button">Re-run
+                                Analyze</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gameplay Companion Engine -->
+            <section class="tab-panel gameplay-panel" id="panel-gameplay" role="tabpanel" aria-hidden="true">
+                <div id="gameplay-container" class="gameplay-content"></div>
+            </section>
+
+            <!-- Library: Pro feature for managing saved modlists with metadata -->
+            <section class="tab-panel library-panel" id="panel-library" role="tabpanel" aria-hidden="true">
+                <div class="library-content">
+                    <div class="library-header">
+                        <h2 class="library-title">Library</h2>
+                        <p class="library-intro">Your saved modlists with full metadata. Search, filter, analyze, and
+                            manage your research.</p>
+                    </div>
+
+                    <div class="library-controls">
+                        <div class="library-search-wrap">
+                            <input type="search" id="library-search" placeholder="Search by name, tags, or notes..."
+                                class="library-search-input" aria-label="Search library">
+                            <button type="button" id="library-search-clear" class="library-search-clear hidden"
+                                title="Clear search" aria-label="Clear search">&times;</button>
+                        </div>
+                        <div class="library-filters">
+                            <select id="library-filter-game" class="library-filter-select" title="Filter by game">
+                                <option value="">All games</option>
+                                <option value="skyrimse">Skyrim SE</option>
+                                <option value="skyrim">Skyrim LE</option>
+                                <option value="skyrimvr">Skyrim VR</option>
+                                <option value="oblivion">Oblivion</option>
+                                <option value="fallout3">Fallout 3</option>
+                                <option value="falloutnv">Fallout New Vegas</option>
+                                <option value="fallout4">Fallout 4</option>
+                                <option value="starfield">Starfield</option>
+                            </select>
+                            <select id="library-filter-version" class="library-filter-select"
+                                title="Filter by game version">
+                                <option value="">All versions</option>
+                            </select>
+                            <select id="library-filter-masterlist" class="library-filter-select"
+                                title="Filter by LOOT version">
+                                <option value="">All LOOT versions</option>
+                            </select>
+                            <button type="button" id="library-refresh-btn" class="secondary-button"
+                                title="Refresh library">Refresh</button>
+                        </div>
+                    </div>
+
+                    <div id="library-status" class="library-status hint" aria-live="polite"></div>
+
+                    <div id="library-grid" class="library-grid">
+                        <p class="hint library-loading">Loading your library...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Community: FIRST, robust, no ads ever -->
+            <section class="tab-panel community-panel active" id="panel-community" role="tabpanel" aria-hidden="false">
+                <div class="community-content">
+                    <h2 class="community-title">Community</h2>
+                    <p class="community-intro">Share tips, ask questions, celebrate a stable load order. We're all here
+                        because we love these games. No ads, ever.</p>
+                    <div class="quickstart-section">
+                        <h3>New here? Easy first post ideas</h3>
+                        <ul>
+                            <li>Your game + mod manager + plugin count</li>
+                            <li>One crash or conflict you solved this week</li>
+                            <li>A tool or guide that saved your load order</li>
+                        </ul>
+                    </div>
+
+                    {% if session.get('user_email') %}
+                    <div class="community-post-form">
+                        <div class="community-post-tags">
+                            <label class="hint">Tag:</label>
+                            <select id="community-post-tag">
+                                <option value="general">General</option>
+                                <option value="tip">Tip</option>
+                                <option value="help">Help</option>
+                                <option value="celebration">Celebration</option>
+                                <option value="skyrim">Skyrim</option>
+                                <option value="fallout">Fallout</option>
+                                <option value="starfield">Starfield</option>
+                                <option value="tool">Tool</option>
+                                <option value="dev">Dev</option>
+                            </select>
+                        </div>
+                        <textarea id="community-post-input" placeholder="Share a tip, ask a question, or say hi..."
+                            rows="3" maxlength="2000"></textarea>
+                        <div class="community-post-actions">
+                            <span id="community-char-count" class="hint">0 / 2000</span>
+                            <button type="button" id="community-post-btn" class="primary-button">Post</button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="community-signin-cta"><a href="{{ url_for('auth', tab='login') }}">Sign in</a> to post.
+                        It's free.</p>
+                    {% endif %}
+
+                    <details class="community-guidelines">
+                        <summary>Community guidelines</summary>
+                        <p>We're here for modding—tips, help, wins, and the games we love. No ads, ever. We're not about
+                            censorship; we're about a space that works. Vote, share, help each other.</p>
+                        <p><strong>We draw the line at:</strong> illegal activity, trafficking, off-topic spam. Keep it
+                            useful. Low-effort or off-topic posts get downvoted—that's the community speaking.</p>
+                    </details>
+                    <div class="community-filters">
+                        <div class="community-sort-row">
+                            <span class="community-sort-label">Sort:</span>
+                            <div class="community-sort-btns">
+                                <button type="button" class="community-sort-btn active" data-sort="new"
+                                    title="Newest first">New</button>
+                                <button type="button" class="community-sort-btn" data-sort="top"
+                                    title="Most votes">Top</button>
+                                <button type="button" class="community-sort-btn" data-sort="hot"
+                                    title="Trending (votes + recency)">Hot</button>
+                            </div>
+                        </div>
+                        <div class="community-filter-tags">
+                            <button type="button" class="community-tag-btn active" data-tag="">All</button>
+                            <button type="button" class="community-tag-btn" data-tag="tip">Tips</button>
+                            <button type="button" class="community-tag-btn" data-tag="help">Help</button>
+                            <button type="button" class="community-tag-btn" data-tag="celebration">Wins</button>
+                            <button type="button" class="community-tag-btn" data-tag="skyrim">Skyrim</button>
+                            <button type="button" class="community-tag-btn" data-tag="fallout">Fallout</button>
+                            <button type="button" class="community-tag-btn" data-tag="starfield">Starfield</button>
+                            <button type="button" class="community-tag-btn" data-tag="dev">Dev</button>
+                        </div>
+                        <input type="search" id="community-search" placeholder="Search posts..."
+                            class="community-search-input" aria-label="Search community posts">
+                    </div>
+                    <div id="community-health" class="quickstart-section">
+                        <h3>Community pulse</h3>
+                        <p class="hint" id="community-health-text">Loading community metrics…</p>
+                    </div>
+
+                    <div id="community-feed" class="community-feed">
+                        <p class="hint community-loading">Loading...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Developer Tools Panel -->
+            {% include "includes/dev_panel.html" %}
+
+        </main>
+
+        <!-- Business Community Teaser & Donation -->
+        <section class="promo-section" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+            <div class="page-header" style="margin-bottom: 2rem;">
+                <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">Community & Support</h2>
+                <p style="color: #94a3b8; font-size: 1.125rem;">Join the modding community and support free tools</p>
+            </div>
+
+            <div class="pricing-section" style="margin-bottom: 0;">
+                <!-- Business Teaser -->
+                <div class="pricing-card">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🏢</div>
+                    <h3>Business Community</h3>
+                    <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1.5rem;">Join verified businesses selling gaming gear, custom mods, and more</p>
+                    <ul>
+                        <li>Free directory listing</li>
+                        <li>Verified trust scores</li>
+                        <li>Targeted modder audience</li>
+                        <li>Optional promoted ads</li>
+                    </ul>
+                    <a href="{{ url_for('business.hub_landing') }}" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;">Learn More</a>
+                </div>
+
+                <!-- Community CTA -->
+                <div class="pricing-card">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔥</div>
+                    <h3>Join Community</h3>
+                    <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1.5rem;">Share tips, get help, celebrate wins with fellow modders</p>
+                    <ul>
+                        <li>Share modding tips</li>
+                        <li>Get help with issues</li>
+                        <li>Celebrate your builds</li>
+                        <li>Connect with creators</li>
+                    </ul>
+                    <a href="#panel-community" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;">View Community</a>
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="cta-section">
+                <h2>Ready to Start Modding?</h2>
+                <p>AI-powered conflict detection, load order optimization, and community insights. Free forever, built for modders by modders.</p>
+                <button type="button" class="btn" onclick="document.querySelector('[data-tab=analyze]').click()" style="background: #fff; color: #3b82f6; font-size: 1rem; padding: 0.875rem 2rem;">Start Analyzing →</button>
+            </div>
+
+            <!-- The Unreasonable Vision -->
+            <div class="vision-section" style="margin-top: 4rem; padding: 2rem; background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(147, 51, 234, 0.05)); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: #94a3b8;">
+                    <a href="/vision" style="color: inherit; text-decoration: none; border-bottom: 1px solid rgba(59, 130, 246, 0.3);">The Unreasonable Vision</a>
+                </h3>
+                <p style="color: #64748b; font-size: 0.875rem; line-height: 1.6; margin-bottom: 0.75rem;">
+                    This tool is <a href="/samson" style="color: #3b82f6; text-decoration: underline;">Phase I of a larger vision</a>: an economy built on robotics, AI, and unreasonable human drive.
+                    Modders understand unreasonable drive — spending 100 hours on a texture overhaul nobody pays for,
+                    building entire games inside other games. That same energy can <a href="/business/" style="color: #3b82f6; text-decoration: underline;">change the world</a>.
+                </p>
+                <p style="color: #64748b; font-size: 0.875rem; line-height: 1.6; margin-bottom: 0;">
+                    <em>"The reasonable man adapts himself to the world; the unreasonable one persists in trying to adapt the world to himself. Therefore all progress depends on the unreasonable man."</em> — George Bernard Shaw
+                </p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <p class="footer-personal">I've been modding since 2012. Hundreds of mods, one crash, no idea why. This is the tool I built so we don't have to guess anymore. For everyone who keeps coming back to Skyrim, Fallout, Starfield—and the worlds we make our own.</p>
+                <p class="footer-about">Built on LOOT data, enhanced with AI and community knowledge. <a href="https://github.com/SamsonProject/SkyModderAI" target="_blank" rel="noopener noreferrer">Open source on GitHub</a>. Not affiliated with Bethesda or LOOT.</p>
+                <div class="footer-resources">
+                    <span class="footer-resources-label">Community &amp; tools:</span>
+                    <a href="https://www.nexusmods.com/" target="_blank" rel="noopener noreferrer" title="Nexus Mods"><img src="/static/icons/nexus.svg" alt="" width="20" height="20"> Nexus Mods</a>
+                    <a href="https://loot.github.io/" target="_blank" rel="noopener noreferrer" title="LOOT"><img src="/static/icons/loot.svg" alt="" width="20" height="20"> LOOT</a>
+                    <a href="https://tes5edit.github.io/" target="_blank" rel="noopener noreferrer" title="xEdit"><img src="/static/icons/xedit.svg" alt="" width="20" height="20"> xEdit</a>
+                    <a href="https://www.nexusmods.com/skyrimspecialedition/mods/6194" target="_blank" rel="noopener noreferrer" title="Mod Organizer 2"><img src="/static/icons/mo2.svg" alt="" width="20" height="20"> MO2</a>
+                    <a href="https://www.nexusmods.com/site/mods/1" target="_blank" rel="noopener noreferrer" title="Vortex"><img src="/static/icons/vortex.svg" alt="" width="20" height="20"> Vortex</a>
+                    <a href="https://www.wabbajack.org/" target="_blank" rel="noopener noreferrer" title="Wabbajack"><img src="/static/icons/wabbajack.svg" alt="" width="20" height="20"> Wabbajack</a>
+                </div>
+                <p class="footer-links">SkyModderAI © 2026 | <a href="/terms">Terms</a> | <a href="/privacy">Privacy</a> | <a href="/safety">Safety</a> | <a href="/api">API</a> | <a href="mailto:support@skymodderai.com">Support</a> | <a href="tel:+12069157203">(206) 915-7203</a></p>
+            </div>
+        </footer>
+    </div>
+    <button type="button" id="feedback-fab" class="secondary-button"
+        style="position:fixed;right:18px;bottom:18px;z-index:40;">Feedback</button>
+
+    <script>
+        // Handle Community link in header
+        document.querySelectorAll('a[href="#panel-community"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Find and click the Community tab button
+                const communityTab = document.querySelector('.main-tab[data-tab="community"]');
+                if (communityTab) {
+                    communityTab.click();
+                }
+                // Scroll to community panel
+                const panel = document.getElementById('panel-community');
+                if (panel) {
+                    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+    <div id="feedback-modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-backdrop" id="feedback-modal-backdrop"></div>
+        <div class="modal-content">
+            <button type="button" class="modal-close" id="feedback-modal-close" aria-label="Close">&times;</button>
+            <h3>Help improve SkyModderAI</h3>
+            <p class="hint">Report bugs, complaints, ideas, or wins. This goes directly into our improvement queue.</p>
+            <label for="feedback-type">Type</label>
+            <select id="feedback-type">
+                <option value="bug">Bug</option>
+                <option value="feature">Feature idea</option>
+                <option value="complaint">Complaint</option>
+                <option value="praise">Praise</option>
+                <option value="question">Question</option>
+            </select>
+            <label for="feedback-category">Category</label>
+            <select id="feedback-category">
+                <option value="analysis">Analysis</option>
+                <option value="community">Community</option>
+                <option value="ui">UI</option>
+                <option value="performance">Performance</option>
+                <option value="billing">Billing</option>
+                <option value="openclaw">OpenCLAW (coming soon)</option>
+                <option value="other">Other</option>
+            </select>
+            <label for="feedback-content">Details</label>
+            <textarea id="feedback-content" rows="4"
+                placeholder="What happened, what you expected, and what would help."></textarea>
+            <div class="modal-actions">
+                <button type="button" class="secondary-button" id="feedback-modal-cancel">Cancel</button>
+                <button type="button" class="primary-button" id="feedback-submit-btn">Send feedback</button>
+            </div>
+            <p id="feedback-status" class="hint"></p>
+        </div>
+    </div>
+    <!-- Checkout modal: email only, no signup required -->
+    <div id="checkout-modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-backdrop" id="checkout-modal-backdrop"></div>
+        <div class="modal-content">
+            <button type="button" class="modal-close" id="checkout-modal-close" aria-label="Close">&times;</button>
+            <h3>🍺 Buy me a mead</h3>
+            <p class="modal-tagline">
+                SkyModderAI is free, forever. If it saved your load order, I won't say no to a mead.
+            </p>
+            <div class="donation-amounts">
+                <button type="button" class="donation-amount" data-amount="5">$5 — A mead</button>
+                <button type="button" class="donation-amount" data-amount="15">$15 — A round</button>
+            </div>
+            <form id="checkout-form">
+                <label for="checkout-email">Email (for receipt)</label>
+                <input type="email" id="checkout-email" placeholder="you@example.com" required>
+                <label for="checkout-amount">Amount</label>
+                <input type="number" id="checkout-amount" min="1" max="1000" value="5" required>
+                <div class="modal-actions">
+                    <button type="button" class="secondary-button" id="checkout-modal-cancel">Nah, I'm good</button>
+                    <button type="submit" class="primary-button" id="checkout-submit-btn">Donate with Stripe</button>
+                </div>
+            </form>
+            <div class="donation-alternatives">
+                <p>Other ways to support:</p>
+                <ul>
+                    <li><a href="https://patreon.com/skymodderai" target="_blank" rel="noopener">Monthly on Patreon</a></li>
+                    <li>⭐ Star the repo on GitHub</li>
+                    <li>📢 Tell your friends</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- Link preview popover (Obsidian-style hover) -->
+    <div id="link-preview-popover" class="link-preview-popover" role="tooltip" aria-live="polite" aria-hidden="true">
+        <iframe id="link-preview-iframe" class="link-preview-iframe" src="about:blank" title="Link preview"></iframe>
+    </div>
+    <!-- Command palette (Cmd+K / Ctrl+K) -->
+    <div id="command-palette" class="command-palette hidden" role="dialog" aria-label="Command palette"
+        aria-modal="true">
+        <div class="command-palette-backdrop"></div>
+        <div class="command-palette-content">
+            <div class="command-palette-search-wrap">
+                <span class="command-palette-icon" aria-hidden="true">⌘</span>
+                <input type="text" id="command-palette-input" placeholder="Type to filter commands…" autocomplete="off"
+                    aria-label="Filter commands">
+            </div>
+            <div id="command-palette-results" class="command-palette-results"></div>
+            <p class="command-palette-hint"><kbd>↑</kbd><kbd>↓</kbd> navigate · <kbd>Enter</kbd> run · <kbd>Esc</kbd>
+                close</p>
+        </div>
+    </div>
+    <script src="/static/icons/logo-icons.js"></script>
+    <script src="/static/js/walkthrough.js"></script>
+    <script src="/static/js/modern-ui.js"></script>
+    <script src="/static/js/link-architecture.js"></script>
+    <script src="/static/js/app.js"></script>
+
+    <!-- Transparency Panel & Confidence Badge Logic -->
+    <script>
+        // Toggle transparency panel visibility
+        function toggleTransparencyPanel() {
+            const panel = document.getElementById('transparency-panel');
+            const btn = document.getElementById('transparency-toggle-btn');
+
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                btn.textContent = '🔍 Hide Analysis Details';
+            } else {
+                panel.classList.add('hidden');
+                btn.textContent = '🔍 How This Was Analyzed';
+            }
+        }
+
+        // Update confidence badge display
+        function updateConfidenceBadge(confidence) {
+            const badge = document.getElementById('confidence-badge');
+            const value = document.getElementById('confidence-value');
+
+            if (confidence !== undefined && confidence !== null) {
+                value.textContent = Math.round(confidence);
+
+                // Color-code based on confidence level
+                if (confidence >= 80) {
+                    badge.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+                } else if (confidence >= 60) {
+                    badge.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                } else {
+                    badge.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                }
+            } else {
+                value.textContent = '--';
+                badge.style.background = 'linear-gradient(135deg, #64748b, #475569)';
+            }
+        }
+
+        // Render transparency panel content
+        function renderTransparencyPanel(metadata) {
+            const panel = document.getElementById('transparency-panel');
+
+            if (!metadata) {
+                panel.innerHTML = '<p class="hint">No analysis metadata available.</p>';
+                return;
+            }
+
+            let html = '<h4>🔍 Analysis Methodology</h4>';
+            html += '<div class="transparency-grid">';
+
+            // Data sources
+            if (metadata.data_sources && metadata.data_sources.length > 0) {
+                html += '<div class="transparency-item">';
+                html += '<div class="transparency-item-label">Data Sources</div>';
+                html += '<div class="transparency-item-value">';
+                metadata.data_sources.forEach(source => {
+                    html += `<span class="data-source-tag">${source.name || source}</span>`;
+                });
+                html += '</div></div>';
+            }
+
+            // AI involvement
+            if (metadata.ai_model) {
+                html += '<div class="transparency-item">';
+                html += '<div class="transparency-item-label">AI Model</div>';
+                html += `<div class="transparency-item-value">${metadata.ai_model}</div>`;
+                html += '</div>';
+            }
+
+            // Analysis duration
+            if (metadata.duration_ms) {
+                html += '<div class="transparency-item">';
+                html += '<div class="transparency-item-label">Analysis Time</div>';
+                html += `<div class="transparency-item-value">${(metadata.duration_ms / 1000).toFixed(2)}s</div>`;
+                html += '</div>';
+            }
+
+            // Items analyzed
+            if (metadata.items_analyzed) {
+                html += '<div class="transparency-item">';
+                html += '<div class="transparency-item-label">Items Analyzed</div>';
+                html += `<div class="transparency-item-value">${metadata.items_analyzed}</div>`;
+                html += '</div>';
+            }
+
+            html += '</div>';
+
+            panel.innerHTML = html;
+        }
+
+        // Keyboard shortcut for transparency panel (Alt+T)
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key === 't') {
+                e.preventDefault();
+                toggleTransparencyPanel();
+            }
+        });
+    </script>
+    </body>
+
+</html>

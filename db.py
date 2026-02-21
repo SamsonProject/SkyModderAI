@@ -649,3 +649,368 @@ def execute_query(
     except Exception as e:
         logger.error(f"execute_query: Unexpected error - {e}")
         return None
+
+
+# =============================================================================
+# Mod Author Database Functions
+# =============================================================================
+
+
+def get_mod_author_claims(email: str) -> list[dict]:
+    """Get all mod claims for a user."""
+    try:
+        db = get_db()
+        db_type = _get_db_type()
+
+        if db_type == "postgresql":
+            query = """
+                SELECT * FROM mod_author_claims
+                WHERE author_email = %s
+                ORDER BY created_at DESC
+            """
+        else:
+            query = """
+                SELECT * FROM mod_author_claims
+                WHERE author_email = ?
+                ORDER BY created_at DESC
+            """
+
+        rows = db.execute(query, (email.lower(),)).fetchall()
+        return [dict(row) for row in rows]
+    except Exception as e:
+        logger.error(f"Failed to get mod author claims: {e}")
+        return []
+
+
+def create_mod_author_claim(
+    mod_name: str,
+    author_email: str,
+    author_name: str,
+    game: str,
+    nexus_id: Optional[int] = None,
+    nexus_profile_url: Optional[str] = None,
+    mod_page_url: Optional[str] = None,
+) -> Optional[int]:
+    """Create a new mod author claim."""
+    try:
+        db = get_db()
+        db_type = _get_db_type()
+        now = datetime.now(timezone.utc)
+
+        if db_type == "postgresql":
+            query = """
+                INSERT INTO mod_author_claims
+                (mod_name, nexus_id, game, author_email, author_name, verification_status,
+                 nexus_profile_url, mod_page_url, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s)
+                RETURNING id
+            """
+            cursor = db.execute(
+                query,
+                (
+                    mod_name.lower(),
+                    nexus_id,
+                    game,
+                    author_email.lower(),
+                    author_name,
+                    nexus_profile_url,
+                    mod_page_url,
+                    now,
+                    now,
+                ),
+            )
+            result = cursor.fetchone()
+            db.commit()
+            return result[0] if result else None
+        else:
+            query = """
+                INSERT INTO mod_author_claims
+                (mod_name, nexus_id, game, author_email, author_name, verification_status,
+                 nexus_profile_url, mod_page_url, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)
+            """
+            cursor = db.execute(
+                query,
+                (
+                    mod_name.lower(),
+                    nexus_id,
+                    game,
+                    author_email.lower(),
+                    author_name,
+                    nexus_profile_url,
+                    mod_page_url,
+                    now.timestamp(),
+                    now.timestamp(),
+                ),
+            )
+            db.commit()
+            return cursor.lastrowid
+    except Exception as e:
+        logger.error(f"Failed to create mod author claim: {e}")
+        return None
+
+
+def verify_mod_author_claim(claim_id: int, verifier_email: str, method: str = "manual") -> bool:
+    """Verify a mod author claim."""
+    try:
+        db = get_db()
+        db_type = _get_db_type()
+        now = datetime.now(timezone.utc)
+
+        if db_type == "postgresql":
+            query = """
+                UPDATE mod_author_claims
+                SET verification_status = 'verified',
+                    verified_at = %s,
+                    verified_by = %s,
+                    verification_method = %s,
+                    updated_at = %s
+                WHERE id = %s
+            """
+            db.execute(query, (now, verifier_email, method, now, claim_id))
+        else:
+            query = """
+                UPDATE mod_author_claims
+                SET verification_status = 'verified',
+                    verified_at = %s,
+                    verified_by = %s,
+                    verification_method = %s,
+                    updated_at = %s
+                WHERE id = %s
+            """
+            db.execute(query, (now.timestamp(), verifier_email, method, now.timestamp(), claim_id))
+
+        db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Failed to verify mod author claim: {e}")
+        return False
+
+
+def is_verified_mod_author(email: str, mod_name: str, game: str) -> bool:
+    """Check if user is verified author of a mod."""
+    try:
+        db = get_db()
+        db_type = _get_db_type()
+
+        if db_type == "postgresql":
+            query = """
+                SELECT id FROM mod_author_claims
+                WHERE author_email = %s AND mod_name = %s AND game = %s
+                AND verification_status = 'verified'
+            """
+        else:
+            query = """
+                SELECT id FROM mod_author_claims
+                WHERE author_email = ? AND mod_name = ? AND game = ?
+                AND verification_status = 'verified'
+            """
+
+        result = db.execute(query, (email.lower(), mod_name.lower(), game)).fetchone()
+        return result is not None
+    except Exception as e:
+        logger.error(f"Failed to check mod author verification: {e}")
+        return False
+
+
+def create_mod_author_notification(
+    user_email: str,
+    notification_type: str,
+    title: str,
+    message: str,
+    mod_name: Optional[str] = None,
+    related_url: Optional[str] = None,
+) -> Optional[int]:
+    """Create a notification for a mod author."""
+    try:
+        db = get_db()
+        db_type = _get_db_type()
+        now = datetime.now(timezone.utc)
+
+        if db_type == "postgresql":
+            query = """
+                INSERT INTO mod_author_notifications
+                (user_email, notification_type, title, message, mod_name, related_url, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """
+            cursor = db.execute(
+                query,
+                (user_email.lower(), notification_type, title, message, mod_name, related_url, now),
+            )
+            result = cursor.fetchone()
+            db.commit()
+            return result[0] if result else None
+        else:
+            query = """
+                INSERT INTO mod_author_notifications
+                (user_email, notification_type, title, message, mod_name, related_url, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """
+            cursor = db.execute(
+                query,
+                (
+                    user_email.lower(),
+                    notification_type,
+                    title,
+                    message,
+                    mod_name,
+                    related_url,
+                    now.timestamp(),
+                ),
+            )
+            db.commit()
+            return cursor.lastrowid
+    except Exception as e:
+        logger.error(f"Failed to create mod author notification: {e}")
+        return None
+
+
+def get_mod_author_notifications(email: str, unread_only: bool = False) -> list[dict]:
+    """Get notifications for a mod author."""
+    try:
+        db = get_db()
+        db_type = _get_db_type()
+
+        if db_type == "postgresql":
+            if unread_only:
+                query = """
+                    SELECT * FROM mod_author_notifications
+                    WHERE user_email = %s AND is_read = FALSE
+                    ORDER BY created_at DESC
+                    LIMIT 50
+                """
+            else:
+                query = """
+                    SELECT * FROM mod_author_notifications
+                    WHERE user_email = %s
+                    ORDER BY created_at DESC
+                    LIMIT 50
+                """
+        else:
+            if unread_only:
+                query = """
+                    SELECT * FROM mod_author_notifications
+                    WHERE user_email = ? AND is_read = 0
+                    ORDER BY created_at DESC
+                    LIMIT 50
+                """
+            else:
+                query = """
+                    SELECT * FROM mod_author_notifications
+                    WHERE user_email = ?
+                    ORDER BY created_at DESC
+                    LIMIT 50
+                """
+
+        rows = db.execute(query, (email.lower(),)).fetchall()
+        return [dict(row) for row in rows]
+    except Exception as e:
+        logger.error(f"Failed to get mod author notifications: {e}")
+        return []
+
+
+def mark_notification_read(notification_id: int, user_email: str) -> bool:
+    """Mark a notification as read."""
+    try:
+        db = get_db()
+        db_type = _get_db_type()
+
+        if db_type == "postgresql":
+            query = """
+                UPDATE mod_author_notifications
+                SET is_read = TRUE
+                WHERE id = %s AND user_email = %s
+            """
+        else:
+            query = """
+                UPDATE mod_author_notifications
+                SET is_read = 1
+                WHERE id = ? AND user_email = ?
+            """
+
+        db.execute(query, (notification_id, user_email.lower()))
+        db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Failed to mark notification read: {e}")
+        return False
+
+
+def mark_all_notifications_read(user_email: str) -> bool:
+    """Mark all notifications as read for a user."""
+    try:
+        db = get_db()
+        db_type = _get_db_type()
+
+        if db_type == "postgresql":
+            query = """
+                UPDATE mod_author_notifications
+                SET is_read = TRUE
+                WHERE user_email = %s
+            """
+        else:
+            query = """
+                UPDATE mod_author_notifications
+                SET is_read = 1
+                WHERE user_email = ?
+            """
+
+        db.execute(query, (user_email.lower(),))
+        db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Failed to mark all notifications read: {e}")
+        return False
+
+
+def get_mod_author_dashboard_data(email: str) -> dict:
+    """Get dashboard data for a mod author."""
+    try:
+        db = get_db()
+        db_type = _get_db_type()
+
+        # Get verified mods count
+        if db_type == "postgresql":
+            verified_query = """
+                SELECT COUNT(*) as count FROM mod_author_claims
+                WHERE author_email = %s AND verification_status = 'verified'
+            """
+            pending_query = """
+                SELECT COUNT(*) as count FROM mod_author_claims
+                WHERE author_email = %s AND verification_status = 'pending'
+            """
+            unread_query = """
+                SELECT COUNT(*) as count FROM mod_author_notifications
+                WHERE user_email = %s AND is_read = FALSE
+            """
+        else:
+            verified_query = """
+                SELECT COUNT(*) as count FROM mod_author_claims
+                WHERE author_email = ? AND verification_status = 'verified'
+            """
+            pending_query = """
+                SELECT COUNT(*) as count FROM mod_author_claims
+                WHERE author_email = ? AND verification_status = 'pending'
+            """
+            unread_query = """
+                SELECT COUNT(*) as count FROM mod_author_notifications
+                WHERE user_email = ? AND is_read = 0
+            """
+
+        verified_count = db.execute(verified_query, (email.lower(),)).fetchone()["count"]
+        pending_count = db.execute(pending_query, (email.lower(),)).fetchone()["count"]
+        unread_notifications = db.execute(unread_query, (email.lower(),)).fetchone()["count"]
+
+        return {
+            "verified_mods": verified_count,
+            "pending_claims": pending_count,
+            "unread_notifications": unread_notifications,
+        }
+    except Exception as e:
+        logger.error(f"Failed to get mod author dashboard data: {e}")
+        return {
+            "verified_mods": 0,
+            "pending_claims": 0,
+            "unread_notifications": 0,
+        }

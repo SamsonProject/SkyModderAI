@@ -6,6 +6,7 @@
 
 ## 📁 Service Structure
 
+**Core Services (in `services/` directory):**
 ```
 services/
 ├── __init__.py
@@ -14,6 +15,25 @@ services/
 ├── community_service.py      # Community features and builds
 └── search_service.py         # Search functionality
 ```
+
+**Additional Services (root level):**
+```
+Root Level Services:
+├── ad_builder_service.py     # Ad Builder (templates, designs, brand kits)
+├── business_service.py       # Business directory and trust scores
+├── cache_service.py          # Redis caching layer
+├── compatibility_service.py  # Compatibility database
+├── curation_service.py       # Session curation
+├── feedback_service.py       # Feedback and bug reports
+├── presentation_service.py   # PDF/export functionality
+├── shopping_service.py       # Shopping/ads (legacy, being replaced)
+├── sponsor_service.py        # Sponsor management (legacy)
+├── transparency_service.py   # Transparency reports
+├── samson_telemetry.py       # SAMSON telemetry collection
+└── walkthrough_manager.py    # Walkthrough management
+```
+
+**Note:** Services are distributed between `services/` directory and root level. New services should be placed in `services/` for organization.
 
 ---
 
@@ -268,10 +288,18 @@ def test_full_analysis_flow(client):
 | Service | Purpose | Status |
 |---------|---------|--------|
 | `notification_service.py` | Email, push notifications | 📋 Planned |
-| `telemetry_service.py` | SAMSON telemetry collection | 📋 Planned |
-| `export_service.py` | PDF, HTML, Markdown export | 📋 Planned |
-| `ml_service.py` — Machine learning predictions | 📋 Planned |
-| `cache_service.py` | Redis caching layer | ✅ Exists (root level) |
+| `ml_service.py` | Machine learning predictions | 📋 Planned |
+| `analytics_service.py` | Ad analytics (Pro feature) | 📋 Planned (Ad Builder) |
+| `video_export_service.py` | Video rendering for ads | 📋 Planned (Ad Builder) |
+
+### **Existing Services (Not in `services/`)**
+
+| Service | Location | Notes |
+|---------|----------|-------|
+| `telemetry_service.py` | `samson_telemetry.py` (root) | ✅ Complete |
+| `export_service.py` | `presentation_service.py` (root) | ✅ Complete |
+| `cache_service.py` | `cache_service.py` (root) | ✅ Complete |
+| `ad_builder_service.py` | `ad_builder_service.py` (root) | ✅ Phase 1 Complete |
 
 ### **Service Extraction**
 

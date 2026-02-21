@@ -1,0 +1,389 @@
+<!--
+  SkyModderAI - Mod Author Dashboard Template
+  Central hub for mod authors to manage their mods
+-->
+{% extends "base.html" %}
+
+{% block title %}Mod Author Dashboard - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .dashboard-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .claim-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .claim-item {
+        background: var(--bg-dark);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .claim-info {
+        flex: 1;
+    }
+
+    .claim-name {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .claim-meta {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: rgba(251, 191, 36, 0.1);
+        color: #fbbf24;
+    }
+
+    .status-verified {
+        background: rgba(34, 197, 94, 0.1);
+        color: #10b981;
+    }
+
+    .status-rejected {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .notification-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .notification-item {
+        background: var(--bg-dark);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .notification-item.unread {
+        border-left: 3px solid var(--accent-primary);
+    }
+
+    .notification-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .notification-message {
+        color: var(--text-secondary);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--bg-dark);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <header class="dashboard-header">
+        <h1>🛠️ Mod Author Dashboard</h1>
+        <p style="color: var(--text-secondary);">Manage your mods, track compatibility, and engage with your community.</p>
+    </header>
+
+    <!-- Stats Overview -->
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <div class="stat-value">{{ dashboard.verified_mods }}</div>
+            <div class="stat-label">Verified Mods</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ dashboard.pending_claims }}</div>
+            <div class="stat-label">Pending Claims</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ dashboard.unread_notifications }}</div>
+            <div class="stat-label">Unread Notifications</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ dashboard.total_upvotes or 0 }}</div>
+            <div class="stat-label">Total Upvotes</div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Main Content -->
+        <div class="dashboard-main">
+            <!-- Quick Actions -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2 class="section-title">Quick Actions</h2>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="window.location.href='/mod-author/claims/new'">
+                        ➕ Claim New Mod
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/mod-author/tools'">
+                        🔧 Author Tools
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/compatibility/submit'">
+                        📝 Submit Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mod Claims -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2 class="section-title">Your Mod Claims</h2>
+                    <a href="/mod-author/claims" class="btn btn-secondary">View All</a>
+                </div>
+
+                {% if claims %}
+                <div class="claim-list">
+                    {% for claim in claims[:5] %}
+                    <div class="claim-item">
+                        <div class="claim-info">
+                            <div class="claim-name">{{ claim.mod_name }}</div>
+                            <div class="claim-meta">
+                                {{ claim.game }} • Claimed {{ claim.created_at | format_time_ago if claim.created_at else 'Unknown' }}
+                            </div>
+                        </div>
+                        <div class="status-badge status-{{ claim.verification_status }}">
+                            {% if claim.verification_status == 'verified' %}
+                                ✓ Verified
+                            {% elif claim.verification_status == 'pending' %}
+                                ⏳ Pending
+                            {% else %}
+                                ✗ Rejected
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📦</div>
+                    <p>No claims yet. Claim your first mod to get started!</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Recent Compatibility Reports -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2 class="section-title">Recent Compatibility Reports</h2>
+                </div>
+
+                {% if dashboard.recent_reports and dashboard.recent_reports|length > 0 %}
+                <div class="claim-list">
+                    {% for report in dashboard.recent_reports[:5] %}
+                    <div class="claim-item">
+                        <div class="claim-info">
+                            <div class="claim-name">{{ report.mod_name }}</div>
+                            <div class="claim-meta">
+                                {{ report.mod_a }} ↔ {{ report.mod_b }} • {{ report.status }}
+                            </div>
+                        </div>
+                        <a href="/compatibility/{{ report.mod_a }}/vs/{{ report.mod_b }}" class="btn btn-secondary">View</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>No compatibility reports for your mods yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="dashboard-sidebar">
+            <!-- Notifications -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2 class="section-title">Notifications</h2>
+                    <button class="btn btn-secondary" onclick="markAllRead()" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                        Mark All Read
+                    </button>
+                </div>
+
+                {% if notifications %}
+                <div class="notification-list">
+                    {% for notification in notifications[:10] %}
+                    <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                        <div class="notification-title">{{ notification.title }}</div>
+                        <div class="notification-message">{{ notification.message }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state" style="padding: 1rem;">
+                    <p>No notifications</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Resources -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2 class="section-title">Resources</h2>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <a href="/docs/for-mod-authors" class="btn btn-secondary">📖 Documentation</a>
+                    <a href="/docs/compatibility-guide" class="btn btn-secondary">📝 Compatibility Guide</a>
+                    <a href="/community" class="btn btn-secondary">💬 Community Forum</a>
+                    <a href="https://discord.gg/skyrimmods" target="_blank" class="btn btn-secondary">🎮 Discord</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function markAllRead() {
+    fetch('/mod-author/api/notifications/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -102,78 +102,8 @@ def handle_analysis_error(error: AnalysisError) -> Any:
 # Analysis Endpoints
 # =============================================================================
 
-
-@api_bp.route("/analyze", methods=["POST"])
-@rate_limit(limit=30, window=60)  # 30 requests per minute
-def analyze() -> Any:
-    """
-    Analyze a mod list for conflicts and issues.
-
-    Requires API key authentication.
-
-    Request Body:
-        {
-            "mod_list": "string",  # Newline-separated mod list
-            "game": "string"       # Game ID (e.g., "skyrimse")
-        }
-
-    Response:
-        {
-            "success": true,
-            "game": "string",
-            "mod_count": number,
-            "enabled_count": number,
-            "conflicts": [...],
-            "summary": {...}
-        }
-    """
-    try:
-        data = request.get_json()
-        if not data:
-            raise ValidationError("Request body required")
-
-        mod_list = data.get("mod_list", "")
-        game = data.get("game", "skyrimse")
-
-        # Validate inputs
-        if not mod_list:
-            raise InvalidModListError()
-
-        mod_list = validate_mod_list(mod_list)
-
-        try:
-            game = validate_game_id(game)
-        except ValueError as e:
-            raise InvalidGameIDError(str(e))
-
-        # Perform analysis
-        from conflict_detector import ConflictDetector, parse_mod_list_text
-
-        mods = parse_mod_list_text(mod_list)
-        detector = ConflictDetector(game)
-        analysis = detector.analyze(mods)
-
-        logger.info(
-            f"API analysis completed: {len(mods)} mods, {len(analysis.get('conflicts', []))} conflicts",
-            extra={"request_id": get_request_id()},
-        )
-
-        return jsonify(
-            {
-                "success": True,
-                "game": game,
-                "mod_count": len(mods),
-                "enabled_count": sum(1 for m in mods if m.get("enabled", True)),
-                "conflicts": analysis.get("conflicts", []),
-                "summary": analysis.get("summary", {}),
-            }
-        )
-
-    except (ValidationError, InvalidGameIDError, InvalidModListError) as e:
-        raise e
-    except Exception as e:
-        logger.error(f"API analysis failed: {e}", extra={"request_id": get_request_id()})
-        raise AnalysisError(str(e))
+# NOTE: Main analysis endpoint is in app.py (analyze_mods function)
+# This blueprint endpoint is deprecated and will be removed in future version
 
 
 # =============================================================================
@@ -211,8 +141,10 @@ def search() -> Any:
             raise ValidationError("Search query 'q' is required")
 
         try:
-            game = validate_game_id(game)
-        except ValueError as e:
+            is_valid, game, error = validate_game_id(game)
+            if not is_valid:
+                raise InvalidGameIDError(error)
+        except (ValueError, TypeError) as e:
             raise InvalidGameIDError(str(e))
 
         try:
@@ -280,11 +212,15 @@ def normalize_modlist() -> Any:
         if not mod_list:
             raise InvalidModListError()
 
-        mod_list = validate_mod_list(mod_list)
+        is_valid, mod_list, error = validate_mod_list(mod_list)
+        if not is_valid:
+            raise InvalidModListError(error or "Invalid mod list")
 
         try:
-            game = validate_game_id(game)
-        except ValueError as e:
+            is_valid, game, error = validate_game_id(game)
+            if not is_valid:
+                raise InvalidGameIDError(error)
+        except (ValueError, TypeError) as e:
             raise InvalidGameIDError(str(e))
 
         # Normalize mod list and generate fuzzy suggestions

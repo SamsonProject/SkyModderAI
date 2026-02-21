@@ -196,10 +196,21 @@ def signup() -> Any:
 
         ensure_user_unverified(email=email, password=password)
 
-        # Send verification email
-        from auth_utils import send_verification_email
+        # Send verification email (optional - gracefully handle email sending failures)
+        try:
+            from urllib.parse import urljoin
 
-        send_verification_email(email)
+            from flask import url_for
+
+            from app import make_verification_token, send_verification_email
+
+            token = make_verification_token(email)
+            base_url = request.host_url.rstrip("/")
+            verify_url = urljoin(base_url + "/", f"verify-email?token={token}")
+            send_verification_email(email, verify_url)
+        except Exception as e:
+            # Log the error but don't fail registration
+            logger.warning(f"Failed to send verification email to {email}: {e}")
 
         logger.info(f"New user registered: {email}", extra={"request_id": get_request_id()})
 

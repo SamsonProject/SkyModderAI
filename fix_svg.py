@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 with open("static/images/samson.svg") as f:
     lines = f.readlines()
 
@@ -27,4 +32,4 @@ for line in lines:
 with open("static/images/samson.svg", "w") as f:
     f.writelines(output_lines)
 
-print("Black paths removed")
+logger.info("Black paths removed")

@@ -15,54 +15,81 @@
             position: 'center',
         },
         {
-            id: 'analyze',
-            target: '[data-tab="analyze"]',
-            title: 'Analyze Your Mod List',
-            content: 'Paste your mod list here and get AI-powered conflict detection, load order optimization, and compatibility insights.',
+            id: 'game-select',
+            target: '#game-select',
+            title: 'Select Your Game',
+            content: 'Choose your game first! We support Skyrim (all versions), Fallout 4, Oblivion, and more. LOOT data is game-specific.',
+            position: 'bottom',
+        },
+        {
+            id: 'mod-search',
+            target: '#mod-search-input',
+            title: 'Search Mods',
+            content: 'Type to search for mods. Click or press Enter to add them to your list. Our database uses real LOOT data.',
+            position: 'bottom',
+        },
+        {
+            id: 'mod-list-input',
+            target: '#mod-list-input',
+            title: 'Paste Your Mod List',
+            content: 'Paste your plugins.txt, MO2 load order, or any ESP/ESM list. We support all formats automatically.',
+            position: 'right',
+        },
+        {
+            id: 'analyze-btn',
+            target: '#analyze-btn',
+            title: 'Analyze Now',
+            content: 'Click here or press Ctrl+Enter to analyze. We\'ll find conflicts, missing requirements, and suggest fixes.',
+            position: 'top',
+        },
+        {
+            id: 'import-tools',
+            target: '.input-actions-import',
+            title: 'Import & Save Tools',
+            content: 'Share lists, paste from clipboard, import files, load samples, or save your configurations for later.',
+            position: 'top',
+        },
+        {
+            id: 'openclaw',
+            target: '[data-tab="openclaw"]',
+            title: 'OpenCLAW Automation 🐾',
+            content: 'Our automated modding assistant learns from your sessions, proposes improvements, and guides implementation.',
+            position: 'bottom',
+        },
+        {
+            id: 'compatibility',
+            target: 'a[href="/compatibility/search"]',
+            title: 'Compatibility Database',
+            content: 'Search thousands of community-reported mod compatibilities. Know before you install!',
+            position: 'bottom',
+        },
+        {
+            id: 'mod-managers',
+            target: 'a[href="/mod-managers"]',
+            title: 'Mod Manager Integration 🔌',
+            content: 'Download plugins for MO2, Vortex, or Wabbajack. Analyze conflicts without leaving your mod manager.',
+            position: 'bottom',
+        },
+        {
+            id: 'mod-authors',
+            target: 'a[href="/mod-authors"]',
+            title: 'Mod Author Tools 🛠️',
+            content: 'Test your mod against popular mods, generate LOOT metadata, and validate requirements before release.',
             position: 'bottom',
         },
         {
             id: 'community',
-            target: '[data-tab="community"]',
+            target: 'a[href="/community"]',
             title: 'Community Hub',
             content: 'Connect with other modders! Share tips, ask questions, and showcase your builds.',
             position: 'bottom',
         },
         {
-            id: 'build-list',
-            target: '[data-tab="build-list"]',
-            title: 'Build a List',
-            content: 'Generate custom mod lists based on your preferences. AI-powered recommendations tailored to your playstyle.',
-            position: 'bottom',
-        },
-        {
-            id: 'library',
-            target: '[data-tab="library"]',
-            title: 'Your Library',
-            content: 'Save and organize your mod configurations. Access them anytime and share with friends.',
-            position: 'bottom',
-        },
-        {
-            id: 'shopping',
-            target: 'a[href="/shopping"]',
-            title: 'Shopping Marketplace 🛒',
-            content: 'Browse gaming gear, custom mods, and more from verified businesses. Support the community while you shop!',
-            position: 'bottom',
-        },
-        {
-            id: 'business',
-            target: 'a[href="/business"]',
-            title: 'Business Community 🏢',
-            content: 'Have a modding-related business? Get listed for free and reach thousands of modders.',
-            position: 'bottom',
-        },
-        {
             id: 'samson',
             target: '#samson-chat-toggle',
-            target: '#agent-toggle',
-            title: 'Meet Samson AI 🤖',
+            title: 'Samson AI Assistant 🤖',
             content: 'Your AI assistant is always here to help! Click to ask questions about modding, compatibility, or anything else.',
-            position: 'right',
+            position: 'left',
         },
         {
             id: 'complete',
@@ -300,17 +327,128 @@
             headerTrigger.addEventListener('click', startTour);
         }
 
-        // Auto-start for first-time users after a short delay
+        // Auto-start for first-time users with a beautiful welcome modal
         if (!hasCompletedTour()) {
             setTimeout(() => {
-                const startNow = confirm('Welcome to SkyModderAI! Would you like a quick tour of the features?');
-                if (startNow) {
-                    startTour();
-                } else {
-                    completeTour();
-                }
-            }, 2000);
+                showWelcomeModal();
+            }, 1500);
         }
+    }
+
+    // Show beautiful welcome modal for first-time users
+    function showWelcomeModal() {
+        const modal = document.createElement('div');
+        modal.id = 'welcome-modal';
+        modal.style.cssText = `
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999999;
+            animation: fadeIn 0.3s ease;
+        `;
+
+        modal.innerHTML = `
+            <div style="
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                border: 1px solid rgba(6, 182, 212, 0.3);
+                border-radius: 20px;
+                padding: 3rem;
+                max-width: 500px;
+                text-align: center;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                animation: slideUp 0.4s ease;
+            ">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🎮</div>
+                <h2 style="
+                    font-size: 2rem;
+                    margin-bottom: 1rem;
+                    background: linear-gradient(135deg, #06b6d4, #a855f7);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                ">Welcome to SkyModderAI!</h2>
+                <p style="
+                    color: #94a3b8;
+                    font-size: 1.1rem;
+                    line-height: 1.6;
+                    margin-bottom: 2rem;
+                ">
+                    Find mod conflicts in seconds. Stop crashing to desktop. 
+                    Built by modders, for modders. <strong>100% free forever.</strong>
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button id="welcome-tour-btn" style="
+                        background: linear-gradient(135deg, #06b6d4, #a855f7);
+                        color: white;
+                        border: none;
+                        padding: 1rem 2rem;
+                        border-radius: 10px;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.15s;
+                    ">🎯 Take Quick Tour</button>
+                    <button id="welcome-skip-btn" style="
+                        background: transparent;
+                        color: #94a3b8;
+                        border: 1px solid #334155;
+                        padding: 1rem 2rem;
+                        border-radius: 10px;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.15s;
+                    ">Skip, I'll Explore</button>
+                </div>
+                <p style="
+                    color: #64748b;
+                    font-size: 0.875rem;
+                    margin-top: 1.5rem;
+                ">
+                    You can always start the tour later from the navigation menu.
+                </p>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Add animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes slideUp {
+                from { transform: translateY(30px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Event handlers
+        document.getElementById('welcome-tour-btn').addEventListener('click', () => {
+            modal.remove();
+            startTour();
+        });
+
+        document.getElementById('welcome-skip-btn').addEventListener('click', () => {
+            modal.remove();
+            completeTour();
+            showThankYou();
+        });
+
+        // Close on outside click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+                completeTour();
+            }
+        });
     }
 
     // Wait for DOM to be ready

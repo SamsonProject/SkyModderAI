@@ -97,7 +97,7 @@ SkyModderAI/
 ```
 
 ### Tech Stack
-- **Backend:** Python 3.12, Flask
+- **Backend:** Python 3.11, Flask
 - **Database:** PostgreSQL (production), SQLite (development)
 - **Cache:** Redis (production), in-memory (development)
 - **Frontend:** Vanilla JS, no framework
@@ -139,14 +139,6 @@ Modders understand unreasonable drive better than anyone. We've spent decades ma
 - Building entire games inside other games
 
 That same energy—the refusal to accept "this is how things are"—is what I'm trying to capture and direct at real problems.
-
-### The Three Beachheads
-
-**1. PNW Orca Pods**
-The Southern Resident orcas are dying. Salmon populations collapsing. Ecosystem failure. I want to bring back a native orca pod to Puget Sound in my lifetime. This is probably impossible. That's why it's worth trying.
-
-**2. Worker Soft Landing**
-When automation takes jobs, what happens to the workers? My answer: they become the **owners** of the automation. Not through policy or UBI, but through direct equity in the robots that replace them. The first Spore (landscaping/blackberry removal) is the test case.
 
 **3. Ethical AGI**
 This might be a dead-end. The field is full of grifters, hype, and existential risk. But if AGI is coming, I'd rather it be built by people who care about autonomy, privacy, and human flourishing than by corporations optimizing for engagement and extraction.

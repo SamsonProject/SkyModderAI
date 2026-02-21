@@ -1,0 +1,292 @@
+<!--
+  SkyModderAI - Mod Manager Integration
+  Download plugins for MO2, Vortex, and Wabbajack
+-->
+{% extends "base.html" %}
+
+{% block title %}Mod Manager Integration - SkyModderAI{% endblock %}
+
+{% block meta_description %}Download plugins for Mod Organizer 2, Vortex, and Wabbajack. Integrate SkyModderAI directly into your mod manager for seamless conflict detection.{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mod-manager-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #06b6d4 0%, #a855f7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-header p {
+        color: var(--text-secondary);
+        font-size: 1.125rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Features Grid */
+    .features-section {
+        margin-bottom: 3rem;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .feature-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        transition: all 0.15s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--accent-primary);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .feature-description {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .feature-features {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .feature-features li {
+        padding: 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+    }
+
+    .feature-features li::before {
+        content: '✓';
+        color: var(--success);
+        font-weight: 700;
+    }
+
+    .feature-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-download {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+    }
+
+    .btn-guide {
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-guide:hover {
+        border-color: var(--accent-primary);
+        color: var(--text-primary);
+    }
+
+    /* How It Works */
+    .how-it-works {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 3rem;
+        margin-top: 3rem;
+    }
+
+    .how-it-works h2 {
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+    }
+
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .step-card {
+        text-align: center;
+        padding: 1.5rem;
+    }
+
+    .step-number {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0 auto 1rem;
+    }
+
+    .step-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .step-description {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* Compatibility Note */
+    .compatibility-note {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .compatibility-note h3 {
+        margin-bottom: 0.75rem;
+        color: var(--info);
+    }
+
+    .compatibility-note p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mod-manager-page">
+    <header class="page-header">
+        <h1>🔌 Mod Manager Integration</h1>
+        <p>Seamlessly integrate SkyModderAI into your favorite mod manager. Analyze conflicts without leaving your workflow.</p>
+    </header>
+
+    <!-- Features Grid -->
+    <section class="features-section">
+        <div class="features-grid">
+            {% for manager in managers %}
+            <div class="feature-card">
+                <div class="feature-icon">{{ manager.icon }}</div>
+                <h2 class="feature-title">{{ manager.name }}</h2>
+                <p class="feature-description">{{ manager.description }}</p>
+                <ul class="feature-features">
+                    {% for feature in manager.features %}
+                    <li>{{ feature }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="feature-actions">
+                    <a href="{{ manager.download_url }}" class="btn-download">
+                        📥 Download
+                    </a>
+                    <a href="{{ manager.install_guide }}" class="btn-guide">
+                        📖 Installation Guide
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <h2>🎯 How It Works</h2>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3 class="step-title">Download Plugin</h3>
+                <p class="step-description">Choose your mod manager and download the integration plugin.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3 class="step-title">Install</h3>
+                <p class="step-description">Follow the installation guide to add the plugin to your manager.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3 class="step-title">Connect Account</h3>
+                <p class="step-description">Link your SkyModderAI account (free, no account required for basic features).</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3 class="step-title">Analyze</h3>
+                <p class="step-description">Right-click your mod list and run analysis with one click.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Compatibility Note -->
+    <div class="compatibility-note">
+        <h3>🎮 Supported Games</h3>
+        <p>
+            All integrations support: <strong>Skyrim SE/AE/VR</strong>, <strong>Skyrim Legendary</strong>, 
+            <strong>Fallout 4</strong>, <strong>Oblivion</strong> (beta), and <strong>Starfield</strong>.
+            Load order export/import works with all mod managers automatically.
+        </p>
+    </div>
+</div>
+{% endblock %}

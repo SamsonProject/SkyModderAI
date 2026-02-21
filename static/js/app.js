@@ -1,6 +1,14 @@
 // SkyModderAI - Frontend JavaScript
 // Handles mod list analysis, UI updates, and Stripe checkout
 
+// Simple logging utility (replaces console.log in production)
+const Logger = window.Logger || (window.Logger = {
+    debug: (...args) => { if (window.location.hostname === 'localhost') window.Logger.debug(...args); },
+    info: (...args) => { if (window.location.hostname === 'localhost') window.Logger.info(...args); },
+    warn: (...args) => { if (window.location.hostname === 'localhost') window.Logger.warn(...args); },
+    error: (...args) => { window.Logger.error(...args); }
+});
+
 const PLUGIN_LIMIT_WARN = 253;
 let currentUserTier = (typeof window.__USER_TIER__ !== 'undefined' ? window.__USER_TIER__ : 'free');
 let currentUserEmail = null;
@@ -90,7 +98,7 @@ const userContext = {
                 });
             }
         } catch (e) {
-            console.warn('Failed to restore userContext:', e);
+            Logger.warn('Failed to restore userContext:', e);
         }
 
         // Listen for cross-tab changes
@@ -100,7 +108,7 @@ const userContext = {
                     const data = JSON.parse(e.newValue);
                     this.mergeChanges(data);
                 } catch (e) {
-                    console.warn('Failed to merge cross-tab context:', e);
+                    Logger.warn('Failed to merge cross-tab context:', e);
                 }
             }
         });
@@ -122,7 +130,7 @@ const userContext = {
             };
             localStorage.setItem('skymodder_userContext', JSON.stringify(toSave));
         } catch (e) {
-            console.warn('Failed to save userContext:', e);
+            Logger.warn('Failed to save userContext:', e);
         }
     },
 
@@ -415,6 +423,53 @@ function initDomElements() {
         libraryGrid: document.getElementById('library-grid'),
         // Context trail elements
         contextTrail: document.getElementById('context-trail')
+    });
+}
+
+/**
+ * Mobile Navigation Toggle
+ * Handles hamburger menu and dropdown toggles on mobile
+ */
+function initMobileNavigation() {
+    const navToggle = document.querySelector('.nav-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
+
+    // Hamburger menu toggle
+    if (navToggle && navLinks) {
+        navToggle.addEventListener('click', () => {
+            navToggle.classList.toggle('active');
+            navLinks.classList.toggle('active');
+            document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : '';
+        });
+
+        // Close menu when clicking a link
+        navLinks.querySelectorAll('.nav-link:not(.nav-dropdown-toggle)').forEach(link => {
+            link.addEventListener('click', () => {
+                navToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!navLinks.contains(e.target) && !navToggle.contains(e.target)) {
+                navToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+
+    // Mobile dropdown toggles
+    dropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const dropdown = toggle.closest('.nav-dropdown');
+            dropdown.classList.toggle('active');
+            toggle.setAttribute('aria-expanded', dropdown.classList.contains('active'));
+        });
     });
 }
 
@@ -752,7 +807,7 @@ async function runModSearch() {
         }
         resultsEl.classList.remove('hidden');
     } catch (e) {
-        console.error('Mod search error:', e);
+        Logger.error('Mod search error:', e);
         resultsEl.classList.add('hidden');
     }
 }
@@ -842,7 +897,7 @@ async function loadGames() {
         // Initial sync
         updateGlobalGame(gameToSelect);
     } catch (e) {
-        console.error('Failed to load games:', e);
+        Logger.error('Failed to load games:', e);
     }
 }
 
@@ -953,7 +1008,7 @@ async function checkUserTier() {
         platformCapabilities = data || {};
         initGameFolderScan();
     } catch (error) {
-        console.error('Failed to check user tier:', error);
+        Logger.error('Failed to check user tier:', error);
         try {
             const fallback = await fetch('/api/check-tier');
             if (fallback.ok) {
@@ -964,7 +1019,7 @@ async function checkUserTier() {
                 initGameFolderScan();
             }
         } catch (e2) {
-            console.error('Tier fallback failed:', e2);
+            Logger.error('Tier fallback failed:', e2);
         }
     }
 }
@@ -1266,7 +1321,7 @@ async function scanSystem() {
                 }
             }
         } catch (e) {
-            console.warn('WebGL scan failed:', e);
+            Logger.warn('WebGL scan failed:', e);
         }
     }
 
@@ -2167,13 +2222,19 @@ let isAnalyzing = false;
  * Send mod list to server for analysis and display results.
  */
 async function analyzeModList() {
-    if (isAnalyzing) return;
+    Logger.info('SkyModderAI: analyzeModList called');
+    if (isAnalyzing) {
+        Logger.warn('SkyModderAI: Already analyzing');
+        return;
+    }
     if (!elements.modListInput) {
-        console.error('SkyModderAI: mod list textarea not found');
+        Logger.error('SkyModderAI: mod list textarea not found');
+        showToast('Error: Mod list input not found', 'error');
         return;
     }
 
     const modList = elements.modListInput.value.trim();
+    Logger.info('SkyModderAI: Mod list length:', modList.length);
     // No minimum mod count: 1 or 2 mods (or any number) is fine.
     if (!modList) {
         showToast('Please enter at least one mod.', 'warning');
@@ -2417,7 +2478,7 @@ async function analyzeModList() {
             }, 200); // Small delay to ensure DOM is ready
         }
     } catch (error) {
-        console.error('Analysis error:', error);
+        Logger.error('Analysis error:', error);
         showToast('Analysis failed. Please check your connection and try again.', 'error');
     } finally {
         isAnalyzing = false;
@@ -2446,7 +2507,7 @@ async function generateAiSummary(context, game) {
             container.classList.add('hidden');
         }
     } catch (e) {
-        console.error("AI Summary failed", e);
+        Logger.error("AI Summary failed", e);
         container.classList.add('hidden');
     }
 }
@@ -2791,7 +2852,7 @@ async function submitCheckout(event) {
             throw new Error('Missing checkout URL');
         }
     } catch (err) {
-        console.error('Checkout error:', err);
+        Logger.error('Checkout error:', err);
         showToast(err.message || 'Checkout failed. Please try again.', 'error');
         if (btn) {
             btn.disabled = false;
@@ -3003,7 +3064,7 @@ async function loadSampleList() {
             showToast(`No sample list for "${game}".`, 'info');
         }
     } catch (e) {
-        console.error('Failed to load sample:', e);
+        Logger.error('Failed to load sample:', e);
         showToast('Could not load sample list.', 'error');
     } finally {
         if (sampleBtn) {
@@ -3030,7 +3091,7 @@ function copyReport() {
             }
         })
         .catch(err => {
-            console.error('Clipboard error:', err);
+            Logger.error('Clipboard error:', err);
             showToast('Failed to copy to clipboard.', 'error');
         });
 }
@@ -6014,7 +6075,7 @@ function openQuickFix(conflictText, index) {
             }
         })
         .catch(error => {
-            console.error('Error fetching resolution:', error);
+            Logger.error('Error fetching resolution:', error);
             // Fallback to search
             const modName = extractModName(conflictText);
             window.open(`https://duckduckgo.com/?q=${encodeURIComponent(modName + ' skyrim conflict fix')}`, '_blank');
@@ -6164,7 +6225,7 @@ async function loadLibrary() {
             elements.libraryStatus.textContent = `${libraryItems.length} item${libraryItems.length !== 1 ? 's' : ''}`;
         }
     } catch (error) {
-        console.error('Library load error:', error);
+        Logger.error('Library load error:', error);
         if (elements.libraryGrid) {
             elements.libraryGrid.innerHTML = '<p class="hint">Failed to load library. Try refreshing.</p>';
         }
@@ -6419,7 +6480,7 @@ async function renameLibraryItem(item) {
         renderLibrary();
         showToast('Renamed successfully', 'success');
     } catch (error) {
-        console.error('Rename error:', error);
+        Logger.error('Rename error:', error);
         showToast('Failed to rename', 'error');
     }
 }
@@ -6455,7 +6516,7 @@ async function editLibraryItem(item) {
         renderLibrary();
         showToast('Updated successfully', 'success');
     } catch (error) {
-        console.error('Edit error:', error);
+        Logger.error('Edit error:', error);
         showToast('Failed to update', 'error');
     }
 }
@@ -6479,7 +6540,7 @@ async function deleteLibraryItem(item) {
         renderLibrary();
         showToast('Deleted successfully', 'success');
     } catch (error) {
-        console.error('Delete error:', error);
+        Logger.error('Delete error:', error);
         showToast('Failed to delete', 'error');
     }
 }
@@ -6701,6 +6762,7 @@ window.WalkthroughUI = WalkthroughUI;
 document.addEventListener('DOMContentLoaded', function () {
     initDomElements();
     initGlobalEventListeners();
+    initMobileNavigation();
 
     // Initialize all components
     initModernTheme();

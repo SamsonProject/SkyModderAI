@@ -1,0 +1,435 @@
+<!--
+  SkyModderAI - Compatibility Detail Template
+  Shows detailed compatibility between two specific mods
+-->
+{% extends "base.html" %}
+
+{% block title %}{{ mod_a }} vs {{ mod_b }} Compatibility - SkyModderAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .compat-detail-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .detail-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+    }
+
+    .mod-vs {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .mod-name {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+    }
+
+    .vs-divider {
+        color: var(--text-secondary);
+        font-size: 1.5rem;
+    }
+
+    .compat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 9999px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 1rem 0;
+    }
+
+    .badge-compatible {
+        background: rgba(34, 197, 94, 0.1);
+        color: #10b981;
+        border: 2px solid #10b981;
+    }
+
+    .badge-incompatible {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 2px solid #ef4444;
+    }
+
+    .badge-needs_patch {
+        background: rgba(251, 191, 36, 0.1);
+        color: #fbbf24;
+        border: 2px solid #fbbf24;
+    }
+
+    .badge-unknown {
+        background: rgba(148, 163, 184, 0.1);
+        color: #94a3b8;
+        border: 2px solid #94a3b8;
+    }
+
+    .confidence-meter {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .confidence-bar {
+        width: 100px;
+        height: 8px;
+        background: var(--bg-dark);
+        border-radius: 9999px;
+        overflow: hidden;
+    }
+
+    .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        border-radius: 9999px;
+        transition: width 0.3s;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .reports-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .report-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .report-card {
+        background: var(--bg-dark);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+    }
+
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .report-status {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    .report-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+    }
+
+    .report-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .vote-buttons {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .vote-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .vote-btn:hover {
+        background: var(--bg-input);
+    }
+
+    .vote-btn.upvote:hover {
+        border-color: #10b981;
+        color: #10b981;
+    }
+
+    .vote-btn.downvote:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+
+    .sidebar-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--bg-dark);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 0.75rem;
+        background: var(--bg-dark);
+        border-radius: var(--radius-sm);
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="compat-detail-page">
+    <header class="detail-header">
+        <div class="mod-vs">
+            <div class="mod-name">{{ mod_a }}</div>
+            <div class="vs-divider">vs</div>
+            <div class="mod-name">{{ mod_b }}</div>
+        </div>
+
+        {% if compatibility.status %}
+        <div class="compat-badge badge-{{ compatibility.status }}">
+            {% if compatibility.status == 'compatible' %}
+                ✓ Compatible
+            {% elif compatibility.status == 'incompatible' %}
+                ✗ Incompatible
+            {% elif compatibility.status == 'needs_patch' %}
+                ⚠ Needs Patch
+            {% else %}
+                ? Unknown
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="compat-badge badge-unknown">
+            ? No Data
+        </div>
+        {% endif %}
+
+        {% if compatibility.confidence %}
+        <div class="confidence-meter">
+            <span>Confidence:</span>
+            <div class="confidence-bar">
+                <div class="confidence-fill" style="width: {{ compatibility.confidence * 100 }}%"></div>
+            </div>
+            <span>{{ (compatibility.confidence * 100)|round(0) }}%</span>
+        </div>
+        {% endif %}
+    </header>
+
+    <div class="detail-grid">
+        <!-- Reports Section -->
+        <div class="reports-section">
+            <h2 class="section-title">Compatibility Reports</h2>
+
+            {% if compatibility.reports and compatibility.reports|length > 0 %}
+            <div class="report-list">
+                {% for report in compatibility.reports %}
+                <div class="report-card">
+                    <div class="report-header">
+                        <span class="report-status" style="background: {% if report.status == 'compatible' %}rgba(34, 197, 94, 0.2){% elif report.status == 'incompatible' %}rgba(239, 68, 68, 0.2){% else %}rgba(251, 191, 36, 0.2){% endif %}; color: {% if report.status == 'compatible' %}#10b981{% elif report.status == 'incompatible' %}#ef4444{% else %}#fbbf24{% endif %};">
+                            {{ report.status | replace('_', ' ') | title }}
+                        </span>
+                        <div class="vote-buttons">
+                            <button class="vote-btn upvote" onclick="voteReport({{ report.id }}, 1)">
+                                ▲ {{ report.upvotes }}
+                            </button>
+                            <button class="vote-btn downvote" onclick="voteReport({{ report.id }}, -1)">
+                                ▼ {{ report.downvotes }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="report-description">
+                        {{ report.description }}
+                    </div>
+                    <div class="report-meta">
+                        <span>📅 {{ report.created_at | format_time_ago if report.created_at else 'Unknown' }}</span>
+                        {% if report.verified %}
+                        <span>✓ Verified</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                <p>No compatibility reports yet.</p>
+                <p>Be the first to report compatibility!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Actions -->
+            <div class="sidebar-section">
+                <h3 class="section-title">Actions</h3>
+                <div class="action-buttons">
+                    <a href="/compatibility/submit?mod_a={{ mod_a }}&mod_b={{ mod_b }}&game={{ game }}" class="btn btn-primary">
+                        📝 Submit Report
+                    </a>
+                    <a href="/mod/{{ mod_a }}?game={{ game }}" class="btn btn-secondary">
+                        📄 View {{ mod_a }}
+                    </a>
+                    <a href="/mod/{{ mod_b }}?game={{ game }}" class="btn btn-secondary">
+                        📄 View {{ mod_b }}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="sidebar-section">
+                <h3 class="section-title">Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ compatibility.total_reports or 0 }}</div>
+                        <div class="stat-label">Total Reports</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #10b981;">
+                            {{ (compatibility.reports | selectattr('status', 'equalto', 'compatible') | list | length) if compatibility.reports else 0 }}
+                        </div>
+                        <div class="stat-label">Compatible</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #ef4444;">
+                            {{ (compatibility.reports | selectattr('status', 'equalto', 'incompatible') | list | length) if compatibility.reports else 0 }}
+                        </div>
+                        <div class="stat-label">Incompatible</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mod Info -->
+            {% if mod_a_info %}
+            <div class="sidebar-section">
+                <h3 class="section-title">About {{ mod_a }}</h3>
+                <p style="font-size: 0.875rem; color: var(--text-secondary);">
+                    {{ mod_a_info.description[:150] if mod_a_info.description else 'No description available' }}...
+                </p>
+                {% if mod_a_info.nexus_url %}
+                <a href="{{ mod_a_info.nexus_url }}" target="_blank" class="btn btn-secondary" style="margin-top: 0.5rem; width: 100%;">
+                    View on Nexus →
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function voteReport(reportId, vote) {
+    fetch(`/compatibility/report/${reportId}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vote: vote })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to vote');
+        }
+    })
+    .catch(e => {
+        alert('Failed to vote: ' + e.message);
+    });
+}
+</script>
+{% endblock %}

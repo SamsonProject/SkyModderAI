@@ -3,7 +3,7 @@
 **AI-powered mod compatibility checker for Bethesda games.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ---
@@ -118,7 +118,7 @@ Then open **http://localhost:5000**
 
 ### **Tech Stack**
 
-- **Backend:** Python 3.9+, Flask
+- **Backend:** Python 3.11, Flask
 - **Database:** PostgreSQL (production), SQLite (development)
 - **Cache:** Redis (production), in-memory (development)
 - **Frontend:** Vanilla JS, no framework
@@ -345,7 +345,7 @@ If it saved your load order, consider buying us a mead. If not, no hard feelings
 
 ---
 
-**Last Updated:** February 20, 2026  
+**Last Updated:** February 21, 2026  
 **Version:** 1.0.0 (Beta)
 
 [![Built with Python](https://img.shields.io/badge/Built%20with-Python-3776AB?logo=python&logoColor=white)](https://www.python.org/)

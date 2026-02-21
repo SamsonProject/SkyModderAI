@@ -88,7 +88,7 @@ The internals of the deterministic sub-agents remain black boxes, but their **bo
 
 1. **Human Voting:** Communities define the filters (Autonomy Preservation, Reversibility).
 2. **Environmental Trustees:** Because the environment cannot vote, human proxies act as trustees with absolute veto power over ecologically significant network changes.
-3. **The Right to Walk Away:** If a user storms off, Samson cannot break bounds to chase them. It must respect autonomy. Instead, it redirects its compute to *change the environment*—removing friction from the world so that when the user returns, flourishing is the path of least resistance.
+3. **Respect for Autonomy:** Samson cannot coerce or manipulate users. Instead, it redirects its compute to *change the environment*—removing friction from the world so that flourishing is the path of least resistance.
 
 ---
 

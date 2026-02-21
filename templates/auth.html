@@ -271,7 +271,7 @@
                     <div class="form-group">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <label for="login-password">Password</label>
-                            <a href="/forgot-password" style="font-size: 0.85rem; color: var(--primary-color); text-decoration: none;">Forgot password?</a>
+                            <a href="{{ url_for('forgot_password') }}" style="font-size: 0.85rem; color: var(--primary-color); text-decoration: none;">Forgot password?</a>
                         </div>
                         <input type="password" id="login-password" name="password" placeholder="••••••••" required autocomplete="current-password">
                     </div>
@@ -379,24 +379,67 @@
 
                 <p class="hint" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #f0f0f0; font-size: 0.8rem; color: #666; line-height: 1.5;">
                     By creating an account, you agree to our
-                    <a href="/terms" style="color: var(--primary-color); text-decoration: none;">Terms of Service</a> and
-                    <a href="/privacy" style="color: var(--primary-color); text-decoration: none;">Privacy Policy</a>.
+                    <a href="{{ url_for('terms') }}" style="color: var(--primary-color); text-decoration: none;">Terms of Service</a> and
+                    <a href="{{ url_for('privacy') }}" style="color: var(--primary-color); text-decoration: none;">Privacy Policy</a>.
                     OpenClaw Lab is separate from Pro and requires explicit risk acknowledgements before checkout.
                 </p>
             </div>
         </div>
 
         <footer class="auth-footer">
-            <p>© 2023 SkyModderAI. All rights reserved.</p>
+            <p>© 2026 SkyModderAI. All rights reserved.</p>
             <p>
-                <a href="/privacy">Privacy</a> ·
-                <a href="/terms">Terms</a> ·
-                <a href="/cookies">Cookies</a> ·
+                <a href="{{ url_for('privacy') }}">Privacy</a> ·
+                <a href="{{ url_for('terms') }}">Terms</a> ·
+                <a href="{{ url_for('safety') }}">Safety</a> ·
                 <a href="mailto:support@skymodderai.com">Support</a>
             </p>
         </footer>
     </div>
     <script src="/static/js/auth.js"></script>
     <script src="/static/icons/logo-icons.js"></script>
+    <script>
+        // Enhanced tab switching
+        (function() {
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+            const loginPanel = document.getElementById('login-panel');
+            const signupPanel = document.getElementById('signup-panel');
+            
+            function switchTab(tab) {
+                if (tab === 'login') {
+                    loginTab.style.background = 'var(--primary-color)';
+                    loginTab.style.color = 'white';
+                    signupTab.style.background = 'transparent';
+                    signupTab.style.color = 'var(--text-color)';
+                    loginPanel.style.display = 'block';
+                    signupPanel.style.display = 'none';
+                    loginPanel.classList.add('active');
+                    signupPanel.classList.remove('active');
+                    window.location.hash = 'login';
+                } else {
+                    signupTab.style.background = 'var(--primary-color)';
+                    signupTab.style.color = 'white';
+                    loginTab.style.background = 'transparent';
+                    loginTab.style.color = 'var(--text-color)';
+                    signupPanel.style.display = 'block';
+                    loginPanel.style.display = 'none';
+                    signupPanel.classList.add('active');
+                    loginPanel.classList.remove('active');
+                    window.location.hash = 'signup';
+                }
+            }
+            
+            loginTab.addEventListener('click', () => switchTab('login'));
+            signupTab.addEventListener('click', () => switchTab('signup'));
+            
+            // Handle initial hash
+            if (window.location.hash === '#signup') {
+                switchTab('signup');
+            } else if (window.location.hash === '#login') {
+                switchTab('login');
+            }
+        })();
+    </script>
 </body>
 </html>

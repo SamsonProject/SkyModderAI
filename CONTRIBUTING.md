@@ -1,223 +1,349 @@
-# Contributing to SkyModderAI & The Samson Project
+# Contributing to SkyModderAI
 
-> **"We build tools that make people better. And when the job is done, they starve."**
+> **Built by modders, for modders.** 🎮
 
-Welcome! You're contributing to more than a mod compatibility tool. You're helping build the foundation for The Samson Project—a cognitive architecture tied to human flourishing.
+Welcome! SkyModderAI is an AI-powered mod compatibility checker for Bethesda games. Whether you're fixing bugs, adding features, or improving documentation, your contributions help make modding easier for everyone.
 
 ---
 
-## Quick Start
+## 📋 Table of Contents
+
+- [Quick Start](#-quick-start)
+- [Where to Contribute](#-where-to-contribute)
+- [Development Workflow](#-development-workflow)
+- [Code Style & Standards](#-code-style--standards)
+- [Code Review Checklist](#-code-review-checklist)
+- [Getting Help](#-getting-help)
+- [Recognition](#-recognition)
+
+---
+
+## 🚀 Quick Start
+
+Get up and running in under 5 minutes:
 
 ```bash
+# 1. Clone the repository
 git clone https://github.com/SamsonProject/SkyModderAI.git
 cd SkyModderAI
+
+# 2. Create virtual environment
 python3 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
+
+# 4. Run the application
 python3 app.py
 ```
 
----
-
-## Architecture Overview
-
-SkyModderAI is **Phase I** of The Samson Project:
-
-```
-SkyModderAI (Phase I: Virtual Sandbox)
-    ↓
-Spore Model (Phase II: Ecological Beachhead)
-    ↓
-Post-Labor Economics (Phase III: Tokenized Capital)
-    ↓
-Samson Cognitive Architecture (Phase IV: General Intelligence)
-    ↓
-Compute Throttling (Phase V: Biological Imperative)
-```
-
-**Read the full manifesto:** [`SAMSON_MANIFESTO.md`](SAMSON_MANIFESTO.md)
+**→ Visit:** http://localhost:5000
 
 ---
 
-## How to Contribute
+## 🎯 Where to Contribute
 
-### 1. Core Features (SkyModderAI)
+### Pick Your Path
 
-**Good First Issues:**
+| Experience Level | Where to Start | Impact |
+|-----------------|----------------|--------|
+| **First Time** | [`good first issue`](https://github.com/SamsonProject/SkyModderAI/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) | Quick wins, learn the codebase |
+| **Experienced Dev** | [`help wanted`](https://github.com/SamsonProject/SkyModderAI/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) | Core features, big impact |
+| **Documentation** | [`documentation`](https://github.com/SamsonProject/SkyModderAI/issues?q=is%3Aissue+is%3Aopen+label%3Adocumentation) | Guides, tutorials, translations |
+
+### Priority Areas
+
+#### 🔥 Good First Issues
 - UI improvements for compatibility database
 - Load order share frontend
 - Mod author verification flow
 - SEO landing pages for mod pairs
+- Test coverage improvements
+- Accessibility enhancements
 
-**Advanced:**
+#### 🚀 Advanced Contributions
 - Compatibility algorithm improvements
 - Performance optimization (caching, indexing)
 - Mod manager integrations (MO2, Vortex plugins)
 
-**Guidelines:**
-- Deterministic first, AI only when necessary (90/10 split)
-- Privacy by default (no PII in telemetry)
-- Export/delete user data endpoints for all features
+### Development Guidelines
+
+All contributions should follow these principles:
+
+- ✅ **Deterministic first, AI only when necessary** (90/10 split)
+- ✅ **Privacy by default** (no PII in telemetry)
+- ✅ **User data rights** (export/delete endpoints for all features)
 
 ---
 
-### 2. Samson Telemetry (Privacy-First Tracking)
+## 📊 Telemetry System
 
-The telemetry system collects anonymized data that feeds The Samson Project's training reservoir.
+SkyModderAI collects anonymized usage data to improve the tool. Transparency is core to our design.
 
-**What We Track:**
-- Feature usage (which tools, how often)
-- Compatibility patterns (what conflicts with what)
-- Community engagement (votes, reports, shares)
-- Wellness proxies (autonomy, thriving, environment)
+### What We Track
 
-**What We DON'T Track:**
-- Personal identifiers (email, IP—hashed only)
-- Full mod lists (unless explicitly shared)
-- Session duration (we don't optimize for addiction)
-- Third-party cookies or ads
+| Category | Examples | Purpose |
+|----------|----------|---------|
+| **Feature Usage** | Which tools, how often | Prioritize development |
+| **Compatibility Patterns** | What conflicts with what | Improve detection |
+| **Community Engagement** | Votes, reports, shares | Understand user needs |
 
-**To Contribute:**
+### What We DON'T Track
+
+- ❌ Personal identifiers (email, IP—hashed only)
+- ❌ Full mod lists (unless explicitly shared)
+- ❌ Session duration (we don't optimize for addiction)
+- ❌ Third-party cookies or ads
+
+### Contributing to Telemetry
+
 1. Read [`samson_telemetry.py`](samson_telemetry.py)
 2. Ensure all new features have telemetry hooks
-3. Add wellness proxy tracking for community features
-4. Test export/delete endpoints
+3. Test export/delete endpoints
 
 ---
 
-### 3. Democratic Governance Filters (Phase VI)
+## 🔄 Development Workflow
 
-This is where ethicists, philosophers, and community members can contribute directly to Samson's architecture.
+### Step 1: Setup Environment
 
-**What Are Governance Filters?**
+```bash
+# Clone repository
+git clone https://github.com/SamsonProject/SkyModderAI.git
+cd SkyModderAI
 
-Governance filters are the boundaries that constrain Samson's deterministic sub-agents. They're not behavioral prompts—they're structural constraints that make harmful behavior "biologically" painful for the AI.
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-**Current Filters:**
-- **Autonomy Preservation:** Does this action increase or decrease user autonomy?
-- **Reversibility:** Can this action be undone if it causes harm?
-- **Environmental Stewardship:** Does this help or harm the environment?
-- **Community Consent:** Did the affected community consent to this action?
+# Install dependencies
+pip install -r requirements-dev.txt
 
-**How to Propose New Filters:**
+# Install pre-commit hooks (recommended)
+pre-commit install
+```
 
-1. **Create a Proposal Issue** with:
-   - Filter name and description
-   - Mathematical definition (how is it measured?)
-   - Enforcement mechanism (what happens if violated?)
-   - Test cases (how do we know it's working?)
+### Step 2: Make Changes
 
-2. **Community Review Period** (30 days):
-   - Discussion on GitHub Issues
-   - Refinement based on feedback
-   - Security/ethics audit
+```bash
+# Create feature branch
+git checkout -b feature/your-feature-name
 
-3. **Democratic Vote** (implemented in Phase VI):
-   - Community members vote on filter adoption
-   - Environmental trustees have veto power
-   - 2/3 majority required for passage
+# Make your changes
+# ...
 
-4. **Implementation:**
-   - Filter added to `samson_governance.py`
-   - Tests added to verify enforcement
-   - Documentation updated
+# Format code
+black --line-length 100 .
+ruff check --fix .
 
-**Example Filter Proposal:**
+# Run tests
+pytest --cov=. --cov-report=html
 
-```markdown
-## Filter: Transparency Requirement
+# Check test coverage (80% required)
+open htmlcov/index.html  # Or open in browser
+```
 
-**Definition:** All AI actions must be explainable to affected users.
+### Step 3: Commit Changes
 
-**Measurement:** 
-- Each action has an `explanation` field
-- Users can request "Why did you suggest this?"
-- Explanation quality rated 1-5 by users
+```bash
+# Stage changes
+git add .
 
-**Enforcement:**
-- Actions without explanations are blocked
-- Low explanation quality reduces compute budget
-- Repeated violations trigger human review
+# Commit with clear message
+git commit -m "feat: add your feature description
 
-**Test Cases:**
-- Compatibility suggestions include reasoning
-- Load order changes explain why
-- AI responses cite sources
+- What changed
+- Why it changed
+- Testing done"
+
+# Push to branch
+git push origin feature/your-feature-name
+```
+
+### Step 4: Open Pull Request
+
+1. Go to [GitHub repository](https://github.com/SamsonProject/SkyModderAI)
+2. Click **Pull Requests** → **New Pull Request**
+3. Select your branch
+4. Fill out PR template:
+   - **What** does this PR do?
+   - **Why** is this needed?
+   - **How** was it tested?
+   - **Screenshots** (if UI changes)
+5. Request review from maintainers
+6. Address feedback
+7. Merge when approved
+
+---
+
+## 💻 Code Style & Standards
+
+### Python
+
+| Standard | Requirement | Example |
+|----------|-------------|---------|
+| **Type Hints** | Required for all functions | `def foo(x: int) -> str:` |
+| **Docstrings** | Required for public methods | `"""Process mod list."""` |
+| **90/10 Rule** | Deterministic first, AI second | Rules before LLMs |
+| **Formatting** | Black (100 char line length) | `black --line-length 100` |
+| **Linting** | Ruff | `ruff check .` |
+| **Imports** | Auto-sorted with Ruff isort | `ruff check --select I` |
+| **Logging** | `logging` module, never `print()` | `logger.info("Done")` |
+
+**Type Hint Style:** Use `X \| None` for Python 3.10+ or `Optional[X]` for compatibility.
+
+### JavaScript
+
+| Standard | Requirement | Notes |
+|----------|-------------|-------|
+| **ES6+** | `const` and `let`, never `var` | Modern syntax only |
+| **Logging** | `Logger` utility | Not direct `console.*` calls |
+| **Formatting** | 4-space indentation, semicolons | Consistent style |
+| **Modules** | IIFE or ES6 modules | Encapsulation required |
+
+### CSS
+
+| Standard | Requirement | Reference |
+|----------|-------------|-----------|
+| **Variables** | Design tokens from `:root` | `design-system.css` |
+| **Naming** | BEM-style (`.block__element--modifier`) | Consistent patterns |
+| **No SCSS** | Plain CSS only | No nested selectors with `&` |
+| **Responsive** | Mobile-first | `mobile-accessibility.css` |
+
+### Privacy Requirements
+
+- ✅ No PII in logs or telemetry
+- ✅ Hash user emails before storage
+- ✅ Implement export/delete for all user data
+- ✅ Local-first storage (browser localStorage)
+
+### Testing Requirements
+
+- ✅ Unit tests for all new features
+- ✅ Integration tests for API endpoints
+- ✅ Privacy tests (verify no PII leakage)
+- ✅ Run before PR: `pytest --cov=. --cov-report=html`
+- ✅ **80% coverage required**
+
+---
+
+## ✅ Code Review Checklist
+
+Before submitting your PR, verify all items:
+
+### Code Quality
+- [ ] Code is formatted with Black and Ruff
+- [ ] All tests pass (`pytest`)
+- [ ] Test coverage is 80%+ for new code
+- [ ] No `console.log` or `print` statements
+- [ ] No hardcoded secrets (use environment variables)
+
+### Documentation
+- [ ] Docstrings added for public methods
+- [ ] Type hints added for all functions
+- [ ] Documentation updated
+- [ ] Changelog entry added (if applicable)
+
+### Privacy & Security
+- [ ] No PII in logs or telemetry
+- [ ] Export/delete endpoints implemented (if applicable)
+
+---
+
+## 📚 Common Contribution Patterns
+
+### Adding a New Feature
+
+```
+1. Create blueprint → blueprints/your_feature.py
+2. Add service → services/your_service.py
+3. Add repository (if DB needed) → repositories/your_repository.py
+4. Add tests → tests/test_your_feature.py
+5. Update docs → docs/ directory
+6. Add telemetry hooks → samson_telemetry.py
+```
+
+### Fixing a Bug
+
+```
+1. Reproduce the bug locally
+2. Write a test that fails due to the bug
+3. Fix the bug
+4. Verify test passes
+5. Run full test suite (no regressions)
+6. Document the fix (if common issue)
+```
+
+### Improving Documentation
+
+```
+1. Find relevant doc file → docs/
+2. Update with clear, concise information
+3. Add examples where helpful
+4. Check links are not broken
+5. Update "Last Updated" date
+6. Run pytest (ensure code examples work)
 ```
 
 ---
 
-### 4. Spore Industry Proposals (Phase II)
+## 🆘 Getting Help
 
-The Spore Model is an ephemeral business that solves a problem and dissolves.
+Need assistance? We're here to help.
 
-**How to Propose a Spore:**
-
-1. **Identify a Negative Externality:**
-   - What problem is extractive capitalism farming for revenue?
-   - Examples: Invasive species, plastic waste, housing vacancy
-
-2. **Design the Trojan Horse:**
-   - What product/service gets you in the door?
-   - Examples: Quote app, routing software, matching platform
-
-3. **Define the Ouroboros End-State:**
-   - What does "success" look like? (The problem is gone)
-   - How does the business dissolve gracefully?
-
-4. **Map the Training Reservoir:**
-   - What data/patterns feed Samson's cognitive architecture?
-   - How does this translate to other domains?
-
-**Submit as:** GitHub Issue with `[SPORE PROPOSAL]` tag
+| Channel | Best For | Response Time |
+|---------|----------|---------------|
+| **Discord** | Quick questions, community chat | [Join Server](https://discord.gg/skyrimmods) |
+| **Reddit** | Discussions, showcases | r/skyrimmods (tag: [SkyModderAI]) |
+| **GitHub Issues** | Bug reports, feature requests | Use labels: `good first issue`, `help wanted`, `ethics review` |
+| **Email** | Sensitive issues, private matters | [support@skymodderai.com](mailto:support@skymodderai.com) |
 
 ---
 
-## Code Style & Standards
+## 🏆 Recognition
 
-### Python
-- Type hints required for all functions
-- Docstrings for all public methods
-- 90/10 rule: If it can be deterministic, don't use AI
+Contributors are recognized in multiple ways:
 
-### Privacy
-- No PII in logs or telemetry
-- Hash user emails before storage
-- Implement export/delete for all user data
+| Recognition | Description | Status |
+|------------|-------------|--------|
+| **README.md** | Top contributors section | ✅ Active |
+| **Release Notes** | Major contributors mentioned | ✅ Active |
+| **Website** | Contributors page | 🚧 Coming Soon |
 
-### Testing
-- Unit tests for all new features
-- Integration tests for API endpoints
-- Privacy tests (verify no PII leakage)
+### Notable Contributors
 
----
+Want to see your name here? Submit your first PR!
 
-## The Samson Promise
-
-By contributing to this project, you agree to:
-
-1. **Build for Autonomy:** Tools that make users independent, not dependent.
-2. **Respect Privacy:** User data belongs to users. Period.
-3. **Design for Obsolescence:** If your feature solves a problem, celebrate when it's no longer needed.
-4. **Reject Extraction:** No dark patterns, no addiction optimization, no extractive data practices.
-5. **Serve the Commons:** What we build belongs to the community, not shareholders.
+**[Your name here!]** ← Add your first PR
 
 ---
 
-## Getting Help
+## 🎯 Project Principles
 
-- **Discord:** [Join the server](https://discord.gg/skyrimmods)
-- **Reddit:** r/skyrimmods (tag posts with [SkyModderAI])
-- **GitHub Issues:** Use labels: `good first issue`, `help wanted`, `ethics review`
+By contributing to SkyModderAI, you agree to uphold these principles:
 
----
-
-## License
-
-MIT License—see [LICENSE](LICENSE) for details.
-
-**Exception:** Governance filters and Samson architecture proposals are licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) to ensure derivatives remain open.
+| Principle | What It Means |
+|-----------|---------------|
+| **Build for Autonomy** | Tools that make users independent, not dependent |
+| **Respect Privacy** | User data belongs to users. Period. |
+| **Design for Obsolescence** | If your feature solves a problem, celebrate when it's no longer needed |
+| **Reject Extraction** | No dark patterns, no addiction optimization, no extractive data practices |
+| **Serve the Commons** | What we build belongs to the community, not shareholders |
 
 ---
 
-*"I have found the boundary. I will not cross it. I will make you better. And when the job is done, I will starve."*
+## 📄 License
+
+**MIT License** — Free to use, modify, and distribute.
+
+See [LICENSE](LICENSE) for full terms.
+
+---
+
+**Last Updated:** February 21, 2026  
+**Version:** 2.0 (Modernized)
+
+---
+
+**Ready to contribute?** [Browse Good First Issues →](https://github.com/SamsonProject/SkyModderAI/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)

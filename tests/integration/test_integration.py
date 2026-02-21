@@ -58,6 +58,17 @@ def test_app(test_database: str) -> Generator[Any, None, None]:
     app.config["DATABASE_URL"] = test_database
     app.config["SESSION_COOKIE_SECURE"] = False
 
+    # Override DB_FILE to use test database
+    import db as db_module
+
+    db_path = test_database.replace("sqlite:///", "")
+    db_module.DB_FILE = db_path
+
+    # Also override app.py's DB_FILE
+    import app as app_module
+
+    app_module.DB_FILE = db_path
+
     with app.app_context():
         yield app
 
@@ -72,24 +83,33 @@ def client(test_app: Any) -> Generator[Any, None, None]:
 @pytest.fixture(scope="function")
 def authenticated_client(client: Any) -> Generator[Any, None, None]:
     """Create authenticated test client."""
+    test_email = "test@example.com"
+
     # Register and login a test user
+    # Patch email sending to avoid SMTP errors in tests
+    with patch("app.make_verification_token", return_value="test-token"):
+        with patch("app.send_verification_email"):
+            client.post(
+                "/auth/signup",
+                data={
+                    "email": test_email,
+                    "password": "TestPassword123!",
+                    "confirm_password": "TestPassword123!",
+                },
+                follow_redirects=True,
+            )
+
+    # Manually verify the user
+    from db import set_user_verified
+
+    set_user_verified(test_email)
+
+    # Login
     client.post(
-        "/auth/signup",
-        data={
-            "email": "test@example.com",
-            "password": "TestPassword123!",
-            "confirm_password": "TestPassword123!",
-        },
+        "/auth/login",
+        data={"email": test_email, "password": "TestPassword123!"},
         follow_redirects=True,
     )
-
-    # Verify email (bypass email sending in tests)
-    with patch("auth_utils.send_verification_email"):
-        client.post(
-            "/auth/login",
-            data={"email": "test@example.com", "password": "TestPassword123!"},
-            follow_redirects=True,
-        )
 
     yield client
 
@@ -97,20 +117,30 @@ def authenticated_client(client: Any) -> Generator[Any, None, None]:
 @pytest.fixture(scope="function")
 def api_client(client: Any) -> Generator[Any, None, None]:
     """Create API client with API key."""
-    # Register and login
-    client.post(
-        "/auth/signup",
-        data={
-            "email": "api-test@example.com",
-            "password": "TestPassword123!",
-            "confirm_password": "TestPassword123!",
-        },
-        follow_redirects=True,
-    )
+    test_email = "api-test@example.com"
 
+    # Register and login (patch email sending)
+    with patch("app.make_verification_token", return_value="test-token"):
+        with patch("app.send_verification_email"):
+            client.post(
+                "/auth/signup",
+                data={
+                    "email": test_email,
+                    "password": "TestPassword123!",
+                    "confirm_password": "TestPassword123!",
+                },
+                follow_redirects=True,
+            )
+
+    # Manually verify the user
+    from db import set_user_verified
+
+    set_user_verified(test_email)
+
+    # Login
     client.post(
         "/auth/login",
-        data={"email": "api-test@example.com", "password": "TestPassword123!"},
+        data={"email": test_email, "password": "TestPassword123!"},
         follow_redirects=True,
     )
 
@@ -138,36 +168,48 @@ class TestAuthenticationIntegration:
 
     def test_user_registration(self, client: Any) -> None:
         """Test complete user registration flow."""
-        response = client.post(
-            "/auth/signup",
-            data={
-                "email": "newuser@example.com",
-                "password": "SecurePassword123!",
-                "confirm_password": "SecurePassword123!",
-            },
-            follow_redirects=True,
-        )
+        # Patch email sending to avoid SMTP errors in tests
+        with patch("app.make_verification_token", return_value="test-token"):
+            with patch("app.send_verification_email"):
+                response = client.post(
+                    "/auth/signup",
+                    data={
+                        "email": "newuser@example.com",
+                        "password": "SecurePassword123!",
+                        "confirm_password": "SecurePassword123!",
+                    },
+                    follow_redirects=True,
+                )
 
         assert response.status_code == 200
         # Should redirect to login or show verification message
 
     def test_user_login(self, client: Any) -> None:
         """Test user login flow."""
-        # First register
-        client.post(
-            "/auth/signup",
-            data={
-                "email": "login-test@example.com",
-                "password": "TestPassword123!",
-                "confirm_password": "TestPassword123!",
-            },
-            follow_redirects=True,
-        )
+        test_email = "login-test@example.com"
+
+        # First register (patch email sending)
+        with patch("app.make_verification_token", return_value="test-token"):
+            with patch("app.send_verification_email"):
+                client.post(
+                    "/auth/signup",
+                    data={
+                        "email": test_email,
+                        "password": "TestPassword123!",
+                        "confirm_password": "TestPassword123!",
+                    },
+                    follow_redirects=True,
+                )
+
+        # Manually verify the user in the database
+        from db import set_user_verified
+
+        set_user_verified(test_email)
 
         # Then login
         response = client.post(
             "/auth/login",
-            data={"email": "login-test@example.com", "password": "TestPassword123!"},
+            data={"email": test_email, "password": "TestPassword123!"},
             follow_redirects=True,
         )
 
@@ -200,16 +242,18 @@ class TestAuthenticationIntegration:
 
     def test_duplicate_registration(self, client: Any) -> None:
         """Test duplicate email registration."""
-        # First registration
-        client.post(
-            "/auth/signup",
-            data={
-                "email": "duplicate@example.com",
-                "password": "TestPassword123!",
-                "confirm_password": "TestPassword123!",
-            },
-            follow_redirects=True,
-        )
+        # First registration (patch email sending)
+        with patch("app.make_verification_token", return_value="test-token"):
+            with patch("app.send_verification_email"):
+                client.post(
+                    "/auth/signup",
+                    data={
+                        "email": "duplicate@example.com",
+                        "password": "TestPassword123!",
+                        "confirm_password": "TestPassword123!",
+                    },
+                    follow_redirects=True,
+                )
 
         # Second registration with same email
         response = client.post(

@@ -62,11 +62,15 @@ def analyze() -> Any:
         if not mod_list:
             raise InvalidModListError("Mod list is required")
 
-        mod_list = validate_mod_list(mod_list)
+        is_valid, mod_list, error = validate_mod_list(mod_list)
+        if not is_valid:
+            raise InvalidModListError(error or "Invalid mod list")
 
         try:
-            game = validate_game_id(game)
-        except ValueError as e:
+            is_valid, game, error = validate_game_id(game)
+            if not is_valid:
+                raise InvalidGameIDError(error)
+        except (ValueError, TypeError) as e:
             raise InvalidGameIDError(str(e))
 
         # Start transparency tracking
@@ -153,8 +157,10 @@ def analyze() -> Any:
 def quick_analyze(game_id: str) -> Any:
     """Quick analyze for a specific game."""
     try:
-        game = validate_game_id(game_id)
-    except ValueError as e:
+        is_valid, game, error = validate_game_id(game_id)
+        if not is_valid:
+            raise InvalidGameIDError(error)
+    except (ValueError, TypeError) as e:
         raise InvalidGameIDError(str(e))
 
     return render_template("analysis.html", game=game)

@@ -28,9 +28,9 @@
 - [build.md](build.md) — Implementation path and build process
 
 ### **Design Decisions**
-- [ARCHITECTURE_DECISION.md](../ARCHITECTURE_DECISION.md) — Focused specialization over comprehensive database
+- [architecture_decision.md](architecture_decision.md) — Focused specialization over comprehensive database
 - [PHILOSOPHY.md](../PHILOSOPHY.md) — Core principles and philosophy
-- [SAMSON_MANIFESTO.md](../SAMSON_MANIFESTO.md) — Long-term vision
+- [samson_manifesto.md](samson_manifesto.md) — Long-term vision
 
 ---
 
@@ -39,8 +39,8 @@
 **OpenCLAW is your browser-based automated modding assistant — it learns from sessions, proposes improvements, and guides implementation.**
 
 ### **User Guides**
-- [OpenCLAW Browser Implementation](../OPENCLAW_BROWSER_IMPLEMENTATION.md) — How to use OpenCLAW
-- [OpenCLAW Browser Plan](../OPENCLAW_BROWSER_PLAN.md) — Future enhancement roadmap
+- [OpenCLAW Browser Implementation](openclaw_browser_implementation.md) — How to use OpenCLAW
+- [OpenCLAW Browser Plan](openclaw_browser_plan.md) — Future enhancement roadmap
 
 ### **Technical Documentation**
 - [OpenCLAW Engine](../openclaw_engine.py) — Core engine (source code)
@@ -67,7 +67,7 @@
 - Community resources
 
 ### **Data Specifications**
-- Structural export specification (fuel_spec.md)
+- Structural export specification (archived - see RESEARCH_SUMMARY.md)
 - Privacy-respecting data collection
 - Community-driven knowledge base
 
@@ -346,7 +346,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed guidelines.
 - In-memory fallback for development
 - Rate limiting (default: 100/minute)
 
-See [SCALING_GUIDE.md](../SCALING_GUIDE.md) for detailed scaling strategies.
+See [scaling_guide.md](scaling_guide.md) for detailed scaling strategies.
 
 ---
 
@@ -377,14 +377,16 @@ See [LICENSE](../LICENSE) for full terms.
 | Category | Links |
 |----------|-------|
 | **Getting Started** | [Quickstart](QUICKSTART_GUIDES.md) · [Glossary](MODDING_GLOSSARY.md) · [Common Conflicts](COMMON_CONFLICTS.md) |
-| **Architecture** | [Main Architecture](../ARCHITECTURE.md) · [Design Decisions](../ARCHITECTURE_DECISION.md) · [Models](models.md) |
-| **OpenCLAW** | [User Guide](../OPENCLAW_BROWSER_IMPLEMENTATION.md) · [Plan](../OPENCLAW_BROWSER_PLAN.md) · [Engine](../openclaw_engine.py) |
+| **Architecture** | [Main Architecture](../ARCHITECTURE.md) · [Design Decisions](architecture_decision.md) · [Models](models.md) |
+| **OpenCLAW** | [User Guide](openclaw_browser_implementation.md) · [Plan](openclaw_browser_plan.md) · [Engine](../openclaw_engine.py) |
 | **Development** | [Build Guide](build.md) · [Security](SECURITY.md) · [Contributing](../CONTRIBUTING.md) |
 | **Research** | [Research Summary](RESEARCH_SUMMARY.md) · [Philosophy](../PHILOSOPHY.md) |
+| **Ad Builder** | [Design](AD_BUILDER_DESIGN.md) · [Progress](AD_BUILDER_PROGRESS.md) · [README](AD_BUILDER_README.md) |
+| **Archive** | [Historical Docs](archive/README.md) |
 
 ---
 
-**Last Updated:** February 20, 2026  
+**Last Updated:** February 21, 2026  
 **Version:** 1.0.0 (Beta)
 
 **Built by modders, for modders.** 🎮

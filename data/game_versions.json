@@ -116,5 +116,38 @@
         "sfse": "SFSE Latest"
       }
     }
+  },
+  "skyrimae": {
+    "default": "1.6.1170",
+    "versions": {
+      "1.6.1170": {
+        "name": "1.6.1170 (Anniversary Edition)",
+        "skse": "SKSE 2.2.6",
+        "recommended": true,
+        "notes": "Same version as Skyrim SE post-Anniversary Update"
+      }
+    }
+  },
+  "newvegas": {
+    "default": "1.4.0.525",
+    "versions": {
+      "1.4.0.525": {
+        "name": "1.4.0.525 (Final)",
+        "nvse": "xNVSE 6.3.3+",
+        "recommended": true,
+        "notes": "Alias for falloutnv"
+      }
+    }
+  },
+  "fallout4vr": {
+    "default": "1.4.15",
+    "versions": {
+      "1.4.15": {
+        "name": "1.4.15 (Final)",
+        "f4se": "F4SE VR",
+        "recommended": true,
+        "notes": "VR version of Fallout 4"
+      }
+    }
   }
 }

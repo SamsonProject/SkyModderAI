@@ -3,6 +3,14 @@
  * Obsidian-style internal linking with hover previews
  */
 
+// Simple logging utility (replaces console.log in production)
+const Logger = window.Logger || (window.Logger = {
+    debug: (...args) => { if (window.location.hostname === 'localhost') window.Logger.debug(...args); },
+    info: (...args) => { if (window.location.hostname === 'localhost') window.Logger.info(...args); },
+    warn: (...args) => { if (window.location.hostname === 'localhost') window.Logger.warn(...args); },
+    error: (...args) => { window.Logger.error(...args); }
+});
+
 (function() {
     'use strict';
 
@@ -124,7 +132,7 @@
 
             currentPreview = popover;
         } catch (error) {
-            console.warn('Link preview failed:', error);
+            Logger.warn('Link preview failed:', error);
         }
     }
 
@@ -172,7 +180,7 @@
             if (!response.ok) throw new Error('Failed to fetch');
             return await response.json();
         } catch (error) {
-            console.warn('Nexus preview fetch failed:', error);
+            Logger.warn('Nexus preview fetch failed:', error);
             return {
                 type: 'nexus',
                 loading: false,

@@ -101,8 +101,10 @@ def propose_plan() -> Any:
             raise ValidationError("Objective is required")
 
         try:
-            game = validate_game_id(game)
-        except ValueError as e:
+            is_valid, game, error = validate_game_id(game)
+            if not is_valid:
+                raise InvalidGameIDError(error)
+        except (ValueError, TypeError) as e:
             raise InvalidGameIDError(str(e))
 
         # Check permissions

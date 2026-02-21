@@ -4,23 +4,102 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Mobile-First Responsive Breakpoints
+   Mobile Navigation - Hamburger Menu
    -------------------------------------------------------------------------- */
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    z-index: 1001;
+}
 
-/* Large phones and up */
-@media (max-width: 768px) {
-    /* Navigation */
-    .main-nav .nav-content {
-        padding: 0.75rem 1rem;
+.nav-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+/* Mobile Navigation Styles */
+@media (max-width: 1024px) {
+    .nav-toggle {
+        display: flex;
     }
 
     .nav-links {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--bg-card-solid);
+        flex-direction: column;
+        padding: 2rem;
         gap: 0.5rem;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        overflow-y: auto;
+        z-index: 1000;
+    }
+
+    .nav-links.active {
+        transform: translateX(0);
     }
 
     .nav-link {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.9rem;
+        padding: 1rem 1.5rem;
+        font-size: 1.1rem;
+        border-radius: var(--radius-md);
+        width: 100%;
+        text-align: left;
+    }
+
+    .nav-dropdown {
+        width: 100%;
+    }
+
+    .nav-dropdown-toggle {
+        width: 100%;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+    }
+
+    .nav-dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        margin-top: 0.5rem;
+        box-shadow: none;
+        border: 1px solid var(--border);
+        display: none;
+    }
+
+    .nav-dropdown.active .nav-dropdown-menu {
+        display: block;
+    }
+
+    .nav-dropdown-item {
+        padding: 0.875rem 1.25rem;
+        font-size: 1rem;
+    }
+
+    /* Hamburger animation when active */
+    .nav-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(6px, 6px);
+    }
+
+    .nav-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .nav-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(6px, -6px);
     }
 
     /* Main container */
@@ -28,6 +107,14 @@
         padding-left: 1rem;
         padding-right: 1rem;
     }
+}
+
+/* --------------------------------------------------------------------------
+   Mobile-First Responsive Breakpoints
+   -------------------------------------------------------------------------- */
+
+/* Large phones and up */
+@media (max-width: 768px) {
 
     /* Cards and panels */
     .card, .panel, .analysis-panel {
