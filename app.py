@@ -2137,6 +2137,12 @@ def vision():
     return render_template("vision.html")
 
 
+@app.route("/samson")
+def samson_manifesto():
+    """Samson Manifesto — The full vision."""
+    return render_template("vision.html")  # Same template, can customize later
+
+
 @app.route("/terms")
 def terms():
     """Public terms of service page."""
