@@ -8,13 +8,14 @@ from datetime import datetime
 
 DB_PATH = "instance/app.db"
 
+
 def fix_and_create_tables():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    
+
     print("Creating business tables (SQLite-compatible)...")
-    
+
     # Businesses table
     c.execute("""
         CREATE TABLE IF NOT EXISTS businesses (
@@ -41,7 +42,7 @@ def fix_and_create_tables():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
+
     # Business trust scores (removed AUTOINCREMENT from non-PK columns)
     c.execute("""
         CREATE TABLE IF NOT EXISTS business_trust_scores (
@@ -64,7 +65,7 @@ def fix_and_create_tables():
             FOREIGN KEY (business_id) REFERENCES businesses(id)
         )
     """)
-    
+
     # Business votes
     c.execute("""
         CREATE TABLE IF NOT EXISTS business_votes (
@@ -78,7 +79,7 @@ def fix_and_create_tables():
             UNIQUE(business_id, voter_user_id)
         )
     """)
-    
+
     # Business flags
     c.execute("""
         CREATE TABLE IF NOT EXISTS business_flags (
@@ -94,7 +95,7 @@ def fix_and_create_tables():
             FOREIGN KEY (business_id) REFERENCES businesses(id)
         )
     """)
-    
+
     # Business connections
     c.execute("""
         CREATE TABLE IF NOT EXISTS business_connections (
@@ -110,7 +111,7 @@ def fix_and_create_tables():
             UNIQUE(requester_id, target_id)
         )
     """)
-    
+
     # Hub resources
     c.execute("""
         CREATE TABLE IF NOT EXISTS hub_resources (
@@ -135,48 +136,82 @@ def fix_and_create_tables():
             FOREIGN KEY (contributed_by_business_id) REFERENCES businesses(id)
         )
     """)
-    
+
     # Create indexes
     c.execute("CREATE INDEX IF NOT EXISTS idx_businesses_status ON businesses(status)")
     c.execute("CREATE INDEX IF NOT EXISTS idx_businesses_category ON businesses(primary_category)")
-    c.execute("CREATE INDEX IF NOT EXISTS idx_business_votes_business ON business_votes(business_id)")
-    c.execute("CREATE INDEX IF NOT EXISTS idx_business_flags_business ON business_flags(business_id)")
-    
+    c.execute(
+        "CREATE INDEX IF NOT EXISTS idx_business_votes_business ON business_votes(business_id)"
+    )
+    c.execute(
+        "CREATE INDEX IF NOT EXISTS idx_business_flags_business ON business_flags(business_id)"
+    )
+
     conn.commit()
-    
+
     # Verify tables were created
-    tables = c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'business%'").fetchall()
+    tables = c.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'business%'"
+    ).fetchall()
     print(f"\n✅ Business tables created: {[t[0] for t in tables]}")
-    
+
     # Seed sample businesses if none exist
     existing = c.execute("SELECT COUNT(*) FROM businesses").fetchone()[0]
     if existing == 0:
         print("\nSeeding sample businesses...")
         now = datetime.now().isoformat()
-        
+
         businesses = [
-            ('54313d7a-b4ab-49f7-bc1f-bd389c1fe40f', 'Nexus Mods', 'nexus-mods', 'The largest modding community', 'https://nexusmods.com', 'modding_tools'),
-            ('ec8c09dc-16bb-4fd0-be1f-4155f59561ec', 'LOOT', 'loot', 'Load Order Optimisation Tool', 'https://loot.github.io', 'modding_tools'),
-            ('929385c2-2454-4900-b5aa-7c38b4a3660f', 'Wabbajack', 'wabbajack', 'Automated modlist installer', 'https://wabbajack.org', 'modding_tools'),
+            (
+                "54313d7a-b4ab-49f7-bc1f-bd389c1fe40f",
+                "Nexus Mods",
+                "nexus-mods",
+                "The largest modding community",
+                "https://nexusmods.com",
+                "modding_tools",
+            ),
+            (
+                "ec8c09dc-16bb-4fd0-be1f-4155f59561ec",
+                "LOOT",
+                "loot",
+                "Load Order Optimisation Tool",
+                "https://loot.github.io",
+                "modding_tools",
+            ),
+            (
+                "929385c2-2454-4900-b5aa-7c38b4a3660f",
+                "Wabbajack",
+                "wabbajack",
+                "Automated modlist installer",
+                "https://wabbajack.org",
+                "modding_tools",
+            ),
         ]
-        
+
         for biz_id, name, slug, tagline, website, category in businesses:
-            c.execute("""
+            c.execute(
+                """
                 INSERT OR IGNORE INTO businesses (id, name, slug, tagline, website, primary_category, status, verified, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, 'active', 1, ?)
-            """, (biz_id, name, slug, tagline, website, category, now))
-            
+            """,
+                (biz_id, name, slug, tagline, website, category, now),
+            )
+
             # Create trust score for each
-            c.execute("""
+            c.execute(
+                """
                 INSERT OR IGNORE INTO business_trust_scores (business_id, trust_score, trust_tier, total_votes)
                 VALUES (?, 85.0, 'trusted', 100)
-            """, (biz_id,))
-        
+            """,
+                (biz_id,),
+            )
+
         conn.commit()
         print(f"✅ Seeded {len(businesses)} businesses")
-    
+
     conn.close()
     print("\n✅ Business tables migration complete!")
+
 
 if __name__ == "__main__":
     fix_and_create_tables()

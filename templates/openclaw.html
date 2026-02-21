@@ -1,0 +1,560 @@
+{% extends "base.html" %}
+
+{% block title %}OpenCLAW — Automated Modding Assistant{% endblock %}
+
+{% block content %}
+<div class="openclaw-dashboard" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+    
+    <!-- Header -->
+    <div class="openclaw-header" style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(135deg, #3b82f6, #9333ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            🐾 OpenCLAW
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1.125rem; line-height: 1.6;">
+            Your automated modding assistant. OpenCLAW learns from your sessions, proposes improvements, and guides implementation — all safely sandboxed.
+        </p>
+    </div>
+
+    <!-- OpenCLAW Warning Banner -->
+    <div class="openclaw-warning-banner" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.05)); border: 1px solid rgba(245, 158, 11, 0.3); border-left: 4px solid #f59e0b; border-radius: 8px; padding: 1.25rem; margin-bottom: 2rem;">
+        <div style="display: flex; gap: 1rem; align-items: start;">
+            <div style="font-size: 1.5rem; flex-shrink: 0;">⚠️</div>
+            <div style="flex: 1;">
+                <h3 style="font-size: 1rem; font-weight: 600; color: #f59e0b; margin-bottom: 0.5rem;">This Is a Powerful Tool</h3>
+                <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0.75rem;">
+                    OpenCLAW can make real changes to your mod setup. While it operates in a sandbox for safety, you should understand what you're granting permission for. This is not a toy — treat it with the respect a tool of this power deserves.
+                </p>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.8125rem; color: var(--text-muted);">
+                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">🔒 <strong>Read each permission carefully</strong></span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">🧠 <strong>Understand the risks before granting</strong></span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">✅ <strong>Only grant what you explicitly trust</strong></span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">🛑 <strong>You can revoke permissions at any time</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="openclaw-status-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 0.75rem 1rem; background: var(--bg-tertiary); border-radius: 8px; border: 1px solid var(--border);">
+        <div class="status-indicator" style="display: flex; align-items: center; gap: 0.5rem;">
+            <span class="status-badge" id="openclaw-status" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; border-radius: 9999px; color: #22c55e; font-size: 0.875rem; font-weight: 600;">
+                <span class="status-dot" style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
+                <span id="status-text">Ready</span>
+            </span>
+        </div>
+        <a href="/vision" class="vision-link" style="color: var(--text-secondary); font-size: 0.875rem; text-decoration: underline; transition: color 0.2s;">Learn about the vision →</a>
+    </div>
+
+    <!-- Permission Grant Section -->
+    <section class="permissions" style="background: var(--card-bg); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.5rem;">Grant Permissions</h2>
+            <button type="button" id="save-permissions-btn" class="btn btn-primary" style="padding: 0.5rem 1.5rem; font-size: 0.875rem;">Save Changes</button>
+        </div>
+        <p class="hint" style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            OpenCLAW needs your permission to help. Each scope is granular, revocable, and privacy-respecting.
+        </p>
+        
+        <div class="permission-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem;">
+            {% for scope in permissions %}
+            <label class="permission-card {{ 'granted' if scope.granted else '' }}" 
+                   style="display: block; background: var(--bg-tertiary); border: 2px solid {{ '#22c55e' if scope.granted else '#334155' }}; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.2s;">
+                <input type="checkbox" 
+                       name="permissions" 
+                       value="{{ scope.scope }}"
+                       {{ 'checked' if scope.granted else '' }}
+                       data-scope="{{ scope.scope }}"
+                       style="margin-right: 0.75rem;">
+                <strong style="display: block; margin-bottom: 0.5rem; color: var(--text-primary);">{{ scope.scope | replace('_', ' ') | title }}</strong>
+                <span style="color: var(--text-secondary); font-size: 0.875rem; line-height: 1.5;">
+                    {{ permission_descriptions.get(scope.scope, '') }}
+                </span>
+            </label>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Plan Proposal Section -->
+    <section class="plan-proposal" style="background: var(--card-bg); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">What Should OpenCLAW Help With?</h2>
+        
+        <form id="openclaw-plan-form" style="display: grid; gap: 1.5rem;">
+            <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <div class="form-group">
+                    <label for="objective" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">Your Goal</label>
+                    <select id="objective" name="objective" required 
+                            style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);">
+                        <option value="improve_stability">Fix crashes and stutters</option>
+                        <option value="improve_performance">Better FPS</option>
+                        <option value="resolve_conflicts">Resolve mod conflicts</option>
+                        <option value="optimize_load_order">Optimize load order</option>
+                        <option value="suggest_mods">Suggest compatible mods</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="playstyle" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">Playstyle</label>
+                    <select id="playstyle" name="playstyle"
+                            style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);">
+                        <option value="balanced">Balanced (visuals + performance)</option>
+                        <option value="performance">Performance-focused</option>
+                        <option value="visuals">Visual quality-focused</option>
+                        <option value="stability">Maximum stability</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="game" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">Game</label>
+                    <select id="game" name="game"
+                            style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);">
+                        <option value="skyrimse">Skyrim Special Edition</option>
+                        <option value="skyrim">Skyrim Legendary</option>
+                        <option value="skyrimvr">Skyrim VR</option>
+                        <option value="fallout4">Fallout 4</option>
+                        <option value="oblivion">Oblivion</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem; align-self: start;">
+                🐾 Propose Plan
+            </button>
+        </form>
+    </section>
+
+    <!-- Plan Visualization -->
+    <section class="plan-view" id="plan-view" style="display: none; background: var(--card-bg); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.5rem;">Proposed Plan</h2>
+            <span class="plan-id" id="plan-id" style="color: var(--text-secondary); font-size: 0.875rem; font-family: monospace;"></span>
+        </div>
+        <div id="plan-actions" style="margin-bottom: 1.5rem;"></div>
+        
+        <div class="plan-actions" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button class="btn btn-success" onclick="executePlan()" style="padding: 0.75rem 2rem;">
+                ✓ Execute Plan
+            </button>
+            <button class="btn btn-secondary" onclick="revisePlan()" style="padding: 0.75rem 2rem;">
+                ✎ Revise
+            </button>
+            <button class="btn btn-outline" onclick="downloadPlan()" style="padding: 0.75rem 2rem;">
+                📥 Download Plan
+            </button>
+        </div>
+    </section>
+
+    <!-- Execution Progress -->
+    <section class="execution-progress" id="execution-progress" style="display: none; background: var(--card-bg); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">OpenCLAW at Work</h2>
+        <div class="progress-bar" style="width: 100%; height: 8px; background: var(--bg-tertiary); border-radius: 4px; margin-bottom: 1rem; overflow: hidden;">
+            <div class="progress-fill" id="progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #22c55e); transition: width 0.3s;"></div>
+        </div>
+        <div id="execution-log" style="background: var(--bg-tertiary); border-radius: 6px; padding: 1rem; max-height: 400px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;"></div>
+    </section>
+
+    <!-- Feedback Form -->
+    <section class="feedback-form" id="feedback-form" style="display: none; background: var(--card-bg); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">How Did It Go?</h2>
+        <p class="hint" style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Your feedback helps OpenCLAW learn and improve future recommendations.
+        </p>
+        
+        <form id="openclaw-feedback-form" style="display: grid; gap: 1.5rem;">
+            <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div class="form-group">
+                    <label for="fps_avg" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">Average FPS</label>
+                    <input type="number" id="fps_avg" name="fps_avg" placeholder="e.g., 45"
+                           style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);">
+                </div>
+                <div class="form-group">
+                    <label for="crashes" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">Crashes</label>
+                    <input type="number" id="crashes" name="crashes" value="0"
+                           style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);">
+                </div>
+                <div class="form-group">
+                    <label for="stutter_events" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">Stutter Events</label>
+                    <input type="number" id="stutter_events" name="stutter_events" value="0"
+                           style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="enjoyment_score" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">
+                    Enjoyment Score: <span id="enjoyment-value">5</span>/10
+                </label>
+                <input type="range" id="enjoyment_score" name="enjoyment_score" 
+                       min="1" max="10" value="5"
+                       style="width: 100%;"
+                       oninput="document.getElementById('enjoyment-value').textContent = this.value">
+                <div class="range-labels" style="display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.875rem;">
+                    <span>😞 Rough</span>
+                    <span>😐 Okay</span>
+                    <span>😄 Amazing</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">Notes (Optional)</label>
+                <textarea id="notes" name="notes" rows="3" placeholder="What worked well? What broke? Any issues?"
+                          style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-family: inherit;"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem; align-self: start;">
+                Submit Feedback
+            </button>
+        </form>
+    </section>
+
+    <!-- Suggestions -->
+    <section class="suggestions" id="suggestions" style="display: none; background: var(--card-bg); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">💡 OpenCLAW Suggestions</h2>
+        <div id="suggestions-list" style="display: grid; gap: 1rem;"></div>
+    </section>
+
+</div>
+
+<style>
+/* OpenCLAW Warning Banner */
+.openclaw-warning-banner {
+    transition: all 0.3s ease;
+}
+
+.openclaw-warning-banner:hover {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.08));
+    border-color: rgba(245, 158, 11, 0.5);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+}
+
+.permission-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.permission-card.granted {
+    background: rgba(34, 197, 94, 0.1);
+}
+
+#execution-log .log-entry {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#execution-log .log-entry:last-child {
+    border-bottom: none;
+}
+
+#execution-log .log-entry.success {
+    color: #22c55e;
+}
+
+#execution-log .log-entry.error {
+    color: #ef4444;
+}
+
+#execution-log .log-entry.info {
+    color: var(--text-secondary);
+}
+
+.suggestion-card {
+    background: var(--bg-tertiary);
+    border-left: 4px solid #3b82f6;
+    padding: 1rem;
+    border-radius: 6px;
+}
+
+.plan-action {
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.action-phase {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.action-kind {
+    font-weight: 600;
+    margin: 0.25rem 0;
+}
+
+.action-desc {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.action-permissions {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #f59e0b;
+}
+</style>
+
+<script>
+/**
+ * OpenCLAW Browser Client
+ */
+class OpenClawClient {
+    constructor() {
+        this.baseUrl = '/api/v1/openclaw';
+        this.currentPlan = null;
+    }
+
+    async grantPermission(scope, granted) {
+        const res = await fetch(`${this.baseUrl}/permissions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scope, granted })
+        });
+        
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.message || 'Permission update failed');
+        }
+        
+        return await res.json();
+    }
+
+    async saveAllPermissions(permissionStates) {
+        const promises = Object.entries(permissionStates).map(([scope, granted]) =>
+            this.grantPermission(scope, granted)
+        );
+        await Promise.all(promises);
+    }
+
+    async proposePlan(objective, playstyle, game = 'skyrimse') {
+        const res = await fetch(`${this.baseUrl}/plan/propose`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ game, objective, playstyle })
+        });
+        
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.message || 'Plan proposal failed');
+        }
+        
+        const data = await res.json();
+        this.currentPlan = data.plan;
+        return data;
+    }
+
+    async executePlan(planId) {
+        const res = await fetch(`${this.baseUrl}/plan/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plan_id: planId })
+        });
+        
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.message || 'Plan execution failed');
+        }
+        
+        return await res.json();
+    }
+
+    async submitFeedback(feedback) {
+        const res = await fetch(`${this.baseUrl}/loop/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(feedback)
+        });
+        
+        if (!res.ok) throw new Error('Feedback submission failed');
+        return await res.json();
+    }
+}
+
+// Initialize client
+const client = new OpenClawClient();
+
+// Track permission states
+const permissionStates = {};
+document.querySelectorAll('input[name="permissions"]').forEach(checkbox => {
+    permissionStates[checkbox.dataset.scope] = checkbox.checked;
+});
+
+// Permission toggles
+document.querySelectorAll('input[name="permissions"]').forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+        const scope = e.target.dataset.scope;
+        const granted = e.target.checked;
+        permissionStates[scope] = granted;
+        e.target.closest('.permission-card').classList.toggle('granted', granted);
+    });
+});
+
+// Save permissions button
+document.getElementById('save-permissions-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('save-permissions-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    
+    try {
+        await client.saveAllPermissions(permissionStates);
+        btn.textContent = '✓ Saved';
+        setTimeout(() => {
+            btn.textContent = 'Save Changes';
+            btn.disabled = false;
+        }, 2000);
+    } catch (error) {
+        alert(`Failed to save permissions: ${error.message}`);
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+    }
+});
+
+// Plan proposal form
+document.getElementById('openclaw-plan-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const objective = document.getElementById('objective').value;
+    const playstyle = document.getElementById('playstyle').value;
+    const game = document.getElementById('game').value;
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Proposing...';
+    
+    try {
+        const result = await client.proposePlan(objective, playstyle, game);
+        displayPlan(result.plan);
+    } catch (error) {
+        alert(`Plan proposal failed: ${error.message}`);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🐾 Propose Plan';
+    }
+});
+
+function displayPlan(plan) {
+    const planView = document.getElementById('plan-view');
+    const planActions = document.getElementById('plan-actions');
+    const planId = document.getElementById('plan-id');
+    
+    planId.textContent = `Plan ID: ${plan.plan_id || plan.id || 'N/A'}`;
+    
+    planActions.innerHTML = plan.actions.map(action => `
+        <div class="plan-action">
+            <div class="action-phase">${action.phase}</div>
+            <div class="action-kind">${action.kind}</div>
+            <div class="action-desc">${action.description}</div>
+            ${action.requires_permissions.length ? `
+                <div class="action-permissions">
+                    🔒 Requires: ${action.requires_permissions.join(', ')}
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+    
+    planView.style.display = 'block';
+    planView.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function executePlan() {
+    if (!client.currentPlan) return;
+    
+    const progressSection = document.getElementById('execution-progress');
+    const progressBar = document.getElementById('progress-fill');
+    const logDiv = document.getElementById('execution-log');
+    
+    progressSection.style.display = 'block';
+    progressBar.style.width = '10%';
+    logDiv.innerHTML = '<div class="log-entry info">Starting plan execution...</div>';
+    
+    const executeBtn = document.querySelector('.plan-actions .btn-success');
+    executeBtn.disabled = true;
+    executeBtn.textContent = 'Executing...';
+    
+    try {
+        const result = await client.executePlan(client.currentPlan.plan_id || client.currentPlan.id);
+        
+        progressBar.style.width = '100%';
+        logDiv.innerHTML += `
+            <div class="log-entry success">✓ Plan executed successfully</div>
+            <div class="log-entry info">Files created: ${result.result?.files_created || 0}</div>
+        `;
+        
+        // Show feedback form
+        document.getElementById('feedback-form').style.display = 'block';
+        document.getElementById('feedback-form').scrollIntoView({ behavior: 'smooth' });
+        
+    } catch (error) {
+        progressBar.style.width = '0%';
+        logDiv.innerHTML = `<div class="log-entry error">✗ Execution failed: ${error.message}</div>`;
+        executeBtn.disabled = false;
+        executeBtn.textContent = '✓ Execute Plan';
+    }
+}
+
+function revisePlan() {
+    document.getElementById('plan-view').style.display = 'none';
+    document.getElementById('openclaw-plan-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function downloadPlan() {
+    if (!client.currentPlan) return;
+    
+    const planData = JSON.stringify(client.currentPlan, null, 2);
+    const blob = new Blob([planData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `openclaw-plan-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Feedback form
+document.getElementById('openclaw-feedback-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const feedback = {
+        game: document.getElementById('game').value,
+        fps_avg: document.getElementById('fps_avg').value || null,
+        crashes: parseInt(document.getElementById('crashes').value) || 0,
+        stutter_events: parseInt(document.getElementById('stutter_events').value) || 0,
+        enjoyment_score: parseInt(document.getElementById('enjoyment_score').value) || 5,
+        notes: document.getElementById('notes').value || null
+    };
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    
+    try {
+        const result = await client.submitFeedback(feedback);
+        
+        // Show suggestions
+        if (result.suggestions && result.suggestions.length > 0) {
+            displaySuggestions(result.suggestions);
+        } else {
+            alert('Feedback submitted! OpenCLAW will learn from this session.');
+        }
+    } catch (error) {
+        alert(`Feedback failed: ${error.message}`);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Feedback';
+    }
+});
+
+function displaySuggestions(suggestions) {
+    const suggestionsSection = document.getElementById('suggestions');
+    const suggestionsList = document.getElementById('suggestions-list');
+    
+    suggestionsList.innerHTML = suggestions.map(s => `
+        <div class="suggestion-card">💡 ${s}</div>
+    `).join('');
+    
+    suggestionsSection.style.display = 'block';
+    suggestionsSection.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+{% endblock %}

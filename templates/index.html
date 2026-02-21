@@ -341,6 +341,9 @@
                 <a href="{{ url_for('auth', tab='login') }}" class="nav-link">Login</a>
                 <a href="{{ url_for('auth', tab='signup') }}" class="nav-link">Sign Up</a>
                 {% endif %}
+                <button type="button" id="tour-trigger" class="btn btn-sm btn-outline" style="margin-left: 0.5rem;" aria-label="Take a tour">
+                    🎯 Tour
+                </button>
             </nav>
         </header>
 
@@ -360,23 +363,19 @@
             <div class="hero-badges">
                 <span class="pro-badge">✨ AI-Powered</span>
                 <span class="pro-badge" style="background: linear-gradient(135deg, #10b981, #059669);">✓ 100% Free</span>
-                <span class="pro-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🔥 Community-Driven</span>
-                <span class="pro-badge" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">🛒 Ads only in Shopping tab</span>
+                <span class="pro-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🔥 Community</span>
+                <span class="pro-badge" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">🛒 Shopping</span>
             </div>
             <h2 class="hero-title">Your modding powerhouse</h2>
-            <p class="hero-subtitle">AI-powered conflict detection, intelligent load order optimization, and community-driven insights for Skyrim, Fallout, and Starfield. Built on LOOT data, enhanced with machine learning.</p>
+            <p class="hero-subtitle">AI-powered conflict detection, load order optimization, and community-driven insights for Skyrim, Fallout, and Starfield. Built on LOOT data, enhanced with machine learning.</p>
         </section>
 
-        <!-- Actually Free Banner -->
-        <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.1)); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; max-width: 900px; margin-left: auto; margin-right: auto;">
-            <h3 style="color: #22c55e; margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 600;">🎯 Actually Free. No Catch.</h3>
-            <p style="color: #94a3b8; line-height: 1.6; margin-bottom: 0.5rem;">
-                This tool is free. Forever. No paywalls. No premium tiers. No "upgrade to unlock."
-                We make money from optional advertising in the Shopping tab. That's it.
-            </p>
+        <!-- Simple Free Banner -->
+        <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; max-width: 900px; margin-left: auto; margin-right: auto;">
+            <h3 style="color: #22c55e; margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 600;">🎯 Free Tool. No Catch.</h3>
             <p style="color: #94a3b8; line-height: 1.6; margin-bottom: 0;">
-                If you like what we built, support our sponsors. If not, use the tool anyway.
-                No guilt. No nagging. No bullshit.
+                This tool is free. Optional advertising in the Shopping tab keeps the lights on.
+                Support sponsors if you want. Use the tool free either way.
             </p>
         </div>
 
@@ -390,6 +389,10 @@
                 </button>
                 <button type="button" class="main-tab active" data-tab="analyze" role="tab"
                     aria-selected="true">🔍 Analyze</button>
+                <button type="button" class="main-tab" data-tab="openclaw" role="tab" aria-selected="false"
+                    style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15)); border: 1px solid #3b82f6; font-weight: 600;">
+                    🐾 OpenCLAW
+                </button>
                 <button type="button" class="main-tab" data-tab="quickstart" role="tab" aria-selected="false">Quick
                     Start</button>
                 <button type="button" class="main-tab" data-tab="build-list" role="tab" aria-selected="false">Build a
@@ -705,6 +708,83 @@ Supports:
                                 autocomplete="off">
                             <button type="submit" id="chat-send-btn" class="primary-button">Send</button>
                         </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- OpenCLAW: Automated Modding Assistant -->
+            <section class="tab-panel openclaw-panel" id="panel-openclaw" role="tabpanel" aria-hidden="true">
+                <div class="openclaw-content">
+                    <!-- OpenCLAW Warning Banner -->
+                    <div class="openclaw-warning-banner" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.05)); border: 1px solid rgba(245, 158, 11, 0.3); border-left: 4px solid #f59e0b; border-radius: 8px; padding: 1.25rem; margin-bottom: 2rem;">
+                        <div style="display: flex; gap: 1rem; align-items: start;">
+                            <div style="font-size: 1.5rem; flex-shrink: 0;">⚠️</div>
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 1rem; font-weight: 600; color: #f59e0b; margin-bottom: 0.5rem;">OpenCLAW Is a Powerful Tool</h3>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0.75rem;">
+                                    This is not a toy. OpenCLAW can make real changes to your mod setup. It operates in a sandbox for safety, but you should understand what you're granting permission for.
+                                </p>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.8125rem; color: var(--text-muted);">
+                                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">🔒 <strong>Read permissions carefully</strong></span>
+                                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">🧠 <strong>Understand the risks</strong></span>
+                                    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">✅ <strong>Only grant what you trust</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="openclaw-header">
+                        <h2 class="openclaw-title">🐾 OpenCLAW</h2>
+                        <p class="openclaw-subtitle">Your automated modding assistant. OpenCLAW learns from your sessions, proposes improvements, and guides implementation — all safely sandboxed.</p>
+                    </div>
+                    
+                    <div class="openclaw-features">
+                        <div class="openclaw-feature">
+                            <div class="openclaw-feature-icon">🔍</div>
+                            <h3>Analyzes</h3>
+                            <p>Your current mod conflicts and performance</p>
+                        </div>
+                        <div class="openclaw-feature">
+                            <div class="openclaw-feature-icon">📚</div>
+                            <h3>Researches</h3>
+                            <p>Solutions from Nexus, Reddit, GitHub</p>
+                        </div>
+                        <div class="openclaw-feature">
+                            <div class="openclaw-feature-icon">📋</div>
+                            <h3>Proposes</h3>
+                            <p>A 5-phase improvement plan</p>
+                        </div>
+                        <div class="openclaw-feature">
+                            <div class="openclaw-feature-icon">✅</div>
+                            <h3>Executes</h3>
+                            <p>Changes in sandbox (with your permission)</p>
+                        </div>
+                        <div class="openclaw-feature">
+                            <div class="openclaw-feature-icon">🧠</div>
+                            <h3>Learns</h3>
+                            <p>From your feedback to improve</p>
+                        </div>
+                    </div>
+
+                    <div class="openclaw-cta">
+                        <a href="/api/v1/openclaw/" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
+                            Launch OpenCLAW Dashboard →
+                        </a>
+                        <p class="hint" style="margin-top: 1rem;">
+                            🔒 Permission-based access • Sandbox isolation • Safety-first design
+                        </p>
+                    </div>
+
+                    <div class="openclaw-safety">
+                        <h3>Safety Features</h3>
+                        <ul>
+                            <li>✅ Permission-based access (you control what it can do)</li>
+                            <li>✅ Sandbox isolation (can't modify system files)</li>
+                            <li>✅ Hard-coded denied operations (BIOS, kernel, drivers blocked)</li>
+                            <li>✅ File extension whitelist (only safe types allowed)</li>
+                            <li>✅ Path traversal protection (no escapes from sandbox)</li>
+                            <li>✅ Audit logging (all operations tracked)</li>
+                        </ul>
                     </div>
                 </div>
             </section>
@@ -1085,6 +1165,21 @@ Supports:
                 <h2>Ready to Start Modding?</h2>
                 <p>AI-powered conflict detection, load order optimization, and community insights. Free forever, built for modders by modders.</p>
                 <button type="button" class="btn" onclick="document.querySelector('[data-tab=analyze]').click()" style="background: #fff; color: #3b82f6; font-size: 1rem; padding: 0.875rem 2rem;">Start Analyzing →</button>
+            </div>
+
+            <!-- The Unreasonable Vision -->
+            <div class="vision-section" style="margin-top: 4rem; padding: 2rem; background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(147, 51, 234, 0.05)); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: #94a3b8;">
+                    <a href="/vision" style="color: inherit; text-decoration: none; border-bottom: 1px solid rgba(59, 130, 246, 0.3);">The Unreasonable Vision</a>
+                </h3>
+                <p style="color: #64748b; font-size: 0.875rem; line-height: 1.6; margin-bottom: 0.75rem;">
+                    This tool is Phase I of a larger vision: an economy built on robotics, AI, and unreasonable human drive. 
+                    Modders understand unreasonable drive — spending 100 hours on a texture overhaul nobody pays for, 
+                    building entire games inside other games. That same energy can change the world.
+                </p>
+                <p style="color: #64748b; font-size: 0.875rem; line-height: 1.6; margin-bottom: 0;">
+                    <em>"The reasonable man adapts himself to the world; the unreasonable one persists in trying to adapt the world to himself. Therefore all progress depends on the unreasonable man."</em> — George Bernard Shaw
+                </p>
             </div>
         </section>
 

@@ -35,19 +35,53 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", os.urandom(32).hex())
     BASE_URL = os.getenv("BASE_URL", "http://localhost:5000").rstrip("/")
 
-    # Database
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///instance/app.db")
+    # Database - PostgreSQL REQUIRED in production
+    DATABASE_URL = os.getenv("DATABASE_URL")
+
+    # Enforce PostgreSQL in production ONLY
+    # Development can use SQLite for local testing
+    if os.getenv("FLASK_ENV") == "production":
+        if not DATABASE_URL:
+            raise ValueError(
+                "DATABASE_URL must be set to PostgreSQL in production!\n"
+                "For local development, set FLASK_ENV=development or unset FLASK_ENV.\n"
+                "Example: FLASK_ENV=development python3 app.py"
+            )
+        if not (DATABASE_URL.startswith("postgresql://") or DATABASE_URL.startswith("postgres://")):
+            raise ValueError(
+                "PostgreSQL is required in production. SQLite is not supported.\n"
+                "For local development, set FLASK_ENV=development or unset FLASK_ENV."
+            )
+
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL or "sqlite:///instance/app.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # PostgreSQL connection pooling settings (applied when using PostgreSQL)
-    # These settings help manage concurrent connections in production
+    # PostgreSQL connection pooling settings - CRITICAL for scale
+    # Production: pool_size=20, max_overflow=40 for 100K users
+    # At 1M users: increase to pool_size=50, max_overflow=100
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_size": int(os.getenv("SQLALCHEMY_POOL_SIZE", "5")),
-        "max_overflow": int(os.getenv("SQLALCHEMY_MAX_OVERFLOW", "10")),
+        "pool_size": int(
+            os.getenv(
+                "SQLALCHEMY_POOL_SIZE", "20" if os.getenv("FLASK_ENV") == "production" else "5"
+            )
+        ),
+        "max_overflow": int(
+            os.getenv(
+                "SQLALCHEMY_MAX_OVERFLOW", "40" if os.getenv("FLASK_ENV") == "production" else "10"
+            )
+        ),
         "pool_timeout": int(os.getenv("SQLALCHEMY_POOL_TIMEOUT", "30")),
         "pool_recycle": int(os.getenv("SQLALCHEMY_POOL_RECYCLE", "300")),
         "pool_pre_ping": os.getenv("SQLALCHEMY_POOL_PRE_PING", "true").lower() == "true",
     }
+
+    # Redis - REQUIRED in production for caching and rate limiting
+    REDIS_URL = os.getenv("REDIS_URL")
+
+    # Enforce Redis in production ONLY
+    # Development can use in-memory fallback
+    if os.getenv("FLASK_ENV") == "production" and not REDIS_URL:
+        raise ValueError("REDIS_URL must be set in production for caching and rate limiting!")
 
     # Email (SendGrid)
     MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.sendgrid.net")
@@ -100,20 +134,13 @@ class Config:
     SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "True").lower() == "true"
     SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
 
-    # Feature Flags (SKYMODDERAI_ prefix is current, MODCHECK_ prefix supported for backward compatibility)
-    SKYMODDERAI_OPENCLAW_ENABLED = (
-        os.getenv("SKYMODDERAI_OPENCLAW_ENABLED", os.getenv("MODCHECK_OPENCLAW_ENABLED", "0"))
-        == "1"
-    )
+    # Feature Flags (SKYMODDERAI_ prefix only)
+    SKYMODDERAI_OPENCLAW_ENABLED = os.getenv("SKYMODDERAI_OPENCLAW_ENABLED", "0") == "1"
     SKYMODDERAI_DEV_PRO = (
-        os.getenv("SKYMODDERAI_DEV_PRO", os.getenv("MODCHECK_DEV_PRO", "0")) == "1"
-        if FLASK_ENV != "production"
-        else False
+        os.getenv("SKYMODDERAI_DEV_PRO", "0") == "1" if FLASK_ENV != "production" else False
     )
     SKYMODDERAI_TEST_PRO_EMAIL = (
-        os.getenv("SKYMODDERAI_TEST_PRO_EMAIL", os.getenv("MODCHECK_TEST_PRO_EMAIL"))
-        if FLASK_ENV != "production"
-        else None
+        os.getenv("SKYMODDERAI_TEST_PRO_EMAIL") if FLASK_ENV != "production" else None
     )
 
     # OpenAI

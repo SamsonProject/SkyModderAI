@@ -528,9 +528,6 @@
         initKeyboardFeedback();
         initParticles();
         initRecommendationsAnimation();
-
-        // Log initialization
-        console.log('✨ SkyModderAI Modern UI initialized');
     }
 
     // Start initialization

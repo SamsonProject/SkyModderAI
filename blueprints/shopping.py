@@ -20,11 +20,14 @@ shopping_bp = Blueprint("shopping", __name__, url_prefix="/shopping")
 
 @shopping_bp.route("/")
 def shopping_home():
-    """Shopping/Advertising home page with featured ads."""
+    """Shopping/Advertising home page with all ads."""
     shopping_service = get_shopping_service()
 
-    # Get featured ads
+    # Get featured ads (top 6)
     featured_ads = shopping_service.get_featured_ads(limit=6)
+
+    # Get all active ads for directory below
+    all_ads = shopping_service.get_featured_ads(limit=20)
 
     # Pricing info
     pricing = {
@@ -38,6 +41,7 @@ def shopping_home():
     return render_template(
         "shopping/home.html",
         featured_ads=featured_ads,
+        all_ads=all_ads,
         pricing=pricing,
     )
 

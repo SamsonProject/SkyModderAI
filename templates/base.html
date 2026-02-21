@@ -64,6 +64,7 @@
 
                 <div class="nav-links" role="menubar" aria-label="Main menu">
                     <a href="{{ url_for('index') }}" class="nav-link" role="menuitem">Analysis</a>
+                    <a href="{{ url_for('openclaw.openclaw_index') }}" class="nav-link" role="menuitem">OpenCLAW</a>
                     <a href="{{ url_for('community.community_index') }}" class="nav-link" role="menuitem">Community</a>
                     <a href="{{ url_for('shopping.shopping_home') }}" class="nav-link" role="menuitem">Shopping</a>
                     <a href="{{ url_for('business.hub_landing') }}" class="nav-link" role="menuitem">Business</a>
@@ -74,6 +75,9 @@
                     {% else %}
                         <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary" role="menuitem">Sign In</a>
                     {% endif %}
+                    <button type="button" id="tour-trigger" class="btn btn-sm btn-outline" style="margin-left: 0.5rem;" aria-label="Take a tour">
+                        🎯 Tour
+                    </button>
                 </div>
 
                 <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="nav-menu">
@@ -102,6 +106,7 @@
                     <h4>Links</h4>
                     <ul>
                         <li><a href="{{ url_for('index') }}">Analysis</a></li>
+                        <li><a href="{{ url_for('openclaw.openclaw_index') }}">OpenCLAW</a></li>
                         <li><a href="{{ url_for('community.community_index') }}">Community</a></li>
                         <li><a href="{{ url_for('shopping.shopping_home') }}">Shopping</a></li>
                         <li><a href="{{ url_for('business.hub_landing') }}">Business</a></li>
@@ -159,7 +164,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js" integrity="sha512-g2F2jvXJZqR5zVNqRqNqRqRqRqRqRqRqRqRqRqRqRqRqRqRq" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js" integrity="sha512-g2F2jvXJZqR5zVNqRqNqRqRqRqRqRqRqRqRqRqRqRqRqRq" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="{{ url_for('static', filename='js/toast-utils.js') }}"></script>
     <script src="{{ url_for('static', filename='js/storage-utils.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/samson-chat.js') }}" defer></script>

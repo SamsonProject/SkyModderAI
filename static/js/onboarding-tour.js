@@ -244,6 +244,7 @@
     // Show thank you message
     function showThankYou() {
         const toast = document.createElement('div');
+        toast.id = 'tour-toast';
         toast.style.cssText = `
             position: fixed;
             bottom: 20px;
@@ -274,6 +275,14 @@
         }, 3000);
     }
 
+    // Reset tour (for testing or restart)
+    function resetTour() {
+        localStorage.removeItem('skymodderai_tour_completed');
+    }
+
+    // Expose reset function globally for console access
+    window.resetSkyModderAITour = resetTour;
+
     // Start tour
     function startTour() {
         currentStep = 0;
@@ -283,43 +292,13 @@
         setTimeout(positionTourBox, 100);
     }
 
-    // Show tour trigger button
-    function showTourTrigger() {
-        const trigger = document.createElement('button');
-        trigger.id = 'tour-trigger';
-        trigger.innerHTML = '🎯 Take Tour';
-        trigger.style.cssText = `
-            position: fixed;
-            bottom: 100px;
-            left: 20px;
-            padding: 0.75rem 1.25rem;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: white;
-            border: none;
-            border-radius: 9999px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.875rem;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-            z-index: 9999;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        `;
-        trigger.addEventListener('mouseenter', () => {
-            trigger.style.transform = 'scale(1.05)';
-            trigger.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
-        });
-        trigger.addEventListener('mouseleave', () => {
-            trigger.style.transform = 'scale(1)';
-            trigger.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
-        });
-        trigger.addEventListener('click', startTour);
-        document.body.appendChild(trigger);
-    }
-
     // Initialize
     function init() {
-        // Always show tour trigger for easy access
-        showTourTrigger();
+        // Connect to header tour button
+        const headerTrigger = document.getElementById('tour-trigger');
+        if (headerTrigger) {
+            headerTrigger.addEventListener('click', startTour);
+        }
 
         // Auto-start for first-time users after a short delay
         if (!hasCompletedTour()) {

@@ -1299,6 +1299,113 @@ a:hover {
     animation: fadeIn 0.3s ease;
 }
 
+/* --------------------------------------------------------------------------
+   OpenCLAW Panel
+   -------------------------------------------------------------------------- */
+.openclaw-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.openclaw-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.openclaw-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6, #9333ea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+}
+
+.openclaw-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.openclaw-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.openclaw-feature {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.openclaw-feature:hover {
+    transform: translateY(-4px);
+    border-color: #3b82f6;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+}
+
+.openclaw-feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.openclaw-feature h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.openclaw-feature p {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.openclaw-cta {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.openclaw-safety {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+}
+
+.openclaw-safety h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.openclaw-safety ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.openclaw-safety li {
+    padding: 0.5rem 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+.openclaw-safety li::before {
+    content: "✓ ";
+    color: #22c55e;
+    font-weight: 700;
+}
+
 /* Hover glow for cards */
 .input-panel,
 .results-panel,

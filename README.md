@@ -1,206 +1,209 @@
-# 🛡️ SkyModderAI
+# SkyModderAI
 
-**The smart mod compatibility checker for Bethesda games.** Built by modders, for modders.
+**AI-powered mod compatibility checker for Bethesda games.**
 
-[![CI](https://github.com/SamsonProject/SkyModderAI/actions/workflows/ci.yml/badge.svg)](https://github.com/SamsonProject/SkyModderAI/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Discord](https://img.shields.io/badge/Discord-Join-7289da?logo=discord)](https://discord.gg/YOUR_INVITE)
-[![Nexus Mods](https://img.shields.io/badge/Nexus%20Mods-Follow-black?logo=nexus-mods)](https://www.nexusmods.com/users/YOUR_ID)
-
-![Skyrim Banner](docs/images/banner-skyrim.jpg)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ---
 
-## ⚡ Quick Start
-
-**Got a mod list ready? Let's find those conflicts in under 2 minutes:**
+## 🚀 Quick Start
 
 ```bash
-# Clone and run
+# Clone the repository
 git clone https://github.com/SamsonProject/SkyModderAI.git
 cd SkyModderAI
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run the application
 python app.py
 ```
 
-Then open **http://localhost:5000** and paste your mod list.
-
-**No installation needed** — Also available as a [web app](https://skymodderai.onrender.com).
+Then open **http://localhost:5000**
 
 ---
 
-## 🎮 What It Does
+## ✨ Features
 
-SkyModderAI analyzes your load order and tells you:
+### **Core Features**
 
-| Feature | What You Get |
-|---------|--------------|
-| **Conflict Detection** | Finds incompatible mods before they crash your game |
-| **LOOT Integration** | Uses the same load order rules as LOOT, with extra smarts |
-| **Smart Suggestions** | Recommends patches and compatibility mods from Nexus |
-| **Export Options** | Save your analysis as PDF, HTML, or Markdown |
-| **Core Tool: 100% Free** | No accounts, no paywalls, no ads in the analyzer |
+| Feature | Description | Why It Matters |
+|---------|-------------|----------------|
+| **Conflict Detection** | Finds incompatible mods, missing requirements, load order issues | Prevents CTDs and broken saves |
+| **Load Order Validator** | Suggests correct load order based on LOOT rules + community data | Based on LOOT rules + community data |
+| **Requirements Checker** | Validates mod dependencies | Catches missing masters before release |
+| **Compatibility Database** | Crowdsourced mod compatibility from real users | Real-world data from actual users |
+| **LOOT Metadata Generator** | Generates YAML for masterlist | Saves mod authors hours of work |
 
-### Example Output
+### **Advanced Features**
 
-```
-⚠️ 3 Conflicts Found
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **🐾 OpenCLAW** | Automated modding assistant — learns from sessions, proposes improvements | ✅ Browser-based |
+| **List Builder** | Build mod lists from preferences (performance, stability, visuals) | ✅ Complete |
+| **Community Builds** | Share and discover community load orders | ✅ Complete |
+| **Shared Load Orders** | Save and share your mod lists with the community | ✅ Complete |
+| **Feedback System** | Rate conflicts, submit bugs, suggest improvements | ✅ Complete |
+| **API** | RESTful API for developers | ✅ `/api/v1/` |
 
-1. SMIM vs. SkyUI
-   → Solution: Install "SMIM SkyUI Patch" (Nexus ID: 12345)
+### **Coming Soon**
 
-2. Ordinator vs. Apocalypse Spells
-   → Solution: Load Ordinator AFTER Apocalypse (LOOT rule #4521)
-
-3. ENB vs. Realistic Lighting
-   → Warning: Known incompatibility. Consider "ENB Light Patch"
-```
-
----
-
-## 💰 How We Make Money (Honest Talk)
-
-**The core tool is free. Always will be.** No ads in your analyzer. No premium tiers.
-
-We make money two ways:
-
-### 1. 🍺 Buy Me Mead (Direct Donations)
-See a mead bottle somewhere on the site? Click it if you're feeling generous. That's it. No guilt trips, no fake urgency. Just a modder saying "thanks."
-
-### 2. 📦 Business/Shopping Tab (Democratic Ads)
-Want to promote your modding business, commission service, or curated list?
-- **$0 upfront** — List your service for free
-- **Pay per 1000 vetted clicks** — Only charged when real modders engage
-- **Community-voted sorting** — Good ads rise, spam sinks
-- **Transparent pricing** — See exactly what you're paying for
-
-**Why this works:** We only make money when users find value in the ads. So we're incentivized to show relevant stuff, not spam.
-
-**No corporate bullshit.** No data selling. No tracking your mod list.
+- **Mod Manager Integration** — MO2, Vortex, Wabbajack plugins
+- **Real-time Collaboration** — Work on mod lists with friends
+- **Advanced Analytics** — Track mod performance over time
+- **Mobile App** — Check your mod list on the go
 
 ---
 
-## 🎯 Supported Games
+## 🎮 Supported Games
 
-- **Skyrim:** Legendary Edition, Special Edition, Anniversary Edition, VR
-- **Fallout:** 3, New Vegas, 4
-- **Oblivion** (beta support)
-- **Starfield** (early access)
-
----
-
-## 📸 Screenshots
-
-### Main Analysis Dashboard
-![Dashboard Screenshot](docs/images/screenshot-dashboard.png)
-
-### Conflict Report
-![Conflict Report](docs/images/screenshot-conflicts.png)
-
-### Mod Recommendations
-![Recommendations](docs/images/screenshot-recommendations.png)
+| Game | Status | Notes |
+|------|--------|-------|
+| **Skyrim SE/AE** | ✅ Production | Full support |
+| **Skyrim Legendary** | ✅ Production | Full support |
+| **Skyrim VR** | ✅ Production | Full support |
+| **Fallout 4** | ✅ Production | Full support |
+| **Oblivion** | 🧪 Beta | Community testing |
+| **Fallout 3** | 📋 Planned | Future release |
+| **Fallout: NV** | 📋 Planned | Future release |
+| **Starfield** | 📋 Planned | Future release |
 
 ---
 
-## 🔧 Integration with Your Workflow
+## 🐾 OpenCLAW — Automated Modding Assistant
 
-### Mod Organizer 2
-```bash
-# Export mod list from MO2
-Tools → Copy to clipboard → Active mods
-# Paste into SkyModderAI
-```
+**OpenCLAW is your browser-based automated modding assistant.** It learns from your modding sessions, proposes improvements, and guides implementation — all safely sandboxed.
 
-### Vortex
-```bash
-# Export from Vortex
-Plugins → Export → Copy as text
-# Paste into SkyModderAI
-```
+### **What OpenCLAW Does**
 
-### Wabbajack
-```bash
-# Analyze custom lists before building
-SkyModderAI → Import → Wabbajack .wabbajack file
-```
+1. **Analyzes** your current mod conflicts and performance
+2. **Researches** solutions from Nexus, Reddit, GitHub
+3. **Proposes** a 5-phase improvement plan
+4. **Executes** changes in a sandbox (with your permission)
+5. **Learns** from your feedback to improve future suggestions
 
-### LOOT
-```bash
-# SkyModderAI uses LOOT's masterlist automatically
-# No configuration needed - just works
-```
+### **Access OpenCLAW**
+
+1. Navigate to the site
+2. Click **"OpenCLAW"** in the main navigation
+3. Grant permissions (8 granular scopes available)
+4. Propose a plan (select goal, playstyle, game)
+5. Execute and enjoy!
+
+**URL:** `/api/v1/openclaw/`
+
+### **OpenCLAW Safety**
+
+- ✅ Permission-based access (you control what it can do)
+- ✅ Sandbox isolation (can't modify system files)
+- ✅ Hard-coded denied operations (BIOS, kernel, drivers blocked)
+- ✅ File extension whitelist (only safe types allowed)
+- ✅ Path traversal protection (no escapes from sandbox)
+- ✅ Audit logging (all operations tracked)
 
 ---
 
-## 🚀 Advanced Usage
+## 🏗️ Architecture
 
-### Command Line Analysis
-```bash
-# Analyze a mod list file
-python app.py analyze --game skyrimse my_mods.txt
+### **Design Principles**
 
-# Export to PDF
-python app.py analyze --game skyrimse --export pdf my_mods.txt
+1. **Deterministic First, AI Second** — Rules don't hallucinate (90/10 split)
+2. **Privacy by Default** — No PII in telemetry, local-first storage
+3. **Community-Driven** — Crowdsourced compatibility data
+4. **Transparent** — Show exactly why conflicts are flagged
+5. **Self-Limiting** — Success means the problem is solved
 
-# Show only critical conflicts
-python app.py analyze --game skyrimse --severity critical my_mods.txt
+### **Tech Stack**
+
+- **Backend:** Python 3.9+, Flask
+- **Database:** PostgreSQL (production), SQLite (development)
+- **Cache:** Redis (production), in-memory (development)
+- **Frontend:** Vanilla JS, no framework
+- **Testing:** pytest, hypothesis, locust
+
+### **Repository Structure**
+
+```
+SkyModderAI/
+├── blueprints/          # Flask route blueprints
+│   ├── api.py           # REST API
+│   ├── analysis.py      # Analysis routes
+│   ├── auth.py          # Authentication
+│   ├── community.py     # Community features
+│   ├── openclaw.py      # OpenCLAW automation
+│   └── ...
+├── services/            # Business logic
+├── repositories/        # Data access layer
+├── templates/           # HTML templates
+├── static/              # Frontend assets
+├── tests/               # Test suite
+└── docs/                # Documentation
 ```
 
-### API Access
-```python
-import requests
-
-response = requests.post('http://localhost:5000/api/analyze', json={
-    'game': 'skyrimse',
-    'mod_list': 'USSEP.esp\nSkyUI.esp\n...'
-})
-
-conflicts = response.json()['conflicts']
-print(f"Found {len(conflicts)} conflicts")
-```
-
-### Batch Testing
-```bash
-# Test multiple load orders
-for list in load_orders/*.txt; do
-    python app.py analyze --game skyrimse "$list"
-done
-```
+See [ARCHITECTURE.md](ARCHITECTURE.md) for full system design.
 
 ---
 
 ## 📚 Documentation
 
-| Guide | Description |
-|-------|-------------|
-| [Quick Start](docs/README.md) | Get running in 5 minutes |
-| [Modding Glossary](docs/MODDING_GLOSSARY.md) | ESP vs ESM, load order, ITMs, and more |
-| [Common Conflicts](docs/COMMON_CONFLICTS.md) | Known issues with popular mods |
-| [Architecture](ARCHITECTURE.md) | How it works under the hood |
-| [Contributing](CONTRIBUTING.md) | How to help improve SkyModderAI |
+### **Getting Started**
+- [Quickstart Guides](docs/QUICKSTART_GUIDES.md) — MO2, Vortex, Wabbajack integration
+- [Modding Glossary](docs/MODDING_GLOSSARY.md) — ESP vs ESM, load order, conflicts
+- [Common Conflicts](docs/COMMON_CONFLICTS.md) — Known issues with popular mods
+
+### **Technical Documentation**
+- [Architecture](ARCHITECTURE.md) — System design, data flow, storage strategy
+- [Build Guide](docs/build.md) — Setup, installation, deployment
+- [Data Models](docs/models.md) — Database schema and ORM
+- [Security](docs/SECURITY.md) — Security policies and best practices
+
+### **OpenCLAW Documentation**
+- [User Guide](docs/openclaw_browser_implementation.md) — How to use OpenCLAW
+- [Technical Plan](docs/openclaw_browser_plan.md) — Enhancement roadmap
+
+### **Research & Philosophy**
+- [Research Summary](docs/RESEARCH_SUMMARY.md) — Comprehensive research integration
+- [Philosophy](PHILOSOPHY.md) — Core principles
+- [Samson Manifesto](docs/samson_manifesto.md) — Long-term vision
+
+**Full documentation index:** [docs/README.md](docs/README.md)
 
 ---
 
-## 🤝 Community
+## 🧪 Testing
 
-**Join 2,000+ modders keeping their games stable:**
+```bash
+# Run all tests
+pytest
 
-- 💬 **[Discord Server](https://discord.gg/YOUR_INVITE)** — Get help, share load orders
-- 📱 **[Reddit](https://reddit.com/r/skyrimmods)** — Post your success stories
-- 🐛 **[GitHub Issues](https://github.com/SamsonProject/SkyModderAI/issues)** — Report bugs, request features
-- ⭐ **[Nexus Mods](https://www.nexusmods.com/users/YOUR_ID)** — Follow for updates
+# Run with coverage
+pytest --cov=. --cov-report=html
 
-### Featured by
+# Run specific test suite
+pytest tests/test_conflict_detector.py -v
 
-- r/skyrimmods — [Community Spotlight, Jan 2025](https://reddit.com/r/skyrimmods/comments/...)
-- r/falloutmods — [Tool Recommendation](https://reddit.com/r/falloutmods/comments/...)
+# Run OpenCLAW tests
+pytest tests/test_openclaw.py -v
+```
+
+**Test Coverage:** 80%+ required (enforced in CI)
 
 ---
 
-## 🛠️ Development
+## 🤝 Contributing
 
-### Setup for Contributors
+### **Ways to Contribute**
+
+1. **Code** — New features, bug fixes, performance improvements
+2. **Documentation** — Guides, tutorials, translations
+3. **Testing** — Bug reports, compatibility data
+4. **Community** — Help others, share builds, vote on features
+
+### **Quick Start**
+
 ```bash
 git clone https://github.com/SamsonProject/SkyModderAI.git
 cd SkyModderAI
@@ -210,121 +213,141 @@ pip install -r requirements-dev.txt
 pre-commit install
 ```
 
-### Running Tests
-```bash
-# Full test suite
-pytest tests/
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
-# Test specific game parser
-pytest tests/test_loot_parser.py -k skyrimse
+### **Good First Issues**
 
-# Performance tests
-pytest tests/test_performance.py
-```
-
-### Code Quality
-```bash
-# Format code
-ruff format .
-
-# Lint
-ruff check .
-
-# Type checking
-mypy blueprints/ services/
-```
+- UI improvements for compatibility database
+- Load order share frontend
+- Mod author verification flow
+- SEO landing pages for mod pairs
+- Test coverage improvements
 
 ---
 
-## 📊 Performance
+## 🔒 Security & Privacy
 
-- **500 mods analyzed in < 5 seconds** (tested on M1 Mac)
-- **< 300KB page load** (mobile-friendly)
-- **Offline-capable** (core features work without internet)
+### **What We Track**
+- Feature usage (anonymized)
+- Compatibility patterns (aggregated)
+- Session continuity (local UUID)
 
----
+### **What We DON'T Track**
+- Personal identifiers (email, IP — hashed only)
+- Full mod lists (unless explicitly shared)
+- Session duration (we don't optimize for addiction)
 
-## 🔒 Privacy & Security
+### **Your Rights**
+- **Export your data:** `GET /api/samson/telemetry/export`
+- **Delete your data:** `POST /api/samson/telemetry/delete`
+- **Opt-out:** Set `SAMSON_TELEMETRY_ENABLED=false`
 
-- **No accounts required** for basic usage
-- **All analysis runs locally** (your mod list never leaves your PC unless you opt-in)
-- **Open source** — audit the code yourself
-- **No telemetry** (we don't track what mods you use)
-
----
-
-## 💖 Support the Project
-
-SkyModderAI is **free and will stay free**. We're not selling your data, not gating features, and not turning into a corporate hellscape.
-
-### 🍺 Buy Me Mead
-See a mead bottle icon? Click it if you're feeling generous. No guilt trips, no "unlock premium features" bullshit. Just a modder saying thanks.
-
-### 📦 Promote Your Business
-Got a modding commission service? Curated lists? Community projects?
-- **List for free** on our Shopping/Business tabs
-- **Pay only for real engagement** ($0 upfront, charged per 1000 vetted clicks)
-- **Community decides what rises** through democratic voting
-
-**Why this matters:** We only make money when users find value in promoted content. So we're incentivized to show relevant stuff, not spam.
-
-### Other Ways to Help
-- ⭐ **[Star this repo](https://github.com/SamsonProject/SkyModderAI)** — Helps others find it
-- 🐛 **[Report conflicts](https://github.com/SamsonProject/SkyModderAI/issues)** — Make the database smarter
-- 📢 **[Tell your friends](#)** — Word of mouth is everything
-
-**Current monthly costs:** $15 (hosting) | **Sponsored by:** [Your Name Here]
+See [SECURITY.md](SECURITY.md) for full security policy.
 
 ---
 
-## 📜 License
+## 📊 Performance & Scaling
 
-MIT License — Use it, modify it, share it. Just don't blame us if your save game gets corrupted (always back up!).
+### **Current Capacity**
 
----
+| Users | PostgreSQL Pool | Max Overflow | Cache |
+|-------|----------------|--------------|-------|
+| **10K** | 10 | 20 | Redis |
+| **100K** | 20 | 40 | Redis |
+| **1M** | 50 | 100 | Redis Cluster |
 
-## 🙏 Credits
+### **Optimizations**
 
-**Built on the shoulders of giants:**
+- Redis caching (production)
+- LOOT data cached for 7 days
+- In-memory fallback (development)
+- Rate limiting (default: 100/minute)
+- Connection pooling
 
-- **[LOOT Team](https://github.com/loot/loot)** — Load order masterlists
-- **[Nexus Mods](https://www.nexusmods.com/)** — Mod database API
-- **[UESP](https://en.uesp.net/)** — Game mechanics documentation
-- **[xEdit Team](https://github.com/xEdit/xEdit)** — Conflict detection inspiration
-
-**Contributors:**
-
-[![Contributors](https://contrib.rocks/image?repo=SamsonProject/SkyModderAI)](https://github.com/SamsonProject/SkyModderAI/graphs/contributors)
+See [docs/scaling_guide.md](docs/scaling_guide.md) for detailed scaling strategies.
 
 ---
 
 ## 🎯 Roadmap
 
-### Q2 2026
-- [ ] Wabbajack integration (direct import)
-- [ ] Mod profile management (save/load multiple configs)
-- [ ] Real-time conflict detection (as you add mods)
+### **Q1 2026** (Current)
+- [x] OpenCLAW browser integration
+- [x] Codebase cleanup & consistency fixes
+- [ ] Compatibility database UI
+- [ ] Mod author verification program
 
-### Q3 2026
-- [ ] Starfield full support
-- [ ] AI-powered load order optimization
-- [ ] Community-sourced conflict rules
+### **Q2 2026**
+- [ ] 10K active users
+- [ ] Mod manager plugins (MO2, Vortex)
+- [ ] Real-time collaboration
+- [ ] Mobile-responsive UI
 
-### Q4 2026
-- [ ] MO2/Vortex plugin (run inside mod managers)
-- [ ] Automated patch suggestions (xEdit scripts)
-- [ ] Multiplayer co-op modding sessions
-
----
-
-**Last updated:** February 20, 2026 | **Version:** 1.4.2
+### **2027+**
+- [ ] Phase II deployment (ecological beachhead)
+- [ ] Worker ownership pilot (first robot equity)
+- [ ] Ethical AGI research (cognitive architecture)
 
 ---
 
-<div align="center">
+## 📞 Support & Community
 
-**🛡️ Mod safely. Mod smarter. Mod longer.**
+### **Get Help**
+- **Email:** support@skymodderai.com
+- **GitHub:** [Issues](https://github.com/SamsonProject/SkyModderAI/issues)
+- **Reddit:** r/skyrimmods (tag: [SkyModderAI])
 
-*SkyModderAI is not affiliated with Bethesda Softworks or ZeniMax Media.*
+### **Community Resources**
+- **Nexus Mods:** [Mod compatibility data](https://www.nexusmods.com/)
+- **LOOT:** [Load Order Optimization Tool](https://loot.github.io/)
+- **UESP:** [Unofficial Elder Scrolls Pages](https://en.uesp.net/)
 
-</div>
+---
+
+## 📜 License
+
+**MIT License** — Free to use, modify, and distribute.
+
+```
+Copyright (c) 2026 SkyModderAI
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+```
+
+See [LICENSE](LICENSE) for full terms.
+
+---
+
+## 🙏 Acknowledgments
+
+- **LOOT Team** — Load order rules and masterlist data
+- **Nexus Mods** — Mod hosting and API
+- **UESP** — Game mechanics documentation
+- **xEdit Team** — Mod cleaning tools
+- **Modding Community** — Compatibility reports and feedback
+
+---
+
+## 🎮 Built by Modders, for Modders
+
+**SkyModderAI** is 100% free + donations. No paywalls, no premium tiers, no bullshit.
+
+If it saved your load order, consider buying us a mead. If not, no hard feelings — use it, leave it, come back when you need it.
+
+**Free forever. Open source. Privacy-first.**
+
+---
+
+**Last Updated:** February 20, 2026  
+**Version:** 1.0.0 (Beta)
+
+[![Built with Python](https://img.shields.io/badge/Built%20with-Python-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Powered by Flask](https://img.shields.io/badge/Powered%20by-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Hosted on Render](https://img.shields.io/badge/Hosted%20on-Render-46E3B7?logo=render&logoColor=white)](https://render.com/)

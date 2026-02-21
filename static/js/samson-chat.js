@@ -139,5 +139,4 @@
     });
 
     // Initialize
-    console.log('Samson AI Chat Widget initialized');
 })();

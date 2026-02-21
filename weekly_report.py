@@ -1,7 +1,7 @@
 """
 Weekly Report Service - Self-improvement reports for SkyModderAI.
 
-Generates weekly email to chris@skymoddereai.com with:
+Generates weekly email to chris@skymodderai.com with:
 - What worked well
 - What broke / needs improvement
 - System optimization suggestions
@@ -40,7 +40,7 @@ def generate_weekly_report() -> dict[str, Any]:
     logger.info("Generating weekly report...")
 
     # Calculate period (last 7 days)
-    end_date = datetime.now()
+    end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=7)
 
     report = {

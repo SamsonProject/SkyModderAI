@@ -1,20 +1,24 @@
 # Render Blueprint — SkyModderAI deployment
+# Production-ready configuration for 100K+ users
 # https://render.com/docs/blueprint-spec
-# If clone succeeds but requirements.txt not found: set Root Directory in Dashboard
-# to your project subfolder (e.g. mod_compatibility_checker) if files live there.
+
 databases:
   - name: skymodderai-db
     databaseName: skymodderai
     user: skymodderai_user
-    plan: starter  # Starter plan for production ($7/month), free for development
+    plan: standard-0  # $50/month - Required for 100K+ users (10GB, connection pooling)
+    diskSize: 10  # GB
 
 services:
+  # Main Web Service
   - type: web
-    name: skymodderai
+    name: skymodderai-web
     runtime: python
-    # Python 3.11 (see .python-version) — 3.14 can cause package issues
-    buildCommand: pip install -r requirements.txt && alembic upgrade head
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 4 app:app
+    plan: standard-2x  # 2x CPU/RAM for production
+    buildCommand: |
+      pip install -r requirements.txt
+      python loot_parser.py skyrimse fallout4  # Pre-download LOOT data
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --timeout 120 --workers 4 --threads 4 app:app
     healthCheckPath: /healthz
     envVars:
       - key: FLASK_ENV
@@ -25,6 +29,28 @@ services:
         fromDatabase:
           name: skymodderai-db
           property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: skymodderai-redis
+          property: connectionString
+      # Production connection pooling (scaled for 100K users)
+      - key: SQLALCHEMY_POOL_SIZE
+        value: "20"
+      - key: SQLALCHEMY_MAX_OVERFLOW
+        value: "40"
+      - key: SQLALCHEMY_POOL_TIMEOUT
+        value: "30"
+      - key: SQLALCHEMY_POOL_RECYCLE
+        value: "300"
+      - key: SQLALCHEMY_POOL_PRE_PING
+        value: "true"
+      # Feature flags
+      - key: SKYMODDERAI_OPENCLAW_ENABLED
+        value: "0"
+      - key: OPENCLAW_SANDBOX_ROOT
+        value: "./openclaw_workspace"
+      # Optional env vars (set in Render dashboard)
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_PRO_PRICE_ID
@@ -43,18 +69,55 @@ services:
         sync: false
       - key: MAIL_PASSWORD
         sync: false
-      - key: SKYMODDERAI_OPENCLAW_ENABLED
-        value: "0"
-      - key: OPENCLAW_SANDBOX_ROOT
-        value: "./openclaw_workspace"
-      # PostgreSQL connection pooling settings for production
-      - key: SQLALCHEMY_POOL_SIZE
-        value: "5"
-      - key: SQLALCHEMY_MAX_OVERFLOW
-        value: "10"
-      - key: SQLALCHEMY_POOL_TIMEOUT
-        value: "30"
-      - key: SQLALCHEMY_POOL_RECYCLE
-        value: "300"
-      - key: SQLALCHEMY_POOL_PRE_PING
-        value: "true"
+      - key: SENTRY_DSN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+
+  # Celery Worker for Background Jobs
+  - type: worker
+    name: skymodderai-worker
+    runtime: python
+    plan: standard-2x
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A celery_worker.celery worker --loglevel=info --concurrency=4
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: skymodderai-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: skymodderai-redis
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false
+
+  # Celery Beat for Scheduled Tasks
+  - type: worker
+    name: skymodderai-beat
+    runtime: python
+    plan: starter  # Minimal resources for scheduler
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A celery_worker.celery beat --loglevel=info
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: skymodderai-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: skymodderai-redis
+          property: connectionString
+
+# Redis for Caching and Rate Limiting (REQUIRED for production)
+redis:
+  - name: skymodderai-redis
+    plan: starter  # 25MB, 200 connections - upgrade to standard at 100K users
+    maxmemoryPolicy: allkeys-lru  # Evict least recently used keys when full

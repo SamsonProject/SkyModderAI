@@ -71,11 +71,11 @@ const StorageUtils = {
                 const compressed = this.compress(value);
                 localStorage.setItem(key + '_compressed', '1');
                 localStorage.setItem(key, compressed);
-                console.log(`[Storage] Compressed ${key}: ${json.length} → ${compressed.length} bytes (${Math.round(compressed.length/json.length*100)}%)`);
+                
             } else {
                 localStorage.setItem(key + '_compressed', '0');
                 localStorage.setItem(key, json);
-                console.log(`[Storage] Stored ${key}: ${json.length} bytes (uncompressed)`);
+                
             }
         } catch (e) {
             console.error('[Storage] Failed to store:', e);
@@ -132,7 +132,7 @@ const StorageUtils = {
         
         sessionKeys.forEach(key => {
             this.removeItem(key);
-            console.log(`[Storage] Cleared ${key} to free space`);
+            
         });
         
         alert('Storage quota exceeded. Old session data has been cleared. Your saved lists are preserved.');
@@ -159,7 +159,6 @@ const StorageUtils = {
         a.click();
         URL.revokeObjectURL(url);
         
-        console.log('[Storage] Data exported:', exportData);
     },
 
     /**
@@ -179,7 +178,6 @@ const StorageUtils = {
                     if (data.preferences) this.setItem('skymodder_preferences', data.preferences);
                     if (data.recent_searches) this.setItem('skymodder_recent_searches', data.recent_searches);
                     
-                    console.log('[Storage] Data imported:', data);
                     resolve(data);
                 } catch (err) {
                     console.error('[Storage] Import failed:', err);
@@ -233,7 +231,6 @@ const StorageUtils = {
             localStorage.removeItem(key);
         });
         
-        console.log('[Storage] Cleared all SkyModderAI data:', skymodderKeys);
         alert(`Cleared ${skymodderKeys.length} local storage items. Page will reload.`);
         location.reload();
         
@@ -251,7 +248,6 @@ const AutoSaveManager = {
      * @param {number} intervalMs - Save interval in milliseconds (default: 30000 = 30s)
      */
     start(intervalMs = 30000) {
-        console.log(`[AutoSave] Starting auto-save every ${intervalMs/1000}s`);
         
         this.interval = setInterval(() => {
             if (this.dirty) {
@@ -288,7 +284,6 @@ const AutoSaveManager = {
             });
         }
         
-        console.log('[AutoSave] Session saved');
     },
 
     /**
@@ -298,21 +293,19 @@ const AutoSaveManager = {
         if (this.interval) {
             clearInterval(this.interval);
             this.interval = null;
-            console.log('[AutoSave] Stopped');
         }
     }
 };
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[Storage] Initializing local-first storage...');
     
     // Start auto-save
     AutoSaveManager.start(30000); // 30 seconds
     
     // Log storage usage on load
     const usage = StorageUtils.getUsage();
-    console.log(`[Storage] Current usage: ${usage.total_kb}KB (${usage.keys_count} keys)`);
+    
     
     // Add storage management to dev tools (if available)
     if (typeof window.__DEV_TOOLS__ !== 'undefined') {

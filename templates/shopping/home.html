@@ -28,75 +28,6 @@
         margin: 0 auto;
     }
 
-    /* Pricing Section */
-    .pricing-section {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border: 1px solid #334155;
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 3rem;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-    }
-
-    .pricing-card {
-        text-align: center;
-        padding: 1.5rem;
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid #334155;
-        border-radius: 12px;
-    }
-
-    .pricing-card.featured {
-        border-color: #22c55e;
-        background: rgba(34, 197, 94, 0.1);
-    }
-
-    .pricing-card h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .pricing-card .price {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #22c55e;
-        margin: 1rem 0;
-    }
-
-    .pricing-card .price span {
-        font-size: 1rem;
-        color: #94a3b8;
-    }
-
-    .pricing-card ul {
-        list-style: none;
-        padding: 0;
-        margin: 1.5rem 0 0 0;
-        text-align: left;
-    }
-
-    .pricing-card li {
-        padding: 0.5rem 0;
-        color: #94a3b8;
-        font-size: 0.875rem;
-        display: flex;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .pricing-card li::before {
-        content: "✓";
-        color: #22c55e;
-        font-weight: bold;
-    }
-
-    .pricing-card.featured li::before {
-        content: "🎁";
-    }
-
     /* Featured Ads Section */
     .featured-section {
         margin-bottom: 3rem;
@@ -259,42 +190,6 @@
         color: #94a3b8;
     }
 
-    /* CTA Section */
-    .cta-section {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        border-radius: 16px;
-        padding: 3rem;
-        text-align: center;
-        margin-top: 3rem;
-    }
-
-    .cta-section h2 {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        color: #fff;
-    }
-
-    .cta-section p {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 1.125rem;
-        margin-bottom: 2rem;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .cta-section .btn {
-        background: #fff;
-        color: #3b82f6;
-        font-size: 1rem;
-        padding: 0.875rem 2rem;
-    }
-
-    .cta-section .btn:hover {
-        background: #f1f5f9;
-    }
-
     @media (max-width: 768px) {
         .shopping-page {
             padding: 1rem;
@@ -302,10 +197,6 @@
 
         .shopping-header h1 {
             font-size: 1.75rem;
-        }
-
-        .pricing-section {
-            grid-template-columns: 1fr;
         }
 
         .ads-grid {
@@ -319,95 +210,22 @@
 <div class="shopping-page">
     <!-- Header -->
     <div class="shopping-header">
-        <h1>🛒 Business Advertising</h1>
-        <p>Reach thousands of modders in the SkyModderAI community. Pay only for actual clicks.</p>
+        <h1>🛒 Shopping</h1>
+        <p>Products and services from businesses in our community.</p>
     </div>
 
-    <!-- Why This Tab Exists -->
-    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1)); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; text-align: center;">
-        <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: #3b82f6;">🛒 Why This Tab Exists</h2>
-        <p style="color: #94a3b8; font-size: 1rem; line-height: 1.7; max-width: 800px; margin: 0 auto 1.5rem auto;">
-            Look, this tool costs money to run. Servers, APIs, all that.
-            We could put ads in the core tool. We could lock features behind paywalls.
-            We don't.
+    <!-- Simple explanation -->
+    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: center;">
+        <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6; max-width: 700px; margin: 0 auto;">
+            This tab is separate from the rest of the site. Browsing is optional—use it if you want, 
+            close it if you don't. The core tools remain free either way.
         </p>
-        <p style="color: #94a3b8; font-size: 1rem; line-height: 1.7; max-width: 800px; margin: 0 auto 1.5rem auto;">
-            Instead, we have this tab. Optional. Ethical sponsors only.
-            If you like what you see, support them. If not, close the tab.
-            The tool still works. Always free. Always will be.
-        </p>
-        <p style="color: #94a3b8; font-size: 1rem; line-height: 1.7; max-width: 800px; margin: 0 auto 0 auto;">
-            Oh, and if a sponsor's product is genuinely good and you click their ads enough,
-            they might not even need to pay much. We give a shit about our sponsors
-            because they bring our user base free material. Win-win.
-        </p>
-    </div>
-
-    <!-- Why Support Our Sponsors -->
-    <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.1)); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 16px; padding: 2rem; margin-bottom: 3rem; text-align: center;">
-        <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: #22c55e;">💚 Why Support Our Sponsors?</h2>
-        <p style="color: #94a3b8; font-size: 1rem; line-height: 1.7; max-width: 800px; margin: 0 auto 1.5rem auto;">
-            Look, we all get our games in <em>wink wink</em> "various ways." But here's the thing: this tool needs to stay online.
-            Server costs don't care about your "special discount." API bills don't accept "exposure."
-            And I'd rather sell out to <strong>carefully vetted sponsors</strong> than put ads in the core tool or lock features behind paywalls.
-        </p>
-        <p style="color: #94a3b8; font-size: 1rem; line-height: 1.7; max-width: 800px; margin: 0 auto 1.5rem auto;">
-            Every sponsor you see here has been through <a href="/sponsors/charter" style="color: #22c55e; text-decoration: underline;">rigorous ethical vetting</a>.
-            No crypto scams. No data harvesters. No subscription traps. Just honest businesses that make relevant products for modders.
-            When you click their ads, you're not getting spammed—you're helping keep the lights on.
-        </p>
-        <p style="color: #94a3b8; font-size: 0.95rem; font-style: italic; max-width: 800px; margin: 0 auto;">
-            Plus, let's be real: their bureaucratic approval processes move so slowly, I need all the help I can get to pay next month's server bill. 🍯
-        </p>
-    </div>
-
-    <!-- Pricing Section -->
-    <div class="pricing-section">
-        <div class="pricing-card featured">
-            <h3>🎁 First Month</h3>
-            <div class="price">{{ pricing.first_month }}</div>
-            <p style="color: #94a3b8; font-size: 0.875rem;">For new businesses</p>
-            <ul>
-                <li>Free to join business directory</li>
-                <li>First month of advertising FREE</li>
-                <li>Pay only after first month</li>
-                <li>Automatic ad placement</li>
-                <li>Fraud protection included</li>
-            </ul>
-        </div>
-
-        <div class="pricing-card">
-            <h3>💰 Pay-Per-Click</h3>
-            <div class="price">${{ "%.2f"|format(pricing.cpm_rate) }} <span>/ 1000 clicks</span></div>
-            <p style="color: #94a3b8; font-size: 0.875rem;">After first month</p>
-            <ul>
-                <li>${{ "%.3f"|format(pricing.cost_per_click) }} per click</li>
-                <li>Simple meter charge</li>
-                <li>No monthly caps or hidden fees</li>
-                <li>Server-side fraud protection</li>
-                <li>24h click deduplication</li>
-            </ul>
-        </div>
-
-        <div class="pricing-card">
-            <h3>📊 Same Rate Always</h3>
-            <div class="price">${{ "%.2f"|format(pricing.cpm_rate) }} <span>/ 1000 clicks</span></div>
-            <p style="color: #94a3b8; font-size: 0.875rem;">No tiers, no packages</p>
-            <ul>
-                <li>Same rate for all volumes</li>
-                <li>Credits never expire</li>
-                <li>Add more anytime</li>
-                <li>Detailed analytics</li>
-                <li>No package tiers</li>
-            </ul>
-        </div>
     </div>
 
     <!-- Featured Ads Section -->
     <div class="featured-section">
         <div class="section-header">
             <h2>🔥 Featured Businesses</h2>
-            <a href="{{ url_for('shopping.ads_directory') }}" class="btn btn-secondary">View All Ads</a>
         </div>
 
         {% if featured_ads %}
@@ -444,16 +262,63 @@
         {% else %}
         <div class="empty-state">
             <h3>No Featured Ads Yet</h3>
-            <p>Be the first to advertise and reach our community!</p>
+            <p>Check back later.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- All Ads Directory -->
+    <div class="featured-section">
+        <div class="section-header">
+            <h2>📖 All Ads</h2>
+        </div>
+
+        {% if all_ads %}
+        <div class="ads-grid">
+            {% for ad in all_ads %}
+            <div class="ad-card {% if ad.first_month_free %}free-month{% endif %}">
+                <div class="ad-card-header">
+                    <div class="ad-business-logo">
+                        {{ ad.business_name[0]|upper }}
+                    </div>
+                    <div class="ad-business-info">
+                        <h3>{{ ad.business_name }}</h3>
+                        <span class="ad-campaign-name">{{ ad.campaign_name }}</span>
+                    </div>
+                </div>
+
+                <div class="ad-headline">{{ ad.headline }}</div>
+
+                {% if ad.body_copy %}
+                <p class="ad-body">{{ ad.body_copy[:150] }}{% if ad.body_copy|length > 150 %}...{% endif %}</p>
+                {% endif %}
+
+                <div class="ad-actions">
+                    <a href="{{ url_for('shopping.track_click', creative_id=ad.creative_id) }}" class="btn btn-primary">
+                        {{ ad.cta_text }}
+                    </a>
+                    <a href="{{ url_for('business.profile', slug=ad.business_slug) }}" class="btn btn-secondary">
+                        View Profile
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No Ads Yet</h3>
+            <p>Be the first to advertise!</p>
         </div>
         {% endif %}
     </div>
 
     <!-- CTA Section -->
-    <div class="cta-section">
-        <h2>Ready to Reach Modders?</h2>
-        <p>Join the business directory for free and get your first month of advertising on us. No risk, no hidden fees.</p>
-        <a href="{{ url_for('business.join') }}" class="btn">Join Business Directory</a>
+    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 2rem; text-align: center; margin-top: 3rem;">
+        <h3 style="color: #f59e0b; margin-bottom: 0.5rem;">Have a product to sell?</h3>
+        <p style="color: #94a3b8; margin-bottom: 1rem;">
+            Get your products featured here. Free directory listing included.
+        </p>
+        <a href="/business/" class="btn btn-success">Learn More →</a>
     </div>
 </div>
 {% endblock %}

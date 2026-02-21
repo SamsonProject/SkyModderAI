@@ -617,7 +617,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 2000);
             }).catch(err => {
                 console.error('Failed to copy URL: ', err);
-                alert('Failed to copy link. Please try again.');
+                showError('Failed to copy link. Please try again.');
             });
         });
     }

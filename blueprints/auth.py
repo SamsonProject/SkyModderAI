@@ -192,9 +192,9 @@ def signup() -> Any:
             raise DuplicateResourceError("Email already registered")
 
         # Create user
-        from db import create_user
+        from db import ensure_user_unverified
 
-        create_user(email=email, password=password)
+        ensure_user_unverified(email=email, password=password)
 
         # Send verification email
         from auth_utils import send_verification_email

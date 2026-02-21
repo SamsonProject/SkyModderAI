@@ -348,12 +348,13 @@ async function toggleCampaign(campaignId, action) {
         const result = await response.json();
 
         if (result.success) {
+            showSuccess('Campaign ' + action + ' successfully!');
             location.reload();
         } else {
-            alert('Failed to ' + action + ' campaign');
+            showError('Failed to ' + action + ' campaign: ' + (result.error || 'Unknown error'));
         }
     } catch (e) {
-        alert('Failed to ' + action + ' campaign');
+        showError('Failed to ' + action + ' campaign: ' + e.message);
     }
 }
 
@@ -363,7 +364,7 @@ async function addCredits(campaignId) {
 
     const parsed = parseFloat(amount);
     if (isNaN(parsed) || parsed <= 0) {
-        alert('Please enter a valid amount');
+        showToast('Please enter a valid amount', 'warning');
         return;
     }
 
@@ -377,13 +378,13 @@ async function addCredits(campaignId) {
         const result = await response.json();
 
         if (result.success) {
-            alert(result.message);
+            showSuccess(result.message || 'Credits added!');
             location.reload();
         } else {
-            alert('Failed to add credits');
+            showError('Failed to add credits: ' + (result.error || 'Unknown error'));
         }
     } catch (e) {
-        alert('Failed to add credits');
+        showError('Failed to add credits: ' + e.message);
     }
 }
 </script>

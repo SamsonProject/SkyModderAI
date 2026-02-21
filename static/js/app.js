@@ -1019,7 +1019,6 @@ async function refreshInputMatchPreview(options = {}) {
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-            if (!silent) alert(data.error || 'Could not parse mod list.');
             return showToast(data.error || 'Could not parse mod list.', 'error');
         }
         if (reqId !== inputMatchRequestSeq) return; // stale response
@@ -2246,6 +2245,11 @@ async function analyzeModList() {
                 displayFlatConflicts(data);
             }
 
+            // Check for empty conflicts (for success state)
+            const errors = data.conflicts?.errors || [];
+            const warnings = data.conflicts?.warnings || [];
+            const info = data.conflicts?.info || [];
+            
             if (errors.length === 0 && warnings.length === 0 && info.length === 0) {
                 elements.conflictsContainer.innerHTML = `
                     <div class="success-state">
@@ -3762,6 +3766,10 @@ function initMainTabs() {
             if (target === 'build-list') initBuildListIfNeeded();
             if (target === 'quickstart') loadQuickstartContent();
             if (target === 'dev') initDevTools();
+            if (target === 'openclaw') {
+                // OpenCLAW panel - redirect to dashboard or show info
+                console.log('OpenCLAW tab selected');
+            }
             if (target === 'gameplay') {
                 if (window.GameplayUI) window.GameplayUI.init('gameplay-container');
                 else if (window.WalkthroughUI) window.WalkthroughUI.init('gameplay-container');
@@ -4662,6 +4670,7 @@ const COMMAND_ACTIONS = [
     },
     { id: 'focus-mod-search', label: 'Search mods', fn: () => document.getElementById('mod-search-input')?.focus() },
     { id: 'tab-analyze', label: 'Go to Analyze', fn: () => document.querySelector('.main-tab[data-tab="analyze"]')?.click() },
+    { id: 'tab-openclaw', label: 'Go to OpenCLAW', fn: () => document.querySelector('.main-tab[data-tab="openclaw"]')?.click() },
     { id: 'tab-quickstart', label: 'Go to Quick Start', fn: () => document.querySelector('.main-tab[data-tab="quickstart"]')?.click() },
     { id: 'tab-build-list', label: 'Go to Build a List', fn: () => document.querySelector('.main-tab[data-tab="build-list"]')?.click() },
     { id: 'tab-library', label: 'Go to Library', fn: () => document.querySelector('.main-tab[data-tab="library"]')?.click() },
@@ -6761,6 +6770,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Expose Library functions globally
     window.loadLibrary = loadLibrary;
-
-    console.log('SkyModderAI initialized successfully');
 });

@@ -165,9 +165,9 @@ class ModSearchEngine:
         self._avg_doc_length: float = 0.0
         self._n_docs: int = 0
         self._df: dict[str, int] = {}  # document frequency per term
-        self._authority: dict[str, int] = (
-            {}
-        )  # mod -> how many other mods reference it (load_after, req, etc.)
+        self._authority: dict[
+            str, int
+        ] = {}  # mod -> how many other mods reference it (load_after, req, etc.)
 
     def index_parser(self, parser) -> None:
         """

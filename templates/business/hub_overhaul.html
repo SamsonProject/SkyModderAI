@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Business Ecosystem - SkyModderAI{% endblock %}
+{% block title %}Business Directory - SkyModderAI{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -19,10 +19,6 @@
         font-size: 2.5rem;
         font-weight: 700;
         margin-bottom: 1rem;
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
 
     .business-header p {
@@ -32,358 +28,234 @@
         margin: 0 auto;
     }
 
-    /* Value Prop Section */
-    .value-prop {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+    /* Game Analogy Section */
+    .game-analogy-section {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1));
         border: 1px solid rgba(59, 130, 246, 0.3);
         border-radius: 16px;
-        padding: 2.5rem;
+        padding: 2rem;
         margin-bottom: 3rem;
         text-align: center;
     }
 
-    .value-prop h2 {
-        font-size: 1.75rem;
+    .game-analogy-section h2 {
+        font-size: 1.5rem;
         font-weight: 600;
         margin-bottom: 1rem;
         color: #e2e8f0;
     }
 
-    .value-prop p {
+    .game-analogy-section p {
         color: #94a3b8;
-        font-size: 1rem;
         line-height: 1.7;
         max-width: 800px;
         margin: 0 auto 1rem auto;
     }
 
-    .value-prop .highlight {
-        color: #3b82f6;
-        font-weight: 600;
-    }
-
-    /* Tier Cards */
-    .tiers-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 2rem;
-        margin-bottom: 3rem;
-    }
-
-    .tier-card {
-        background: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 16px;
-        padding: 2rem;
-        transition: all 0.2s;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .tier-card:hover {
-        border-color: #3b82f6;
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-    }
-
-    .tier-card.featured {
-        border-color: #8b5cf6;
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.05));
-    }
-
-    .tier-card.featured::before {
-        content: "MOST POPULAR";
-        position: absolute;
-        top: 1rem;
-        right: -2rem;
-        background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-        color: #fff;
-        padding: 0.25rem 2rem;
-        font-size: 0.625rem;
-        font-weight: 700;
-        transform: rotate(45deg);
-    }
-
-    .tier-badge {
-        display: inline-block;
-        padding: 0.375rem 0.75rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        margin-bottom: 1rem;
-    }
-
-    .tier-badge.free {
-        background: rgba(34, 197, 94, 0.2);
-        color: #22c55e;
-    }
-
-    .tier-badge.advertising {
-        background: rgba(59, 130, 246, 0.2);
-        color: #3b82f6;
-    }
-
-    .tier-badge.partner {
-        background: rgba(139, 92, 246, 0.2);
-        color: #8b5cf6;
-    }
-
-    .tier-card h3 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #e2e8f0;
-    }
-
-    .tier-price {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin: 1rem 0;
-        color: #e2e8f0;
-    }
-
-    .tier-price span {
-        font-size: 1rem;
-        color: #94a3b8;
-    }
-
-    .tier-description {
-        color: #94a3b8;
-        font-size: 0.95rem;
-        line-height: 1.6;
-        margin-bottom: 1.5rem;
-    }
-
-    .tier-features {
-        list-style: none;
-        padding: 0;
-        margin: 1.5rem 0;
-    }
-
-    .tier-features li {
-        padding: 0.75rem 0;
-        color: #94a3b8;
-        border-bottom: 1px solid #334155;
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        font-size: 0.9rem;
-    }
-
-    .tier-features li:last-child {
-        border-bottom: none;
-    }
-
-    .tier-features li::before {
-        content: "✓";
-        color: #22c55e;
-        font-weight: bold;
-        flex-shrink: 0;
-    }
-
-    .tier-features li.unavailable {
-        color: #64748b;
-        text-decoration: line-through;
-    }
-
-    .tier-features li.unavailable::before {
-        content: "—";
-        color: #64748b;
-    }
-
-    .tier-cta {
-        display: block;
-        width: 100%;
-        padding: 1rem;
-        border-radius: 8px;
-        text-align: center;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.15s;
-        margin-top: 1.5rem;
-    }
-
-    .tier-cta.primary {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-        color: #fff;
-    }
-
-    .tier-cta.primary:hover {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    }
-
-    .tier-cta.secondary {
-        background: transparent;
-        color: #94a3b8;
-        border: 1px solid #334155;
-    }
-
-    .tier-cta.secondary:hover {
-        border-color: #3b82f6;
-        color: #fff;
-    }
-
-    .tier-cta.purple {
-        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-        color: #fff;
-    }
-
-    .tier-cta.purple:hover {
-        background: linear-gradient(135deg, #7c3aed, #6d28d9);
-    }
-
-    /* For Who Section */
-    .audience-section {
-        margin: 4rem 0;
-        padding-top: 3rem;
-        border-top: 1px solid #334155;
-    }
-
-    .audience-section h2 {
-        text-align: center;
-        font-size: 2rem;
-        font-weight: 600;
-        margin-bottom: 2rem;
-        color: #e2e8f0;
-    }
-
-    .audience-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-    }
-
-    .audience-card {
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid #334155;
-        border-radius: 12px;
-        padding: 1.5rem;
-    }
-
-    .audience-card h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #e2e8f0;
-    }
-
-    .audience-card .persona {
-        color: #94a3b8;
-        font-size: 0.875rem;
-        font-style: italic;
-        margin-bottom: 1rem;
-    }
-
-    .audience-card ul {
-        list-style: none;
-        padding: 0;
-        margin: 1rem 0;
-    }
-
-    .audience-card li {
-        padding: 0.5rem 0;
-        color: #94a3b8;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .audience-card li::before {
-        content: "•";
-        color: #3b82f6;
-        font-weight: bold;
-    }
-
-    /* Ethical Standards */
-    .ethics-section {
-        background: linear-gradient(135deg, rgba(34, 197, 94, 0.05), rgba(22, 163, 74, 0.05));
-        border: 1px solid rgba(34, 197, 94, 0.2);
-        border-radius: 16px;
-        padding: 2.5rem;
-        margin: 4rem 0;
-    }
-
-    .ethics-section h2 {
-        font-size: 1.75rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        color: #22c55e;
-    }
-
-    .ethics-grid {
+    .analogy-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
+        gap: 1.5rem;
+        margin-top: 2rem;
     }
 
-    .ethics-card {
-        background: rgba(0, 0, 0, 0.2);
+    .analogy-card {
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid #334155;
         border-radius: 12px;
         padding: 1.5rem;
+        text-align: left;
     }
 
-    .ethics-card h3 {
-        font-size: 1.125rem;
+    .analogy-card h3 {
+        font-size: 1rem;
         font-weight: 600;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
         color: #e2e8f0;
     }
 
-    .ethics-card.accept {
-        border-left: 3px solid #22c55e;
-    }
-
-    .ethics-card.reject {
-        border-left: 3px solid #ef4444;
-    }
-
-    .ethics-card ul {
-        list-style: none;
-        padding: 0;
+    .analogy-card p {
+        color: #94a3b8;
+        font-size: 0.875rem;
+        line-height: 1.6;
         margin: 0;
     }
 
-    .ethics-card li {
-        padding: 0.5rem 0;
+    .analogy-card .game-ref {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-style: italic;
+        margin-top: 0.5rem;
+    }
+
+    /* Education Hub Section */
+    .education-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .education-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .education-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.15s;
+    }
+
+    .education-card:hover {
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+    }
+
+    .education-card h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #e2e8f0;
+    }
+
+    .education-card p {
         color: #94a3b8;
-        font-size: 0.9rem;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
     }
 
-    .ethics-card li::before {
-        content: "✓ ";
-        color: #22c55e;
-        font-weight: bold;
+    .difficulty-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.625rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
     }
 
-    .ethics-card.reject li::before {
-        content: "✗ ";
-        color: #ef4444;
+    .difficulty-beginner { background: #22c55e; color: #000; }
+    .difficulty-intermediate { background: #f59e0b; color: #000; }
+    .difficulty-advanced { background: #ef4444; color: #fff; }
+
+    /* Directory Section */
+    .directory-section {
+        margin-bottom: 3rem;
     }
 
-    /* CTA Section */
-    .cta-section {
+    .directory-intro {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
         text-align: center;
-        padding: 3rem 2rem;
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        border-radius: 16px;
-        margin: 3rem 0;
     }
 
-    .cta-section h2 {
-        font-size: 2rem;
+    .directory-intro p {
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    .businesses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .business-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.15s;
+    }
+
+    .business-card:hover {
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+    }
+
+    .business-card h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #e2e8f0;
+    }
+
+    .business-card p {
+        color: #94a3b8;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .business-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #334155;
+    }
+
+    .trust-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.85rem;
+        color: #fbbf24;
+    }
+
+    .category-tag {
+        font-size: 0.75rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Advertising CTA Section */
+    .advertising-cta {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 16px;
+        padding: 2.5rem;
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .advertising-cta h2 {
+        font-size: 1.75rem;
         font-weight: 600;
         margin-bottom: 1rem;
         color: #e2e8f0;
     }
 
-    .cta-section p {
+    .advertising-cta p {
         color: #94a3b8;
-        font-size: 1.125rem;
-        max-width: 600px;
-        margin: 0 auto 2rem auto;
+        font-size: 1rem;
+        line-height: 1.7;
+        max-width: 700px;
+        margin: 0 auto 1.5rem auto;
+    }
+
+    .advertising-cta .highlight {
+        color: #f59e0b;
+        font-weight: 600;
     }
 
     .cta-buttons {
@@ -393,55 +265,67 @@
         flex-wrap: wrap;
     }
 
-    .cta-button {
-        display: inline-block;
-        padding: 1rem 2rem;
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
         border-radius: 8px;
-        font-weight: 600;
+        font-size: 0.9375rem;
+        font-weight: 500;
         text-decoration: none;
+        cursor: pointer;
+        border: none;
         transition: all 0.15s;
     }
 
-    .cta-button.primary {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-        color: #fff;
+    .btn-primary {
+        background: #f59e0b;
+        color: #000;
     }
 
-    .cta-button.primary:hover {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        transform: translateY(-2px);
+    .btn-primary:hover {
+        background: #d97706;
     }
 
-    .cta-button.secondary {
+    .btn-secondary {
         background: transparent;
         color: #94a3b8;
         border: 1px solid #334155;
     }
 
-    .cta-button.secondary:hover {
+    .btn-secondary:hover {
         border-color: #3b82f6;
         color: #fff;
     }
 
-    /* Responsive */
+    .btn-success {
+        background: #22c55e;
+        color: #000;
+    }
+
+    .btn-success:hover {
+        background: #16a34a;
+    }
+
     @media (max-width: 768px) {
+        .business-page {
+            padding: 1rem;
+        }
+
         .business-header h1 {
-            font-size: 2rem;
+            font-size: 1.75rem;
         }
 
-        .tiers-grid {
+        .analogy-grid {
             grid-template-columns: 1fr;
-        }
-
-        .tier-card.featured::before {
-            display: none;
         }
 
         .cta-buttons {
             flex-direction: column;
         }
 
-        .cta-button {
+        .btn {
             width: 100%;
         }
     }
@@ -452,201 +336,141 @@
 <div class="business-page">
     <!-- Header -->
     <div class="business-header">
-        <h1>🚀 Business Ecosystem</h1>
-        <p>Where ethical creators, small teams, and enterprise partners all thrive—without selling their souls.</p>
+        <h1>🤝 Business Directory</h1>
+        <p>A voluntary rolodex for ethical businesses in the modding and gaming community.</p>
     </div>
 
-    <!-- Value Proposition -->
-    <div class="value-prop">
-        <h2>Actually Free. No Catch.</h2>
+    <!-- Game Analogy: Business is Like Modding -->
+    <div class="game-analogy-section">
+        <h2>🎮 Business is Like Building a Mod List</h2>
         <p>
-            This tool is free. Forever. No paywalls. No premium tiers. No "upgrade to unlock."
-            We make money from optional advertising in the Shopping tab. That's it.
+            If you've ever balanced a load order, you understand business. 
+            Same skills. Same tradeoffs. Same satisfaction when it all clicks.
         </p>
-        <p>
-            <strong>For businesses:</strong> List your business free. Forever. No catch.
-            Want to advertise? Optional. $5 per 1,000 clicks. First month free.
-        </p>
-        <p>
-            Here's the thing: if your product is good and people click your ads enough,
-            you might not even need to pay much. The community carries you.
-            We give a shit about our sponsors because they bring our user base free material.
-            This isn't a business. It's a resource.
-        </p>
-        <p style="font-size: 0.9rem; color: #64748b; margin-top: 1.5rem;">
-            P.S. — We all get our games in "various ways." But server costs don't care about your
-            "special discount." Support our sponsors if you can. Use it free if you can't.
-            No guilt. No nagging. No bullshit. 🍯
-        </p>
-    </div>
-
-    <!-- Three Tiers -->
-    <div class="tiers-grid">
-        <!-- Free Tier -->
-        <div class="tier-card">
-            <span class="tier-badge free">Free Forever</span>
-            <h3>Directory Listing</h3>
-            <div class="tier-price">$0 <span>/ forever</span></div>
-            <p class="tier-description">
-                For solo creators, mod authors, and small teams. 
-                Free forever. No catch. No credit card.
-            </p>
-            <ul class="tier-features">
-                <li>Free directory listing (forever)</li>
-                <li>Trust score (starts at 50, grows with activity)</li>
-                <li>B2B connection requests</li>
-                <li>Education hub access</li>
-                <li>Community verification badges</li>
-                <li>Basic analytics (profile views, clicks)</li>
-            </ul>
-            <a href="/business/join" class="tier-cta secondary">List Free →</a>
-        </div>
-
-        <!-- Advertising Tier -->
-        <div class="tier-card featured">
-            <span class="tier-badge advertising">Optional</span>
-            <h3>Advertising</h3>
-            <div class="tier-price">$5 <span>/ 1,000 clicks</span></div>
-            <p class="tier-description">
-                Optional. First month FREE. Pay only for clicks.
-                If the community loves you, you might not pay much.
-            </p>
-            <ul class="tier-features">
-                <li>Everything in Free tier</li>
-                <li>Ad campaigns in Shopping section</li>
-                <li>First month FREE (automatic)</li>
-                <li>$5 CPM (fraud-protected)</li>
-                <li>Performance dashboard</li>
-                <li>Category targeting</li>
-                <li>Creative rotation (A/B testing)</li>
-                <li>Community ranking (trust + CTR)</li>
-            </ul>
-            <a href="/shopping/" class="tier-cta primary">Start Advertising →</a>
-        </div>
-
-        <!-- Community Partner Tier -->
-        <div class="tier-card">
-            <span class="tier-badge partner">Earned, Not Bought</span>
-            <h3>Community Partner</h3>
-            <div class="tier-price">Application <span> only</span></div>
-            <p class="tier-description">
-                For businesses the community genuinely loves. 
-                Application only. Limited spots. Not for sale.
-            </p>
-            <ul class="tier-features">
-                <li>Everything in Advertising tier</li>
-                <li>"Community Partner" badge (earned)</li>
-                <li>Premium directory placement</li>
-                <li>Featured in newsletter (50k+ subs)</li>
-                <li>Co-marketing opportunities</li>
-                <li>Direct line to founder</li>
-                <li>Quarterly business reviews</li>
-                <li>Custom integrations (API access)</li>
-            </ul>
-            <a href="/business/partner" class="tier-cta purple">Apply (Coming Soon) →</a>
-        </div>
-    </div>
-
-    <!-- For Who Section -->
-    <div class="audience-section">
-        <h2>Who This Is For</h2>
-        <div class="audience-grid">
-            <!-- Solo Creator -->
-            <div class="audience-card">
-                <h3>👤 The Solo Creator</h3>
-                <p class="persona">Alex, 28, mod author with small Patreon</p>
-                <ul>
-                    <li>Makes mods as passion project</li>
-                    <li>Wants ethical monetization</li>
-                    <li>Overwhelmed by business stuff</li>
-                    <li>Budget: $0-50/mo</li>
-                </ul>
-                <p style="color: #22c55e; font-size: 0.9rem; margin-top: 1rem;">
-                    ✅ Start with Free Directory
-                </p>
+        
+        <div class="analogy-grid">
+            <div class="analogy-card">
+                <h3>📦 Supply Chain = Mod Dependencies</h3>
+                <p>You already map mod dependencies and resolve conflicts. That's supply chain management. Same logic applies to sourcing materials or partnering with other businesses.</p>
+                <p class="game-ref">Like ensuring your armor mod doesn't conflict with your weapon overhaul.</p>
             </div>
 
-            <!-- Small Team -->
-            <div class="audience-card">
-                <h3>👥 The Small Team</h3>
-                <p class="persona">Sarah + 3 friends, tool developers</p>
-                <ul>
-                    <li>Built popular modding tool</li>
-                    <li>Revenue: $2k-10k/mo</li>
-                    <li>Ready to scale</li>
-                    <li>Needs professional presence</li>
-                </ul>
-                <p style="color: #3b82f6; font-size: 0.9rem; margin-top: 1rem;">
-                    ✅ Advertising Tier ($5 CPM)
-                </p>
+            <div class="analogy-card">
+                <h3>💰 Budget = Mod Limit</h3>
+                <p>You have 254 plugin slots. You prioritize what matters. That's capital allocation. Every business makes the same call with money instead of slots.</p>
+                <p class="game-ref">Like choosing between 10 small mods or 2 massive overhauls.</p>
             </div>
 
-            <!-- Enterprise -->
-            <div class="audience-card">
-                <h3>🏢 The Enterprise Partner</h3>
-                <p class="persona">Mike, marketing at gaming hardware co</p>
-                <ul>
-                    <li>Established company ($1M+ revenue)</li>
-                    <li>Has marketing budget</li>
-                    <li>Needs ROI tracking</li>
-                    <li>Wants community trust</li>
-                </ul>
-                <p style="color: #8b5cf6; font-size: 0.9rem; margin-top: 1rem;">
-                    ✅ Verified Partner ($500/mo)
-                </p>
+            <div class="analogy-card">
+                <h3>🤝 Partnerships = Mod Compatibility Patches</h3>
+                <p>You use patches to make mods work together. Business partnerships are the same—finding complementary businesses and making them work smoothly.</p>
+                <p class="game-ref">Like the patch that lets your combat and armor mods play nice.</p>
+            </div>
+
+            <div class="analogy-card">
+                <h3>📈 Growth = Adding Mods Gradually</h3>
+                <p>You don't install 200 mods at once. You add, test, stabilize. Business growth is identical—scale what works, fix what breaks.</p>
+                <p class="game-ref">Like testing your load order after every 10 new mods.</p>
             </div>
         </div>
     </div>
 
-    <!-- Ethical Standards -->
-    <div class="ethics-section">
-        <h2>🛡️ Ethical Standards</h2>
-        <p style="color: #94a3b8; margin-bottom: 2rem;">
-            Every business in our ecosystem—free or paid—must meet our ethical standards. 
-            No exceptions. We'd rather have 10 ethical businesses than 100 extractive ones.
-        </p>
-        <div class="ethics-grid">
-            <!-- What We Accept -->
-            <div class="ethics-card accept">
-                <h3>✅ What We Accept</h3>
-                <ul>
-                    <li>Modding tools & software</li>
-                    <li>Gaming hardware (peripherals, components)</li>
-                    <li>Indie game studios (Bethesda-style RPGs)</li>
-                    <li>Creative software (3D modeling, textures)</li>
-                    <li>Education platforms (programming, modding)</li>
-                    <li>Environmental/ethical tech companies</li>
-                </ul>
+    <!-- Education Hub: Business Guides -->
+    <div class="education-section">
+        <div class="section-header">
+            <h2>📚 Business Guides</h2>
+        </div>
+
+        <div class="education-grid">
+            <div class="education-card">
+                <span class="difficulty-badge difficulty-beginner">Beginner</span>
+                <h3>🌱 Getting Started</h3>
+                <p>Like starting Survival Mode—punch trees, gather basics. Lean methodology, market validation, legal setup, finances, branding.</p>
+                <a href="/business/hub/getting_started" class="btn btn-secondary" style="width: 100%;">Start Here →</a>
             </div>
 
-            <!-- What We Reject -->
-            <div class="ethics-card reject">
-                <h3>❌ What We Reject</h3>
-                <ul>
-                    <li>Crypto/NFT projects</li>
-                    <li>Gambling (or adjacent)</li>
-                    <li>Auto-install software (malware, PUPs)</li>
-                    <li>Subscription traps (hidden charges)</li>
-                    <li>Surveillance tech (spyware, keyloggers)</li>
-                    <li>Known fraud operations</li>
-                </ul>
+            <div class="education-card">
+                <span class="difficulty-badge difficulty-intermediate">Intermediate</span>
+                <h3>🤝 Building Community</h3>
+                <p>Like building a settlement in Fallout 4—establish trade routes and alliances. Customer acquisition, content marketing, partnerships.</p>
+                <a href="/business/hub/building_community" class="btn btn-secondary" style="width: 100%;">Level Up →</a>
+            </div>
+
+            <div class="education-card">
+                <span class="difficulty-badge difficulty-intermediate">Intermediate</span>
+                <h3>📊 Metrics That Matter</h3>
+                <p>Like analyzing your load order—track what drives real progress. Financial statements, KPIs, cash flow, unit economics.</p>
+                <a href="/business/hub/metrics" class="btn btn-secondary" style="width: 100%;">Optimize →</a>
+            </div>
+
+            <div class="education-card">
+                <span class="difficulty-badge difficulty-advanced">Advanced</span>
+                <h3>🔬 Advanced Strategy</h3>
+                <p>Like modding epic quests—scale to impose positive will on the world. Scaling, hiring, funding, acquisitions, legacy building.</p>
+                <a href="/business/hub/advanced_strategy" class="btn btn-secondary" style="width: 100%;">Master →</a>
             </div>
         </div>
+
         <div style="text-align: center; margin-top: 2rem;">
-            <a href="/sponsors/charter" style="color: #3b82f6; text-decoration: none; font-weight: 600;">
-                Read Full Ethical Charter →
-            </a>
+            <a href="/business/hub/external_resources" class="btn btn-secondary">🔗 Browse External Resources →</a>
         </div>
     </div>
 
-    <!-- Final CTA -->
-    <div class="cta-section">
-        <h2>Ready to Join?</h2>
-        <p>Whether you're a solo creator or enterprise partner, there's a place for you here.</p>
+    <!-- Directory: Partnership Rolodex -->
+    <div class="directory-section">
+        <div class="section-header">
+            <h2>📖 Partnership Rolodex</h2>
+            <a href="/business/directory" class="btn btn-secondary">Browse All →</a>
+        </div>
+
+        <div class="directory-intro">
+            <p>
+                Free to join. No catch. List your business and connect with potential partners—
+                from solo mod authors to established studios.
+            </p>
+        </div>
+
+        {% if featured %}
+        <div class="businesses-grid">
+            {% for biz in featured %}
+            <div class="business-card">
+                <div class="business-meta">
+                    <span class="category-tag">{{ biz.category or 'General' }}</span>
+                    <span class="trust-badge">⭐ {{ biz.trust_score or 'New' }}</span>
+                </div>
+                <h3>{{ biz.name }}</h3>
+                <p>{{ biz.description or 'No description provided.' }}</p>
+                <div class="business-actions">
+                    <a href="/business/directory/{{ biz.slug }}" class="btn btn-secondary" style="flex: 1;">View Profile</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: #64748b;">
+            <h3>No businesses listed yet</h3>
+            <p>Be the first to join and get discovered!</p>
+        </div>
+        {% endif %}
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/business/join" class="btn btn-success">List Your Business Free →</a>
+        </div>
+    </div>
+
+    <!-- Advertising CTA: Simple & Non-Intrusive -->
+    <div class="advertising-cta">
+        <h2>📢 Want to Advertise?</h2>
+        <p>
+            Get your products featured in our <a href="/shopping/" class="highlight">Shopping section</a>. 
+            Free directory listing included. Advertising is optional—$5 per 1,000 clicks, first month free.
+        </p>
+        <p style="font-size: 0.9rem; color: #64748b;">
+            Plus: You'll get access to our <strong>Universal Ad Builder</strong>—a complete tool to create and manage ads anywhere, not just on our site.
+        </p>
         <div class="cta-buttons">
-            <a href="/business/join" class="cta-button primary">List Free (Forever)</a>
-            <a href="/shopping/" class="cta-button secondary">Start Advertising ($5 CPM)</a>
-            <a href="/business/directory" class="cta-button secondary">Browse Directory</a>
+            <a href="/business/join" class="btn btn-success">Join Directory Free</a>
+            <a href="/business/join?advertising=true" class="btn btn-primary">Learn About Advertising</a>
         </div>
     </div>
 </div>

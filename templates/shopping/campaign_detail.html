@@ -427,12 +427,13 @@ async function toggleCreative(creativeId, action) {
         const result = await response.json();
 
         if (result.success) {
+            showSuccess('Creative ' + action + ' successfully!');
             location.reload();
         } else {
-            alert('Failed to ' + action + ' creative');
+            showError('Failed to ' + action + ' creative: ' + (result.error || 'Unknown error'));
         }
     } catch (e) {
-        alert('Failed to ' + action + ' creative');
+        showError('Failed to ' + action + ' creative: ' + e.message);
     }
 }
 </script>

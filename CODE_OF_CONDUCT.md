@@ -103,7 +103,7 @@ Community leaders will follow these Community Impact Guidelines in determining t
 If you experience or witness unacceptable behavior, you can report it by:
 
 - **Discord:** DM a moderator with `@` in their name
-- **Email:** conduct@skymodderai.example (replace with real email)
+- **Email:** conduct@skymodderai.com (replace with real email)
 - **GitHub:** Private message a maintainer
 
 ### What to Include

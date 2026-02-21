@@ -288,7 +288,7 @@ def run_weekly_report():
     """
     Weekly self-improvement report (Mondays 3 AM UTC).
 
-    Sends email to chris@skymoddereai.com with:
+    Sends email to chris@skymodderai.com with:
     - What worked well
     - What broke / needs improvement
     - System optimization suggestions
@@ -309,7 +309,7 @@ def run_weekly_report():
         logger.info(
             f"Weekly report completed in {(datetime.now() - start_time).total_seconds():.2f}s"
         )
-        logger.info("Report sent to chris@skymoddereai.com")
+        logger.info("Report sent to chris@skymodderai.com")
 
     except Exception as e:
         logger.exception(f"Weekly report job failed: {e}")
@@ -440,7 +440,7 @@ def send_weekly_email(report: dict[str, Any]):
         msg = MIMEMultipart("alternative")
         msg["Subject"] = f"SkyModderAI Weekly Report - {datetime.now().strftime('%Y-%m-%d')}"
         msg["From"] = smtp_user
-        msg["To"] = "chris@skymoddereai.com"
+        msg["To"] = "chris@skymodderai.com"
 
         # Build HTML content
         html = build_weekly_report_html(report)

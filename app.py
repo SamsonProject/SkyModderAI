@@ -33,6 +33,7 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_from_directory,
     session,
     url_for,
 )
@@ -106,16 +107,22 @@ from system_impact import (
 from transparency_service import complete_analysis, start_analysis
 from walkthrough_manager import WalkthroughManager
 
-
 # -------------------------------------------------------------------
 # Game Version Helpers (Replaces game_versions.py dependency)
 # -------------------------------------------------------------------
+_GAME_VERSIONS_CACHE = None
+
+
 def _load_game_versions_data() -> dict[str, Any]:
     """Load game versions from JSON file."""
+    global _GAME_VERSIONS_CACHE
+    if _GAME_VERSIONS_CACHE is not None:
+        return _GAME_VERSIONS_CACHE
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "game_versions.json")
     try:
         with open(path) as f:
-            return json.load(f)  # type: ignore[no-any-return]
+            _GAME_VERSIONS_CACHE = json.load(f)
+            return _GAME_VERSIONS_CACHE  # type: ignore[no-any-return]
     except Exception as e:
         logger.error(f"Failed to load game versions: {e}")
         return {}
@@ -376,6 +383,19 @@ if os.environ.get("FLASK_ENV") == "production":
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
 
 
+# Initialize database connection for each request (required for db.py get_db())
+@app.before_request
+def init_db_connection():
+    """Initialize database connection for the request."""
+    from flask import g
+
+    if "db" not in g:
+        import sqlite3
+
+        g.db = sqlite3.connect(DB_FILE)
+        g.db.row_factory = sqlite3.Row
+
+
 # Data file check on startup (Priority 4B)
 @app.before_request
 def check_data_ready():
@@ -476,9 +496,7 @@ OPENCLAW_DENY_SEGMENTS = frozenset(
         ".gnupg",
     }
 )
-OFFLINE_MODE = os.environ.get(
-    "SKYMODDERAI_OFFLINE_MODE", os.environ.get("MODCHECK_OFFLINE_MODE", "")
-).lower() in ("1", "true", "yes")
+OFFLINE_MODE = os.environ.get("SKYMODDERAI_OFFLINE_MODE", "").lower() in ("1", "true", "yes")
 PAID_TIERS = frozenset({"pro", "pro_plus", "claw"})
 
 # -------------------------------------------------------------------
@@ -985,30 +1003,19 @@ def get_user_tier(email):
         return "free"
     # Dev/testing: treat logged-in user as Pro with full features including AI (only when not in production)
     if not _in_production:
-        dev_pro = os.environ.get(
-            "SKYMODDERAI_DEV_PRO", os.environ.get("MODCHECK_DEV_PRO", "")
-        ).lower() in ("1", "true", "yes")
-        dev_pro_plus = os.environ.get(
-            "SKYMODDERAI_DEV_PRO_PLUS", os.environ.get("MODCHECK_DEV_PRO_PLUS", "")
-        ).lower() in ("1", "true", "yes")
-        dev_openclaw = os.environ.get(
-            "SKYMODDERAI_DEV_OPENCLAW", os.environ.get("MODCHECK_DEV_OPENCLAW", "")
-        ).lower() in ("1", "true", "yes")
-        test_email = (
-            os.environ.get(
-                "SKYMODDERAI_TEST_PRO_EMAIL", os.environ.get("MODCHECK_TEST_PRO_EMAIL", "")
-            )
-            .strip()
-            .lower()
+        dev_pro = os.environ.get("SKYMODDERAI_DEV_PRO", "").lower() in ("1", "true", "yes")
+        dev_pro_plus = os.environ.get("SKYMODDERAI_DEV_PRO_PLUS", "").lower() in (
+            "1",
+            "true",
+            "yes",
         )
-        test_openclaw_email = (
-            os.environ.get(
-                "SKYMODDERAI_TEST_OPENCLAW_EMAIL",
-                os.environ.get("MODCHECK_TEST_OPENCLAW_EMAIL", ""),
-            )
-            .strip()
-            .lower()
+        dev_openclaw = os.environ.get("SKYMODDERAI_DEV_OPENCLAW", "").lower() in (
+            "1",
+            "true",
+            "yes",
         )
+        test_email = os.environ.get("SKYMODDERAI_TEST_PRO_EMAIL", "").strip().lower()
+        test_openclaw_email = os.environ.get("SKYMODDERAI_TEST_OPENCLAW_EMAIL", "").strip().lower()
         if dev_openclaw or (test_openclaw_email and email.lower() == test_openclaw_email):
             return "claw"
         if dev_pro or dev_pro_plus or (test_email and email.lower() == test_email):
@@ -1800,12 +1807,30 @@ def load_session_from_cookie():
 # -------------------------------------------------------------------
 @app.after_request
 def add_security_headers(response):
-    """Add security headers. CSP is permissive to allow CDNs (marked, fonts)."""
+    """Add security headers including CSP."""
     if _in_production:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+        # Content Security Policy
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src https://fonts.gstatic.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' https://api.stripe.com; "
+            "frame-ancestors 'none';"
+        )
+
+        # HSTS (force HTTPS for 1 year)
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+        # Permissions Policy
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+
     return response
 
 
@@ -2106,6 +2131,12 @@ def index():
     )
 
 
+@app.route("/vision")
+def vision():
+    """The Unreasonable Vision page."""
+    return render_template("vision.html")
+
+
 @app.route("/terms")
 def terms():
     """Public terms of service page."""
@@ -2130,6 +2161,96 @@ def safety():
     return render_template("safety.html")
 
 
+@app.route("/openclaw")
+def openclaw_page():
+    """OpenCLAW - Under Construction."""
+    return render_template(
+        "under_construction.html",
+        feature="OpenCLAW",
+        description="Autonomous modding assistant",
+        expected="Coming soon",
+    )
+
+
+@app.route("/robots.txt")
+def robots():
+    """Serve robots.txt for SEO."""
+    return send_from_directory(app.static_folder, "robots.txt")
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    """Generate sitemap.xml for SEO."""
+    from datetime import datetime, timezone
+
+    # Static pages
+    static_pages = [
+        {"loc": "/", "priority": "1.0", "changefreq": "daily"},
+        {"loc": "/business", "priority": "0.9", "changefreq": "weekly"},
+        {"loc": "/business/directory", "priority": "0.8", "changefreq": "daily"},
+        {"loc": "/shopping", "priority": "0.8", "changefreq": "daily"},
+        {"loc": "/community", "priority": "0.8", "changefreq": "hourly"},
+        {"loc": "/api", "priority": "0.7", "changefreq": "monthly"},
+        {"loc": "/terms", "priority": "0.5", "changefreq": "monthly"},
+        {"loc": "/privacy", "priority": "0.5", "changefreq": "monthly"},
+        {"loc": "/safety", "priority": "0.5", "changefreq": "monthly"},
+    ]
+
+    # Get dynamic pages from database
+    try:
+        db = get_db()
+
+        # Community posts
+        posts = db.execute("""
+            SELECT id, created_at FROM community_posts
+            WHERE moderated = 0
+            ORDER BY created_at DESC
+            LIMIT 100
+        """).fetchall()
+
+        for post in posts:
+            static_pages.append(
+                {"loc": f"/community#{post['id']}", "priority": "0.6", "changefreq": "weekly"}
+            )
+
+        # Business profiles
+        businesses = db.execute("""
+            SELECT slug FROM businesses
+            WHERE status = 'active'
+            LIMIT 100
+        """).fetchall()
+
+        for biz in businesses:
+            static_pages.append(
+                {
+                    "loc": f"/business/directory/{biz['slug']}",
+                    "priority": "0.7",
+                    "changefreq": "weekly",
+                }
+            )
+
+    except Exception as e:
+        logger.error(f"Sitemap generation error: {e}")
+
+    # Generate XML
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    for page in static_pages:
+        xml += "  <url>\n"
+        xml += f"    <loc>https://skymodderai.com{page['loc']}</loc>\n"
+        xml += f"    <lastmod>{now}</lastmod>\n"
+        xml += f"    <changefreq>{page.get('changefreq', 'monthly')}</changefreq>\n"
+        xml += f"    <priority>{page.get('priority', '0.5')}</priority>\n"
+        xml += "  </url>\n"
+
+    xml += "</urlset>"
+
+    return app.response_class(response=xml, mimetype="application/xml")
+
+
 @app.route("/api")
 def api_hub():
     """Human-readable API hub for developers and search indexing."""
@@ -2139,14 +2260,10 @@ def api_hub():
 @app.route("/auth")
 def auth():
     """Combined login + signup page, side by side."""
-    active = request.args.get("tab", "login")
-    if active not in ("login", "signup"):
-        active = "login"
     return render_template(
         "auth.html",
         google_oauth_enabled=GOOGLE_OAUTH_ENABLED,
         github_oauth_enabled=GITHUB_OAUTH_ENABLED,
-        active=active,
     )
 
 
@@ -3056,7 +3173,6 @@ def _ai_generate_setups(game, preferences, nexus_slug, parser, limit=3, specs=No
         if json_match:
             setups = json.loads(json_match.group())
             nexus_base = f"https://www.nexusmods.com/games/{nexus_slug}/mods?keyword="
-            from urllib.parse import quote
 
             for s in setups[:limit]:
                 mods = s.get("mods") or []
@@ -4407,10 +4523,11 @@ def analyze_mods():
         masterlist_version = (data.get("masterlist_version") or "").strip() or "latest"
         game_version = (data.get("game_version") or "").strip()
         try:
-            active_parser = get_parser(game, version=masterlist_version)
+            active_parser = LOOTParser(game_id=game)
+            active_parser.download_masterlist()
         except Exception as e:
             logger.warning(f"Parser for {game} failed: {e}, using default")
-            active_parser = parser
+            active_parser = LOOTParser(game_id=DEFAULT_GAME)
 
         nexus_slug = NEXUS_GAME_SLUGS.get(game, "skyrimspecialedition")
         detector = ConflictDetector(active_parser, nexus_slug=nexus_slug)
@@ -4700,9 +4817,10 @@ def api_v1_analyze():
         game = game_raw if game_raw in allowed_ids else DEFAULT_GAME
         masterlist_version = (data.get("masterlist_version") or "").strip() or "latest"
         try:
-            active_parser = get_parser(game, version=masterlist_version)
+            active_parser = LOOTParser(game_id=game)
+            active_parser.download_masterlist()
         except Exception:
-            active_parser = parser
+            active_parser = LOOTParser(game_id=DEFAULT_GAME)
         nexus_slug = NEXUS_GAME_SLUGS.get(game, "skyrimspecialedition")
         detector = ConflictDetector(active_parser, nexus_slug=nexus_slug)
         detector.analyze_load_order(mods)
@@ -4936,7 +5054,7 @@ def _get_deep_mod_context(game, message, user_mod_list):
     mentioned = set()
     msg_lower = message.lower()
 
-    # Check user's active list
+    # Check user's active
     for m in user_mod_list:
         if m.lower() in msg_lower:
             mentioned.add(m)
@@ -5557,7 +5675,7 @@ def api_activity_track():
 @app.route("/api/sponsors", methods=["GET"])
 def api_get_sponsors():
     """
-    Get active sponsors for the Shopping tab.
+    Get active
     Max 6 sponsors returned. Static rotation only — no contextual targeting.
     Optional: ?category=tools or ?category=merch
     """
@@ -5566,7 +5684,7 @@ def api_get_sponsors():
     category = request.args.get("category", "").strip()
     sponsor_service = get_sponsor_service()
 
-    # Get ranked active sponsors (max 6)
+    # Get ranked active
     sponsors = sponsor_service.get_ranked_sponsors(category=category if category else None, limit=6)
 
     result = []
@@ -5627,11 +5745,14 @@ def admin_sponsors():
 
     # Check admin access (simplified — integrate with your auth system)
     if "user_email" not in session:
-        return redirect(url_for("auth.login", next="/admin/sponsors"))
+        return redirect(url_for("login", next="/admin/sponsors"))
 
-    # TODO: Add admin role check here
-    # if not is_admin(session.get("user_email")):
-    #     return abort(403)
+    # Admin role check via env var
+    admin_emails = [
+        e.strip().lower() for e in os.environ.get("ADMIN_EMAILS", "").split(",") if e.strip()
+    ]
+    if session["user_email"].lower() not in admin_emails:
+        return redirect(url_for("index"))
 
     sponsor_service = get_sponsor_service()
     sponsors = sponsor_service.get_all_sponsors()
@@ -6020,6 +6141,451 @@ def api_community_builds_stats():
         return api_error("Could not load stats.", 500)
 
 
+# =============================================================================
+# Compatibility Database API - SkyModderAI's MOAT
+# =============================================================================
+
+
+@app.route("/api/compatibility/check", methods=["GET"])
+def api_compatibility_check():
+    """
+    Check compatibility between two mods.
+
+    Query params:
+    - mod_a: First mod name (required)
+    - mod_b: Second mod name (required)
+    - game: Game ID (skyrimse, fallout4, etc.) (required)
+
+    Returns:
+    {
+        "status": "compatible" | "incompatible" | "needs_patch" | "unknown",
+        "confidence": 0.0-1.0,
+        "reports": [...],
+        "total_reports": int
+    }
+    """
+    try:
+        mod_a = request.args.get("mod_a", "").strip()
+        mod_b = request.args.get("mod_b", "").strip()
+        game = request.args.get("game", "").strip().lower()
+
+        if not mod_a or not mod_b or not game:
+            return api_error("Missing mod_a, mod_b, or game parameter.", 400)
+
+        from compatibility_service import get_compatibility_service
+
+        service = get_compatibility_service()
+        result = service.get_compatibility_status(mod_a, mod_b, game)
+
+        # Track for Samson telemetry (anonymized)
+        from samson_telemetry import get_telemetry_service
+
+        telemetry = get_telemetry_service()
+        telemetry.track_compatibility_interaction(
+            mod_a=mod_a,
+            mod_b=mod_b,
+            game=game,
+            action="check",
+            outcome=result.get("status"),
+            user_email=session.get("user_email"),
+        )
+
+        return jsonify(
+            {
+                "success": True,
+                "mod_a": mod_a,
+                "mod_b": mod_b,
+                "game": game,
+                **result,
+            }
+        )
+
+    except Exception as e:
+        logger.exception("Compatibility check error: %s", e)
+        return api_error("Could not check compatibility.", 500)
+
+
+@app.route("/api/compatibility/report", methods=["POST"])
+def api_compatibility_report():
+    """
+    Submit a compatibility report between two mods.
+
+    Requires authentication.
+
+    Body:
+    - mod_a: First mod name (required)
+    - mod_b: Second mod name (required)
+    - game: Game ID (required)
+    - status: "compatible" | "incompatible" | "needs_patch" (required)
+    - description: User's description (optional)
+    """
+    try:
+        user_email = session.get("user_email")
+        if not user_email:
+            return api_error("Authentication required.", 401)
+
+        data = request.get_json() or {}
+        mod_a = data.get("mod_a", "").strip()
+        mod_b = data.get("mod_b", "").strip()
+        game = data.get("game", "").strip().lower()
+        status = data.get("status", "").strip()
+        description = data.get("description", "").strip()
+
+        if not mod_a or not mod_b or not game:
+            return api_error("Missing mod_a, mod_b, or game.", 400)
+
+        if status not in ("compatible", "incompatible", "needs_patch"):
+            return api_error("Status must be 'compatible', 'incompatible', or 'needs_patch'.", 400)
+
+        from compatibility_service import get_compatibility_service
+
+        service = get_compatibility_service()
+        report_id = service.submit_compatibility_report(
+            mod_a=mod_a,
+            mod_b=mod_b,
+            game=game,
+            status=status,
+            description=description,
+            user_email=user_email,
+        )
+
+        if not report_id:
+            return api_error("Failed to submit report.", 500)
+
+        return jsonify(
+            {
+                "success": True,
+                "report_id": report_id,
+                "message": "Compatibility report submitted.",
+            }
+        )
+
+    except Exception as e:
+        logger.exception("Compatibility report error: %s", e)
+        return api_error("Could not submit report.", 500)
+
+
+@app.route("/api/compatibility/report/<int:report_id>/vote", methods=["POST"])
+def api_compatibility_vote(report_id):
+    """
+    Vote on a compatibility report.
+
+    Requires authentication.
+
+    Body:
+    - vote: 1 for upvote, -1 for downvote (required)
+    """
+    try:
+        user_email = session.get("user_email")
+        if not user_email:
+            return api_error("Authentication required.", 401)
+
+        data = request.get_json() or {}
+        vote = data.get("vote", 0)
+
+        if vote not in (1, -1):
+            return api_error("Vote must be 1 (upvote) or -1 (downvote).", 400)
+
+        from compatibility_service import get_compatibility_service
+
+        service = get_compatibility_service()
+        success = service.vote_report(report_id, user_email, vote)
+
+        if not success:
+            return api_error("Failed to record vote.", 500)
+
+        return jsonify(
+            {
+                "success": True,
+                "message": "Vote recorded.",
+            }
+        )
+
+    except Exception as e:
+        logger.exception("Compatibility vote error: %s", e)
+        return api_error("Could not record vote.", 500)
+
+
+@app.route("/api/compatibility/search", methods=["GET"])
+def api_compatibility_search():
+    """
+    Search compatibility reports by mod name.
+
+    Query params:
+    - q: Search query (mod name) (required)
+    - game: Filter by game (optional)
+    - limit: Max results (default 20)
+
+    Returns list of mod pairs with compatibility status.
+    """
+    try:
+        query = request.args.get("q", "").strip()
+        game = request.args.get("game", "").strip().lower()
+        limit = min(int(request.args.get("limit", 20)), 100)
+
+        if not query:
+            return api_error("Missing search query (q).", 400)
+
+        from compatibility_service import get_compatibility_service
+
+        service = get_compatibility_service()
+        results = service.search_compatibility(query, game if game else None, limit)
+
+        return jsonify(
+            {
+                "success": True,
+                "query": query,
+                "results": results,
+            }
+        )
+
+    except Exception as e:
+        logger.exception("Compatibility search error: %s", e)
+        return api_error("Could not search compatibility.", 500)
+
+
+@app.route("/api/load-orders", methods=["GET"])
+def api_load_orders():
+    """
+    Get shared load orders.
+
+    Query params:
+    - game: Filter by game (optional)
+    - sort: "top" | "new" | "downloads" (default: top)
+    - limit: Max results (default 50)
+    - offset: Pagination offset (default 0)
+    """
+    try:
+        game = request.args.get("game", "").strip().lower()
+        sort = request.args.get("sort", "top")
+        limit = min(int(request.args.get("limit", 50)), 100)
+        offset = max(0, int(request.args.get("offset", 0)))
+
+        from compatibility_service import get_compatibility_service
+
+        service = get_compatibility_service()
+        load_orders = service.get_shared_load_orders(
+            game=game if game else None,
+            limit=limit,
+            offset=offset,
+            sort=sort,
+        )
+
+        return jsonify(
+            {
+                "success": True,
+                "load_orders": load_orders,
+                "total": len(load_orders),
+            }
+        )
+
+    except Exception as e:
+        logger.exception("Load orders error: %s", e)
+        return api_error("Could not load orders.", 500)
+
+
+@app.route("/api/load-orders", methods=["POST"])
+def api_load_orders_share():
+    """
+    Share a load order with the community.
+
+    Requires authentication.
+
+    Body:
+    - name: Load order name (required)
+    - description: Description (optional)
+    - game: Game ID (required)
+    - mods: Array of mod names (required)
+    - load_order: Array of positions (required)
+    - game_version: Game version (optional)
+    - enb: ENB name (optional)
+    - screenshots: Array of screenshot URLs (optional)
+    """
+    try:
+        user_email = session.get("user_email")
+        if not user_email:
+            return api_error("Authentication required.", 401)
+
+        data = request.get_json() or {}
+        name = data.get("name", "").strip()
+        description = data.get("description", "").strip()
+        game = data.get("game", "").strip().lower()
+        mods = data.get("mods", [])
+        load_order = data.get("load_order", [])
+        game_version = data.get("game_version", "").strip()
+        enb = data.get("enb", "").strip()
+        screenshots = data.get("screenshots", [])
+
+        if not name or not game or not mods:
+            return api_error("Missing name, game, or mods.", 400)
+
+        from compatibility_service import get_compatibility_service
+
+        service = get_compatibility_service()
+        share_id = service.share_load_order(
+            name=name,
+            description=description,
+            game=game,
+            mods=mods,
+            load_order=load_order,
+            user_email=user_email,
+            game_version=game_version,
+            enb=enb,
+            screenshots=screenshots,
+        )
+
+        if not share_id:
+            return api_error("Failed to share load order.", 500)
+
+        # Track for Samson telemetry - this is a THRIVING proxy (user creating, not just consuming)
+        from samson_telemetry import get_telemetry_service
+
+        telemetry = get_telemetry_service()
+        telemetry.track_feature_usage(
+            feature="load_order_share",
+            game=game,
+            metadata={"mod_count": len(mods)},
+            user_email=user_email,
+        )
+        telemetry.track_wellness_proxy(
+            user_email=user_email,
+            proxy_type="thriving",
+            value=0.8,  # Sharing = high thriving
+            context=f"Shared load order: {name}",
+        )
+
+        return jsonify(
+            {
+                "success": True,
+                "share_id": share_id,
+                "message": "Load order shared with the community.",
+            }
+        )
+
+    except Exception as e:
+        logger.exception("Load order share error: %s", e)
+        return api_error("Could not share load order.", 500)
+
+
+# =============================================================================
+# Samson Telemetry API - Privacy-First Data Export
+# =============================================================================
+
+
+@app.route("/api/samson/telemetry/export", methods=["GET"])
+def api_telemetry_export():
+    """
+    Export all telemetry data for the authenticated user (GDPR compliance).
+
+    Returns complete data export including:
+    - Telemetry events (anonymized)
+    - Wellness proxies
+    - Timestamps
+
+    Users can verify what data is tracked and request deletion.
+    """
+    try:
+        user_email = session.get("user_email")
+        if not user_email:
+            return api_error("Authentication required.", 401)
+
+        from samson_telemetry import get_telemetry_service
+
+        telemetry = get_telemetry_service()
+        export_data = telemetry.export_user_data(user_email)
+
+        return jsonify(
+            {
+                "success": True,
+                "data": export_data,
+            }
+        )
+
+    except Exception as e:
+        logger.exception("Telemetry export error: %s", e)
+        return api_error("Could not export data.", 500)
+
+
+@app.route("/api/samson/telemetry/delete", methods=["POST"])
+def api_telemetry_delete():
+    """
+    Delete all telemetry data for the authenticated user (GDPR right to be forgotten).
+
+    Note: This does NOT delete compatibility reports or load order shares
+    that have been aggregated into community data. Those are anonymized
+    and cannot be traced back to individual users.
+    """
+    try:
+        user_email = session.get("user_email")
+        if not user_email:
+            return api_error("Authentication required.", 401)
+
+        from samson_telemetry import get_telemetry_service
+
+        telemetry = get_telemetry_service()
+        success = telemetry.delete_user_data(user_email)
+
+        if not success:
+            return api_error("Failed to delete data.", 500)
+
+        return jsonify(
+            {
+                "success": True,
+                "message": "Your telemetry data has been deleted.",
+            }
+        )
+
+    except Exception as e:
+        logger.exception("Telemetry delete error: %s", e)
+        return api_error("Could not delete data.", 500)
+
+
+@app.route("/api/samson/telemetry/aggregated", methods=["GET"])
+def api_telemetry_aggregated():
+    """
+    Get aggregated telemetry data (for Samson training reservoir).
+
+    This is anonymized, aggregated data that feeds The Samson Project.
+    No individual user data is exposed.
+
+    Query params:
+    - event_type: Filter by event type (optional)
+    - feature: Filter by feature (optional)
+    - days: Number of days to include (default 30)
+    """
+    try:
+        event_type = request.args.get("event_type", "").strip()
+        feature = request.args.get("feature", "").strip()
+        days = min(int(request.args.get("days", 30)), 365)
+
+        from datetime import datetime, timedelta, timezone
+
+        end_date = datetime.now(timezone.utc).timestamp()
+        start_date = end_date - (days * 24 * 60 * 60)
+
+        from samson_telemetry import get_telemetry_service
+
+        telemetry = get_telemetry_service()
+        aggregated = telemetry.get_aggregated_telemetry(
+            event_type=event_type if event_type else None,
+            feature=feature if feature else None,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+        return jsonify(
+            {
+                "success": True,
+                "period_days": days,
+                "data": aggregated,
+            }
+        )
+
+    except Exception as e:
+        logger.exception("Aggregated telemetry error: %s", e)
+        return api_error("Could not load aggregated data.", 500)
+
+
 @app.route("/api/openclaw/policy", methods=["GET"])
 def openclaw_policy():
     """Publish OpenClaw safety boundaries and legal warnings for the UI."""
@@ -6127,7 +6693,7 @@ def openclaw_request_access():
 @rate_limit(RATE_LIMIT_API, "openclaw")
 @login_required_api
 def openclaw_verify_grant():
-    """Verify active OpenClaw grant token before sensitive workflows."""
+    """Verify OpenCLAW grant token."""
     user_email = session.get("user_email")
     data = request.get_json() or {}
     ok, reason = _validate_openclaw_grant(data.get("grant_token") or "", user_email or "")
@@ -7542,7 +8108,9 @@ def openclaw_learning_compatibility():
                     else (
                         "neutral"
                         if score > 0.4
-                        else "conflict_likely" if score > 0.2 else "incompatible"
+                        else "conflict_likely"
+                        if score > 0.2
+                        else "incompatible"
                     )
                 )
             ),
@@ -7805,7 +8373,7 @@ app.register_blueprint(feedback_bp)
 app.register_blueprint(export_bp)
 app.register_blueprint(sponsors_bp)
 app.register_blueprint(business_bp)
-app.register_blueprint(shopping_bp)
+app.register_blueprint(shopping_bp, url_prefix="/shopping")
 
 logger.info("All blueprints registered")
 

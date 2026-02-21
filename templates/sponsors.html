@@ -678,7 +678,7 @@ function updateStars() {
 
 async function submitVote() {
     if (selectedVote < 1) {
-        alert('Please select a rating');
+        showToast('Please select a rating', 'warning');
         return;
     }
 
@@ -692,16 +692,16 @@ async function submitVote() {
         const result = await response.json();
 
         if (result.success) {
-            alert(`Thanks for voting! New score: ${result.score}/5 (${result.votes} votes)`);
+            showSuccess(`Thanks for voting! New score: ${result.score}/5 (${result.votes} votes)`);
             closeVoteModal();
             location.reload();
         } else if (result.error && result.error.includes('log in')) {
             window.location.href = '/login';
         } else {
-            alert(result.error || 'Vote failed');
+            showError(result.error || 'Vote failed');
         }
     } catch (e) {
-        alert('Vote failed. Please try again.');
+        showError('Vote failed. Please try again.');
     }
 }
 

@@ -16,6 +16,8 @@ import logging
 from datetime import datetime
 from typing import Any, Optional
 
+import requests
+
 from db import get_db_session
 from models import KnowledgeSource, SourceCredibility, UserActivity
 
@@ -582,7 +584,9 @@ def add_knowledge_source(session, knowledge: dict[str, Any], score) -> bool:
                 else (
                     "reddit"
                     if "reddit" in knowledge["source_url"]
-                    else "github" if "github" in knowledge["source_url"] else "unknown"
+                    else "github"
+                    if "github" in knowledge["source_url"]
+                    else "unknown"
                 )
             ),
             overall_score=score.overall_score,

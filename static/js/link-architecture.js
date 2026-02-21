@@ -485,7 +485,6 @@
             processTextWithLinks(container);
         });
 
-        console.log('✨ Floating Link Architecture initialized');
     }
 
     // Expose to global scope

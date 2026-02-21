@@ -291,7 +291,9 @@ class CommunityRepository:
         try:
             if existing:
                 # Update existing vote
-                query = "UPDATE community_votes SET vote_type = ? WHERE post_id = ? AND user_email = ?"
+                query = (
+                    "UPDATE community_votes SET vote_type = ? WHERE post_id = ? AND user_email = ?"
+                )
                 db.execute(query, (vote_type, post_id, user_email))
             else:
                 # Insert new vote

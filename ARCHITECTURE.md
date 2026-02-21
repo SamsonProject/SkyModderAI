@@ -1,582 +1,223 @@
-# SkyModderAI - System Architecture
+# SkyModderAI Architecture
 
-**Date:** February 20, 2026
-**Philosophy:** Local-first, smart linking, tool integration over reinvention
-
----
-
-## 🎯 Core Philosophy
-
-**What We Are:**
-> A smart orchestration layer between existing tools (LOOT, AI APIs) and modders who need fast, accurate conflict detection.
-
-**What We're Not:**
-> A mod hosting platform, game database, or replacement for existing tools. We link, we don't hoard.
+**Last Updated:** February 20, 2026  
+**Status:** Production-Ready, Community-Growing
 
 ---
 
-## 🏛️ System Architecture
+## What This Is
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        User Browser                          │
-├─────────────────────────────────────────────────────────────┤
-│  localStorage                    Session Data                │
-│  ├── current_mod_list           (ephemeral, auto-save)       │
-│  ├── recent_searches                                        │
-│  ├── ui_preferences                                           │
-│  └── saved_lists (optional)     (user choice: local/cloud)   │
-└─────────────────────────────────────────────────────────────┘
-                            ↕ HTTP/HTTPS
-┌─────────────────────────────────────────────────────────────┐
-│                    SkyModderAI Server                        │
-├─────────────────────────────────────────────────────────────┤
-│  Flask Application Layer                                     │
-│  ├── blueprints/              (modular routes)               │
-│  ├── services/                (business logic)               │
-│  └── templates/               (extends base.html)            │
-├─────────────────────────────────────────────────────────────┤
-│  Tool Integration Layer                                      │
-│  ├── LOOT Parser              (load order rules)             │
-│  ├── Conflict Detector        (mod conflicts)                │
-│  ├── Search Engine            (BM25 mod search)              │
-│  ├── AI Integration           (summaries, when needed)       │
-│  └── Knowledge Index          (curated links, not content)   │
-├─────────────────────────────────────────────────────────────┤
-│  Data Storage Layer                                          │
-│  ├── SQLite (instance/app.db) (user accounts, shared data)  │
-│  ├── JSON files (data/)       (mod databases, versioned)     │
-│  └── Cache (Redis/memory)     (performance optimization)     │
-└─────────────────────────────────────────────────────────────┘
-                            ↕ API Calls
-┌─────────────────────────────────────────────────────────────┐
-│                    External Services                         │
-├─────────────────────────────────────────────────────────────┤
-│  LOOT GitHub              (load order masterlist)            │
-│  Nexus Mods API           (mod metadata)                     │
-│  AI APIs (OpenAI/etc)     (summaries, optional)              │
-│  UESP                     (game information - linked)        │
-│  YouTube                  (tutorials - linked)               │
-└─────────────────────────────────────────────────────────────┘
-```
+SkyModderAI is a **mod compatibility checker for Bethesda games**. It finds conflicts, suggests fixes, and helps you build stable mod lists.
+
+Everything else on this page is context for those who care where this is going. If you just want the tool, stop here and use it.
 
 ---
 
-## 📊 Data Flow
+## Core Features
 
-### **Mod Analysis Flow**
+| Feature | What It Does | Why It Matters |
+|---------|--------------|----------------|
+| **Conflict Detection** | Finds incompatible mods | Prevents CTDs and broken saves |
+| **Load Order Validator** | Suggests correct load order | Based on LOOT rules + community data |
+| **Requirements Checker** | Validates mod dependencies | Catches missing masters before release |
+| **Compatibility Database** | Crowdsourced mod compatibility | Real-world data from actual users |
+| **LOOT Metadata Generator** | Generates YAML for masterlist | Saves mod authors hours of work |
+
+---
+
+## How It Works
+
 ```
-User Input (mod list)
+Your Mod List
     ↓
-Browser localStorage (auto-save current list)
+LOOT Rules + Community Database
     ↓
-Server receives list
+Conflict Detection (90% deterministic, 10% AI)
     ↓
-LOOT Parser (parse ESP/ESM names)
-    ↓
-Conflict Detector (check against rules)
-    ↓
-Search Engine (find missing mods)
-    ↓
-AI Integration (optional: generate summary)
-    ↓
-Results → Browser (display + localStorage backup)
-    ↓
-User saves (optional: server storage for cloud sync)
+Actionable Results (patches, load order, alternatives)
 ```
 
-### **Data Storage Decision Tree**
-```
-Is this user-specific?
-├── Yes → Browser localStorage (default)
-│   └── Optional: Server sync (user choice, requires account)
-└── No → Is this shared/community?
-    ├── Yes → Server SQLite (community posts, businesses)
-    └── No → Is this reference data?
-        ├── Yes → JSON files (mod databases, LOOT rules)
-        └── No → Don't store it (link to external source)
-```
+**Key principle:** Deterministic first, AI only when necessary. Rules don't hallucinate.
 
 ---
 
-## 🗄️ Data Storage Strategy
+## Supported Games
 
-### **Local-First (Browser localStorage)**
-
-**What:**
-- Current mod list (auto-save)
-- Recent searches
-- UI preferences (theme, collapsed sections)
-- Session data (unsaved work)
-
-**Why:**
-- Fast (no server round-trip)
-- Works offline
-- User controls their data
-- Reduces server load
-
-**How:**
-```javascript
-// Auto-save current mod list
-localStorage.setItem('current_mod_list', modListJSON);
-
-// Auto-save every 30 seconds
-setInterval(() => {
-  localStorage.setItem('current_mod_list', modListJSON);
-}, 30000);
-
-// Load on page load
-const saved = localStorage.getItem('current_mod_list');
-```
-
-**Compression:**
-```javascript
-// Gzip before storage (pako.js library)
-const compressed = pako.gzip(JSON.stringify(data));
-localStorage.setItem('data', compressed);
-
-// Decompress on load
-const compressed = localStorage.getItem('data');
-const data = JSON.parse(pako.ungzip(compressed));
-```
+- **Skyrim** (Legendary, SE, AE, VR)
+- **Fallout 4**
+- **Oblivion** (beta)
 
 ---
 
-### **Server Storage (SQLite)**
+## Privacy
 
-**What:**
-- User accounts (email, auth, tier)
-- User sessions (device management)
-- Saved lists (if user opts for cloud sync)
-- Community posts (shared content)
-- Business directory (shared content)
-- Advertising data (shared content)
+### What We Track
+- Feature usage (anonymized)
+- Compatibility patterns (aggregated)
+- Session continuity (local UUID)
 
-**Why:**
-- Cross-device sync (when user chooses)
-- Shared content (community, businesses)
-- Authentication (can't be local-only)
-- Revenue features (ads, donations)
+### What We DON'T Track
+- Personal identifiers (email, IP)
+- Full mod lists (unless explicitly shared)
+- Session duration (we don't optimize for addiction)
 
-**Schema:**
-```sql
--- User accounts (authentication)
-users (
-    email TEXT PRIMARY KEY,
-    tier TEXT DEFAULT 'free',
-    email_verified INTEGER DEFAULT 0,
-    password_hash TEXT,
-    created_at TIMESTAMP
-)
-
--- User sessions (device management)
-user_sessions (
-    token TEXT PRIMARY KEY,
-    user_email TEXT,
-    user_agent TEXT,
-    created_at TIMESTAMP,
-    expires_at INTEGER
-)
-
--- Saved lists (optional cloud sync)
-user_saved_lists (
-    id INTEGER PRIMARY KEY,
-    user_email TEXT,
-    name TEXT,
-    list_text TEXT,
-    analysis_snapshot TEXT,
-    saved_at TIMESTAMP,
-    UNIQUE(user_email, name)
-)
-
--- Community content (shared)
-community_posts (
-    id INTEGER PRIMARY KEY,
-    user_email TEXT,
-    content TEXT,
-    created_at TIMESTAMP
-)
-
--- Business directory (shared)
-businesses (
-    id TEXT PRIMARY KEY,
-    name TEXT,
-    slug TEXT UNIQUE,
-    status TEXT DEFAULT 'pending'
-)
-
--- Advertising (shared)
-ad_campaigns (
-    id INTEGER PRIMARY KEY,
-    business_id TEXT,
-    name TEXT,
-    status TEXT DEFAULT 'draft'
-)
-```
+### Your Rights
+- Export your data: `GET /api/samson/telemetry/export`
+- Delete your data: `POST /api/samson/telemetry/delete`
+- Opt-out: Set `SAMSON_TELEMETRY_ENABLED=false`
 
 ---
 
-### **Reference Data (JSON Files)**
+## For Mod Authors
 
-**What:**
-- Mod databases (skyrimse_mod_database.json)
-- Game versions (game_versions.json)
-- LOOT rules (loot/skyrimse/, loot/fallout4/)
+The **Mod Author Tools** panel (Dev tab) includes:
+- Conflict checker (test your mod against popular mods)
+- Load order validator (where should your mod load?)
+- Requirements validator (catch typos before release)
+- LOOT metadata generator (copy-paste for masterlist)
 
-**Why:**
-- Static reference data (doesn't change often)
-- Fast lookup (file system vs. database)
-- Version control (git tracking)
-- Easy updates (pull from LOOT, Nexus)
-
-**Structure:**
-```
-data/
-├── skyrimse_mod_database.json
-├── fallout4_mod_database.json
-├── game_versions.json
-└── loot/
-    ├── skyrimse/
-    │   └── masterlist.json
-    └── fallout4/
-        └── masterlist.json
-```
-
-**Update Strategy:**
-```bash
-# Weekly cron job
-python3 scripts/update_loot_data.py
-python3 scripts/update_nexus_metadata.py
-
-# Auto-update on startup (if data is old)
-@app.before_request
-def check_data_freshness():
-    if data_is_stale():
-        trigger_background_update()
-```
+**Tone:** You've been modding for years. You don't need tutorials. You need tools that work.
 
 ---
 
-## 🔧 Tool Integration
+## For Developers
 
-### **LOOT Parser** (Core)
-**What:** Parses LOOT masterlist for load order rules
-**File:** `loot_parser.py`
-**Usage:**
-```python
-from loot_parser import LOOTParser
-parser = LOOTParser('skyrimse')
-rules = parser.get_rules()
+### Repository Structure
+```
+SkyModderAI/
+├── app.py                    # Flask application
+├── config.py                 # Configuration
+├── compatibility_service.py  # Compatibility database
+├── samson_telemetry.py       # Privacy-first telemetry
+├── CONTRIBUTING.md           # How to contribute
+├── SCALING_GUIDE.md          # Path to 1M users
+└── templates/
+    └── includes/
+        └── dev_panel.html    # Mod author tools
 ```
 
-### **Conflict Detector** (Core)
-**What:** Detects mod conflicts using LOOT rules
-**File:** `conflict_detector.py`
-**Usage:**
-```python
-from conflict_detector import ConflictDetector
-detector = ConflictDetector('skyrimse')
-conflicts = detector.detect_conflicts(mod_list)
-```
-
-### **Search Engine** (Core)
-**What:** BM25 search for mod database
-**File:** `search_engine.py`
-**Usage:**
-```python
-from search_engine import get_search_engine
-results = search_engine.search('skyrimse', 'USSEP')
-```
-
-### **AI Integration** (Optional)
-**What:** Generates summaries when needed
-**File:** `app.py` (AI summary endpoint)
-**Usage:**
-```python
-# Only when user requests summary
-if user_requests_summary:
-    summary = generate_ai_summary(context)
-```
-
-### **Knowledge Index** (Linking)
-**What:** Curated links to external resources
-**File:** `knowledge_index.py`
-**Philosophy:** Link, don't store
-**Usage:**
-```python
-from knowledge_index import get_resolution_for_conflict
-link = get_resolution_for_conflict('USSEP conflict')
-# Returns: UESP link, not full article
-```
+### Tech Stack
+- **Backend:** Python 3.12, Flask
+- **Database:** PostgreSQL (production), SQLite (development)
+- **Cache:** Redis (production), in-memory (development)
+- **Frontend:** Vanilla JS, no framework
 
 ---
 
-## 🔗 Linking Strategy
+## The Promise
 
-### **External Links (Reference)**
+> **"I have found the boundary. I will not cross it. I will make you better. And when the job is done, I will starve."**
 
-**Nexus Mods:**
-- Mod downloads
-- Mod descriptions
-- Requirements
-- **Why:** They host the files, we link
+This isn't just a tagline. It's the architectural constraint that defines every decision:
 
-**UESP:**
-- Game mechanics
-- Quest information
-- Item databases
-- **Why:** They maintain it better, we link
-
-**LOOT:**
-- Load order rules
-- Cleaning guides
-- **Why:** Official source, we sync data
-
-**GitHub:**
-- Tool sources (xEdit, MO2, Wabbajack)
-- Mod sources (open source mods)
-- **Why:** Open source, version control
-
-**YouTube:**
-- Tutorials
-- Video guides
-- **Why:** Video format, they host it
-
-### **Link Health**
-
-**Weekly Check:**
-```python
-# scripts/check_link_health.py
-for link in link_database:
-    status = check_link(link.url)
-    if status != 200:
-        flag_for_review(link)
-        notify_maintainer(link)
-```
-
-**Link Database:**
-```sql
-external_links (
-    id INTEGER PRIMARY KEY,
-    url TEXT UNIQUE,
-    type TEXT,  -- nexus, uesp, github, youtube
-    category TEXT,  -- mod, guide, tool
-    last_checked TIMESTAMP,
-    status INTEGER,  -- 200, 404, 500
-    maintainer_email TEXT
-)
-```
+- **Privacy-first** because extractive data practices make users worse
+- **Deterministic-first** because AI dependency reduces autonomy
+- **Community-driven** because top-down control creates fragility
+- **Self-limiting** because success means the problem is solved
 
 ---
 
-## ⚡ Performance Strategy
+## My Unreasonable Vision
 
-### **Compression**
+> **Skip this section if you just want the tool.** SkyModderAI works on its own merits. What follows is context for those who care where this is going.
 
-**CSS/JS:**
-```bash
-# Build step (Makefile)
-minify:
-    cssmin static/css/*.css > static/css/style.min.css
-    jsmin static/js/*.js > static/js/app.min.js
-    gzip -k static/css/style.min.css
-    gzip -k static/js/app.min.js
-```
+### Why This Exists
 
-**JSON Data:**
-```python
-# Before storage
-import gzip
-import json
+SkyModderAI is the mod compatibility tool I wanted in 2012. Nothing more, nothing less. If it never becomes anything else, it's already worth building.
 
-compressed = gzip.compress(json.dumps(data).encode())
-# Store compressed
+But I'm building it for a reason that's bigger than modding.
 
-# After retrieval
-decompressed = json.loads(gzip.decompress(compressed).decode())
-```
+### The Unreasonable Part
 
-**Images:**
-```bash
-# Convert to WebP
-convert image.png -quality 85 image.webp
+I think labor is decoupling from the economy. Recursive self-improvement in AI systems is arguably already here. The next decade will either be catastrophic displacement or the beginning of post-scarcity—and the difference comes down to **who owns the robots**.
 
-# Resize for thumbnails
-convert image.png -resize 300x300 image_thumb.webp
-```
+My vision: an economy built on robotics, AI, and **unreasonable human drive**.
 
-### **Caching**
+Modders understand unreasonable drive better than anyone. We've spent decades making things that shouldn't exist:
+- Replacing dragons with Thomas the Tank Engine
+- Spending 100 hours on a texture overhaul nobody pays for
+- Building entire games inside other games
 
-**Redis (if available):**
-```python
-from cache_service import get_cache
+That same energy—the refusal to accept "this is how things are"—is what I'm trying to capture and direct at real problems.
 
-cache = get_cache()
+### The Three Beachheads
 
-# Cache analysis results (5 minutes)
-@cache.cached(timeout=300, key_prefix='analysis')
-def analyze_mod_list(game, mod_list):
-    return detector.detect_conflicts(mod_list)
-```
+**1. PNW Orca Pods**
+The Southern Resident orcas are dying. Salmon populations collapsing. Ecosystem failure. I want to bring back a native orca pod to Puget Sound in my lifetime. This is probably impossible. That's why it's worth trying.
 
-**Memory (fallback):**
-```python
-from functools import lru_cache
+**2. Worker Soft Landing**
+When automation takes jobs, what happens to the workers? My answer: they become the **owners** of the automation. Not through policy or UBI, but through direct equity in the robots that replace them. The first Spore (landscaping/blackberry removal) is the test case.
 
-@lru_cache(maxsize=100)
-def analyze_mod_list(game, mod_list_hash):
-    return detector.detect_conflicts(mod_list)
-```
+**3. Ethical AGI**
+This might be a dead-end. The field is full of grifters, hype, and existential risk. But if AGI is coming, I'd rather it be built by people who care about autonomy, privacy, and human flourishing than by corporations optimizing for engagement and extraction.
 
-### **Database Indexes**
+SkyModderAI is Phase I of that third beachhead. A proof that AI can be:
+- Powerful without being extractive
+- Helpful without creating dependency
+- Smart without lying to you
 
-```sql
--- User queries (by email)
-CREATE INDEX idx_users_email ON users(email);
+### Why Modding?
 
--- Saved lists (by user, name)
-CREATE INDEX idx_saved_lists_user ON user_saved_lists(user_email, name);
+Because modding is **practice for world-building**.
 
--- Community posts (by created_at)
-CREATE INDEX idx_posts_created ON community_posts(created_at DESC);
+Modders look at a game and say "this could be better." Then they spend hundreds of hours making it better. They share their work for free. They collaborate across borders. They build tools for strangers.
 
--- Business directory (by status, category)
-CREATE INDEX idx_business_status ON businesses(status, primary_category);
+If you can mod Skyrim, you can mod the world. The skills are the same:
+- Read the documentation (or reverse-engineer it)
+- Find the conflicts (there are always conflicts)
+- Build patches (compromise without compromising)
+- Share your work (community over profit)
 
--- Ad campaigns (by business, status)
-CREATE INDEX idx_campaigns_business ON ad_campaigns(business_id, status);
-```
+### The Honest Truth
+
+This vision might fail. Spectacularly. The orcas might not come back. The workers might not get ownership. The AGI might not be ethical. I might be wrong about everything.
+
+But SkyModderAI still works. It still helps you find conflicts. It still saves you from CTDs. It's still free, still open source, still yours.
+
+The vision is bonus context. The tool is the product.
+
+### If You Share This Vision
+
+- **Modders:** Keep modding. Your work matters more than you think.
+- **Developers:** Build tools that make people autonomous, not dependent.
+- **Workers:** Demand ownership, not just wages.
+- **Everyone:** Find your beachhead. What impossible thing are you building?
+
+### If You Don't Share This Vision
+
+Use the tool. Ignore the rest. Come back when you need conflict detection. Leave when you're done. No hard feelings.
 
 ---
 
-## 📱 Mobile Optimization
+**"The reasonable man adapts himself to the world; the unreasonable one persists in trying to adapt the world to himself. Therefore all progress depends on the unreasonable man."**
 
-### **Data Budget**
-- **Target:** <300KB per page load
-- **Core tool:** <200KB (priority)
-- **Business pages:** <300KB
-- **Shopping pages:** <400KB (ads are heavy)
-
-### **Lazy Loading**
-```html
-<!-- Images -->
-<img src="placeholder.webp" data-src="actual-image.webp" loading="lazy">
-
-<!-- Below-fold content -->
-<div data-defer-load="/api/content">
-  <div class="skeleton-loader"></div>
-</div>
-```
-
-### **Responsive Design**
-```css
-/* Mobile-first */
-.container {
-  padding: 1rem;
-}
-
-/* Tablet+ */
-@media (min-width: 768px) {
-  .container {
-    padding: 2rem;
-  }
-}
-
-/* Desktop+ */
-@media (min-width: 1024px) {
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-}
-```
+— George Bernard Shaw
 
 ---
 
-## 🔒 Security
-
-### **Data Protection**
-- User passwords: bcrypt hashing
-- Sessions: secure cookies, HTTP-only
-- API keys: hashed before storage
-- PII: redacted from logs
-
-### **Rate Limiting**
-```python
-# Per-endpoint limits
-RATE_LIMIT_ANALYZE = 10 per minute
-RATE_LIMIT_SEARCH = 30 per minute
-RATE_LIMIT_API = 100 per minute
-RATE_LIMIT_AUTH = 5 per minute
-```
-
-### **Input Validation**
-```python
-# All user input validated
-def validate_mod_list(mod_list):
-    if len(mod_list) > MAX_MOD_LIST_SIZE:
-        raise ValidationError("Mod list too large")
-    if not is_valid_mod_format(mod_list):
-        raise ValidationError("Invalid mod list format")
-```
+*This vision is my own. SkyModderAI belongs to the community. Use it well.*
 
 ---
 
-## 📈 Monitoring
+## Next Steps
 
-### **Performance Metrics**
-```python
-# Log slow queries
-if query_time > 100ms:
-    logger.warning(f"Slow query: {query_time}ms - {query}")
+### Immediate (Q1 2026)
+- [ ] Launch compatibility database UI
+- [ ] Mod author verification program
+- [ ] Reddit bot for auto-responses
 
-# Log page load times
-@app.after_request
-def log_load_time(response):
-    load_time = get_load_time()
-    logger.info(f"Page load: {load_time}ms - {request.path}")
-```
+### Short-term (Q2 2026)
+- [ ] 10K active users
+- [ ] First governance filter vote
+- [ ] Spore proposal for PNW blackberry removal
 
-### **Error Tracking**
-```python
-# Log all errors
-@app.errorhandler(Exception)
-def handle_error(error):
-    logger.error(f"Error: {error} - {request.path}", exc_info=True)
-    return render_template('error.html', error=str(error)), 500
-```
-
-### **User Analytics** (Anonymized)
-```python
-# Track feature usage (no PII)
-def track_event(event_type, properties=None):
-    event = {
-        'type': event_type,
-        'properties': properties,
-        'timestamp': datetime.now().isoformat(),
-        # NO user_email, NO IP address
-    }
-    analytics.append(event)
-```
+### Long-term (2027+)
+- [ ] Phase II deployment (ecological beachhead)
+- [ ] Phase III pilot (first worker → robot owner)
+- [ ] Phase IV research (cognitive architecture)
 
 ---
 
-## 🎯 Summary
+**Built by modders, for modders.**
 
-**Architecture Principles:**
-1. **Local-first:** Browser storage for user session data
-2. **Smart linking:** Reference external sources, don't hoard
-3. **Tool integration:** Use LOOT, AI APIs, don't reinvent
-4. **Compression:** Gzip JSON, minify CSS/JS, WebP images
-5. **Performance:** <100ms core tool, <300KB mobile data
-6. **Security:** Validate input, rate limit, hash sensitive data
-7. **Monitoring:** Log slow queries, errors, anonymized analytics
-
-**What Makes This Work:**
-- Clear separation: local vs. server vs. reference data
-- Smart use of existing tools (LOOT, AI APIs)
-- Linking strategy (reference, don't duplicate)
-- Performance budget (strict limits)
-- Security first (validation, rate limiting)
-
-**Status:** DOCUMENTED ✅
+*Free forever. Open source. Privacy-first.*

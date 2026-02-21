@@ -184,7 +184,7 @@
         const context = document.getElementById('vote-context').value;
         const selectedRating = document.querySelector('.vote-btn[style*="white"]');
         if (!selectedRating) {
-            alert('Please select a rating');
+            showToast('Please select a rating', 'warning');
             return;
         }
         const score = parseInt(selectedRating.textContent.replace('⭐', '')) || 1;
@@ -197,10 +197,10 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                alert('Thank you for your rating!');
+                showSuccess('Rating submitted! Thank you.');
                 location.reload();
             } else {
-                alert('Failed to submit rating: ' + data.error);
+                showError('Failed to submit rating: ' + data.error);
             }
         });
     }
@@ -222,10 +222,10 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                alert('Thank you for your report. We\'ll review it shortly.');
+                showSuccess('Thank you for your report. We\'ll review it shortly.');
                 location.reload();
             } else {
-                alert('Failed to submit report: ' + data.error);
+                showError('Failed to submit report: ' + data.error);
             }
         });
     }
@@ -242,9 +242,9 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                alert('Connection request sent! They\'ll be notified via email.');
+                showSuccess('Connection request sent! They\'ll be notified via email.');
             } else {
-                alert('Failed to send request: ' + data.error);
+                showError('Failed to send request: ' + data.error);
             }
         });
     }

@@ -287,7 +287,9 @@ class ResultConsolidator:
             icon = (
                 "🔴"
                 if group.severity == "critical"
-                else "⚠️" if group.severity == "warning" else "ℹ️"
+                else "⚠️"
+                if group.severity == "warning"
+                else "ℹ️"
             )
             lines.append(f"{icon} {group.title} ({group.count})")
 

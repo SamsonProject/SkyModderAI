@@ -86,10 +86,8 @@ class SessionTracker {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(summary)
             });
-
-            console.log('Session saved:', this.sessionId);
         } catch (error) {
-            console.error('Failed to save session:', error);
+            // Silently fail - session save is not critical
         }
     }
 }

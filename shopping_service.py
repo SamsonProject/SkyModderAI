@@ -18,7 +18,7 @@ import hashlib
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
@@ -182,7 +182,7 @@ class ShoppingService:
         """Check if campaign is still in first month free period."""
         if not campaign.first_month_free or not campaign.first_month_end:
             return False
-        return datetime.now() < campaign.first_month_end
+        return datetime.now(timezone.utc) < campaign.first_month_end
 
     # ==================== Campaign Management ====================
 
@@ -199,7 +199,7 @@ class ShoppingService:
 
         First month is FREE - automatic upon business approval.
         """
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         first_month_end = now + timedelta(days=self.FIRST_MONTH_DAYS) if first_month_free else None
 
         # Calculate click credits based on budget
@@ -397,7 +397,7 @@ class ShoppingService:
         cta_text: str = "Learn More",
     ) -> Optional[AdCreative]:
         """Create a new ad creative."""
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
 
         creative = AdCreative(
             id=0,

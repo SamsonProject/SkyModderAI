@@ -362,11 +362,11 @@
                 Like starting a new Fallout save with scavenged junk—bootstrap from zero using modder smarts.
                 Survey the wasteland before building your empire.
             {% elif category == 'building_community' %}
-                Like growing a Factorio factory—automate connections for sustainable growth.
+                Like building a Fallout 4 settlement—establish trade routes and alliances for sustainable growth.
                 Build your reputation like farming faction standing.
             {% elif category == 'metrics' %}
                 Like analyzing Skyrim load orders—track what drives real progress.
-                Monitor your power consumption like a megabase engineer.
+                Optimize your build like min-maxing your SPECIAL stats.
             {% elif category == 'advanced_strategy' %}
                 Like modding epic quests—scale to impose positive will on the world.
                 Build alliances for massive multiplayer projects.
@@ -375,6 +375,48 @@
                 Install these mod packs to enhance your playthrough.
             {% else %}
                 Game-inspired steps to level up your venture.
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Video Summary - Top of page for quick overview -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-xl); margin-bottom: var(--space-xl);">
+        <h3 style="margin-bottom: var(--space-md); font-size: 1.25rem;">
+            {% if category == 'getting_started' %}
+                🎥 Getting Started in 5 Minutes
+            {% elif category == 'building_community' %}
+                🎥 Building Your Audience in 5 Minutes
+            {% elif category == 'metrics' %}
+                🎥 Business Metrics That Actually Matter
+            {% elif category == 'advanced_strategy' %}
+                🎥 Scaling & Exit Strategy
+            {% elif category == 'external_resources' %}
+                🎥 Free Tools & Resources
+            {% else %}
+                🎥 Video Overview
+            {% endif %}
+        </h3>
+        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: var(--radius-md); background: #000;">
+            <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                src="{% if category == 'getting_started' %}https://www.youtube.com/embed/0eHqkLprnpc{% elif category == 'building_community' %}https://www.youtube.com/embed/bF6bDPF0Les{% elif category == 'metrics' %}https://www.youtube.com/embed/l8Fj9L0eXhE{% elif category == 'advanced_strategy' %}https://www.youtube.com/embed/SXHH9fXVJdE{% elif category == 'external_resources' %}https://www.youtube.com/embed/ZpGKHBx3uHs{% else %}https://www.youtube.com/embed/0eHqkLprnpc{% endif %}"
+                title="Business Guide Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+            </iframe>
+        </div>
+        <p style="margin-top: var(--space-md); color: var(--text-secondary); font-size: 0.9rem;">
+            {% if category == 'getting_started' %}
+                Quick overview: validate your idea, pick a legal structure, set up finances, and launch lean.
+            {% elif category == 'building_community' %}
+                Quick overview: find your first customers, build in public, leverage content marketing, and form partnerships.
+            {% elif category == 'metrics' %}
+                Quick overview: track revenue, profit, cash flow, and the KPIs that predict success or failure.
+            {% elif category == 'advanced_strategy' %}
+                Quick overview: when to scale, hiring strategies, funding options, and planning your exit.
+            {% elif category == 'external_resources' %}
+                Quick overview: free tools, mentorship networks, and communities that accelerate your growth.
+            {% else %}
+                Watch this overview before diving into the resources below.
             {% endif %}
         </p>
     </div>

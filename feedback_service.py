@@ -7,14 +7,14 @@ Provides:
 - Feedback collection (ratings, issues, suggestions)
 - Self-improvement log (running shorthand for weekly reports)
 
-All feedback feeds into the weekly report to chris@skymoddereai.com.
+All feedback feeds into the weekly report to chris@skymodderai.com.
 """
 
 from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -30,7 +30,7 @@ class SessionTracker:
     def __init__(self, user_email: Optional[str] = None, session_id: Optional[str] = None):
         self.user_email = user_email
         self.session_id = session_id or str(uuid4())
-        self.start_time = datetime.now()
+        self.start_time = datetime.now(timezone.utc)
         self.events: list[dict[str, Any]] = []
         self.queries: list[dict[str, Any]] = []
         self.resolutions: list[dict[str, Any]] = []
@@ -38,11 +38,19 @@ class SessionTracker:
     def track_query(self, query_type: str, query_data: dict[str, Any]):
         """Track a user query."""
         self.queries.append(
-            {"type": query_type, "data": query_data, "timestamp": datetime.now().isoformat()}
+            {
+                "type": query_type,
+                "data": query_data,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
         )
 
         self.events.append(
-            {"event": "query", "type": query_type, "timestamp": datetime.now().isoformat()}
+            {
+                "event": "query",
+                "type": query_type,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
         )
 
     def track_resolution(
@@ -54,7 +62,7 @@ class SessionTracker:
                 "type": resolution_type,
                 "data": resolution_data,
                 "helpful": helpful,
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
 
@@ -65,13 +73,13 @@ class SessionTracker:
                 "event": "action",
                 "action": action,
                 "details": details,
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
 
     def get_session_summary(self) -> dict[str, Any]:
         """Get session summary for curation."""
-        duration = (datetime.now() - self.start_time).total_seconds()
+        duration = (datetime.now(timezone.utc) - self.start_time).total_seconds()
 
         return {
             "session_id": self.session_id,
@@ -105,7 +113,7 @@ class SessionTracker:
             logger.debug(f"Session {self.session_id} saved for {self.user_email}")
 
         except Exception as e:
-            logger.debug(f"Failed to save session: {e}")
+            logger.exception("Failed to save session")
 
 
 def track_analysis(user_email: Optional[str], game: str, mod_count: int, conflict_count: int):
@@ -125,7 +133,7 @@ def track_analysis(user_email: Optional[str], game: str, mod_count: int, conflic
         session.add(activity)
         session.commit()
     except Exception as e:
-        logger.debug(f"Failed to track analysis: {e}")
+        logger.exception("Failed to track analysis")
 
 
 def track_search(user_email: Optional[str], query: str, game: str, results_count: int):
@@ -141,7 +149,7 @@ def track_search(user_email: Optional[str], query: str, game: str, results_count
         session.add(activity)
         session.commit()
     except Exception as e:
-        logger.debug(f"Failed to track search: {e}")
+        logger.exception("Failed to track search")
 
 
 def track_chat(user_email: Optional[str], message: str, game: str, had_resolution: bool):
@@ -159,7 +167,7 @@ def track_chat(user_email: Optional[str], message: str, game: str, had_resolutio
         session.add(activity)
         session.commit()
     except Exception as e:
-        logger.debug(f"Failed to track chat: {e}")
+        logger.exception("Failed to track chat")
 
 
 def submit_feedback(
@@ -225,7 +233,7 @@ def submit_feedback(
         return True
 
     except Exception as e:
-        logger.debug(f"Failed to submit feedback: {e}")
+        logger.exception("Failed to submit feedback")
         return False
 
 
@@ -288,7 +296,7 @@ def log_self_improvement(
         metadata: Additional data (counts, percentages, etc.)
     """
     entry = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "event_type": event_type,
         "category": category,
         "description": description,
@@ -309,7 +317,7 @@ def log_self_improvement(
         session.add(activity)
         session.commit()
     except Exception as e:
-        logger.debug(f"Failed to log self-improvement event: {e}")
+        logger.exception("Failed to log self-improvement event")
 
 
 def log_win(category: str, description: str, impact: Optional[str] = None):
@@ -370,9 +378,9 @@ def get_self_improvement_log(
         List of log entries
     """
     if start_date is None:
-        start_date = datetime.now() - timedelta(days=7)
+        start_date = datetime.now(timezone.utc) - timedelta(days=7)
     if end_date is None:
-        end_date = datetime.now()
+        end_date = datetime.now(timezone.utc)
 
     # Filter in-memory log
     filtered = [
@@ -406,7 +414,7 @@ def get_self_improvement_log(
         filtered.sort(key=lambda x: x.get("timestamp", ""))
 
     except Exception as e:
-        logger.debug(f"Failed to get self-improvement log from database: {e}")
+        logger.warning(f"Failed to get self-improvement log from database: {e}")
 
     return filtered
 
@@ -421,7 +429,7 @@ def clear_self_improvement_log(before_date: Optional[datetime] = None):
     global _self_improvement_log
 
     if before_date is None:
-        before_date = datetime.now()
+        before_date = datetime.now(timezone.utc)
 
     # Clear in-memory log
     _self_improvement_log = [
@@ -448,7 +456,7 @@ def clear_self_improvement_log(before_date: Optional[datetime] = None):
         session.commit()
 
     except Exception as e:
-        logger.debug(f"Failed to clear self-improvement log: {e}")
+        logger.warning(f"Failed to clear self-improvement log: {e}")
 
 
 # =============================================================================
@@ -510,7 +518,7 @@ def curate_after_session(session_summary: dict[str, Any]):
             event_data=json.dumps(
                 {
                     "session_id": session_summary.get("session_id"),
-                    "curated_at": datetime.now().isoformat(),
+                    "curated_at": datetime.now(timezone.utc).isoformat(),
                     "wins": len([r for r in resolutions if r.get("helpful")]),
                     "gaps": len(queries) - len(resolutions),
                 }
@@ -520,10 +528,10 @@ def curate_after_session(session_summary: dict[str, Any]):
         session.add(activity)
         session.commit()
 
-        logger.debug("Session curation complete")
+        logger.info("Session curation complete")
 
     except Exception as e:
-        logger.debug(f"Session curation failed: {e}")
+        logger.warning(f"Session curation failed: {e}")
 
 
 def schedule_post_session_curation(session_tracker: SessionTracker):
@@ -612,7 +620,7 @@ def get_feedback_summary(days: int = 7) -> dict[str, Any]:
         }
 
     except Exception as e:
-        logger.debug(f"Failed to get feedback summary: {e}")
+        logger.exception("Failed to get feedback summary")
         return {
             "total_feedback": 0,
             "by_type": {},

@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-openclaw_bp = Blueprint("openclaw", __name__, url_prefix="/openclaw")
+openclaw_bp = Blueprint("openclaw", __name__, url_prefix="/api/v1/openclaw")
 
 
 def openclaw_enabled_check() -> bool:
